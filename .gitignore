@@ -1,1 +1,21 @@
+# Third-party libraries
 third-party/
+
+# CMake build files
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# C++ build output
+*.o
+*.so
+*.a
+*.dll
+*.exe
+*.out
+
+# User-specific files
+*.user
+.DS_Store

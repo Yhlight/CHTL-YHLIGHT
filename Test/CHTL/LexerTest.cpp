@@ -1,0 +1,42 @@
+#include <gtest/gtest.h>
+#include "CHTL/Lexer.h"
+
+TEST(LexerTest, SimpleTokens) {
+    std::string source = "{};:=";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::OpenBrace);
+    EXPECT_EQ(token.value, "{");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::CloseBrace);
+    EXPECT_EQ(token.value, "}");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Semicolon);
+    EXPECT_EQ(token.value, ";");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Colon);
+    EXPECT_EQ(token.value, ":");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Equals);
+    EXPECT_EQ(token.value, "=");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
+TEST(LexerTest, Identifier) {
+    std::string source = "div";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "div");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}

@@ -1,0 +1,33 @@
+#include "StringUtil.h"
+#include <sstream>
+#include <algorithm>
+
+namespace CHTL {
+namespace Util {
+
+std::string Trim(const std::string& str) {
+    const std::string whitespace = " \t\n\r\f\v";
+    size_t first = str.find_first_not_of(whitespace);
+    if (std::string::npos == first) {
+        return "";
+    }
+    size_t last = str.find_last_not_of(whitespace);
+    return str.substr(first, (last - first + 1));
+}
+
+std::vector<std::string> Split(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(str);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    // Handle the case where the string is empty
+    if (str.empty()) {
+        tokens.push_back("");
+    }
+    return tokens;
+}
+
+} // namespace Util
+} // namespace CHTL
