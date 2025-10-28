@@ -1,1 +1,39 @@
-third-party/
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Build artifacts
+build/
+bin/
+lib/
+*.so
+*.a
+*.dll
+*.exe
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C++
+*.o
+*.obj
+*.out
+*.slo
+*.lo
+*.pch
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
