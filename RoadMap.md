@@ -10,13 +10,13 @@ This document outlines the development and refactoring route for the CHTL projec
     - [x] Set up the recommended project directory structure
     - [x] Configure CMake for the C++ project
     - [x] Create a Python build script
-- [ ] **CHTL Lexer**
-    - [ ] Implement tokenization for basic CHTL syntax (comments, text nodes, elements, attributes)
-    - [ ] Write comprehensive tests for the lexer
+- [x] **CHTL Lexer**
+    - [x] Implement tokenization for basic CHTL syntax (comments, text nodes, elements, attributes)
+    - [x] Write comprehensive tests for the lexer
 - [ ] **CHTL Parser**
     - [ ] Implement a parser to build an Abstract Syntax Tree (AST) from the lexer's tokens
-    - [ ] Define node types for the AST
-    - [ ] Write tests for the parser
+    - [x] Define node types for the AST
+    - [x] Write tests for the parser
 
 ## Phase 2: CHTL Language Features
 
