@@ -40,6 +40,7 @@ enum class TokenType {
     Style,
     Script,
     TemplateKeyword, // [Template]
+    InheritKeyword,
 
     // Comments
     LineComment,

@@ -35,6 +35,10 @@ std::shared_ptr<ProgramNode> Parser::parse() {
 }
 
 std::shared_ptr<BaseNode> Parser::parseStatement() {
+    if (m_currentToken.type == TokenType::InheritKeyword) {
+        eat(TokenType::InheritKeyword);
+    }
+
     if (m_currentToken.type == TokenType::TemplateKeyword) {
         if (m_lexer.peek().value == "@Style") {
             return parseTemplateStyleDefinition();
@@ -193,6 +197,10 @@ std::shared_ptr<StyleBlockNode> Parser::parseStyleBlock() {
 
 void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) {
     while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        if (m_currentToken.type == TokenType::InheritKeyword) {
+            eat(TokenType::InheritKeyword);
+        }
+
         if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Style") {
             eat(TokenType::Identifier); // Eat "@Style"
             styleBlock->addUsedTemplate(m_currentToken.value);

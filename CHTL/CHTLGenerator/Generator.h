@@ -27,6 +27,7 @@ private:
 
     void visit(std::shared_ptr<BaseNode> node, std::string& output);
     std::string generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock);
+    void collectStyleProperties(std::shared_ptr<const StyleBlockNode> styleBlock, std::map<std::string, std::string>& properties);
 };
 
 } // namespace CHTL

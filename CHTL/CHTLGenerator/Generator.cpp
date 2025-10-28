@@ -79,21 +79,19 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
     }
 }
 
-std::string Generator::generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock) {
+void Generator::collectStyleProperties(std::shared_ptr<const StyleBlockNode> styleBlock, std::map<std::string, std::string>& properties) {
     if (!styleBlock) {
-        return "";
+        return;
     }
 
-    std::string content;
-
-    // First, recursively expand templates
+    // First, recursively collect properties from inherited templates
     for (const auto& templateName : styleBlock->getUsedTemplates()) {
         if (m_styleTemplates.count(templateName)) {
-            content += generateStyleContent(m_styleTemplates.at(templateName)->getStyleBlock());
+            collectStyleProperties(m_styleTemplates.at(templateName)->getStyleBlock(), properties);
         }
     }
 
-    // Then, add the properties from the current block
+    // Then, add/override with properties from the current block
     for (const auto& prop : styleBlock->getProperties()) {
         std::string value = prop->getValue();
 
@@ -111,10 +109,18 @@ std::string Generator::generateStyleContent(std::shared_ptr<const StyleBlockNode
                 }
             }
         }
-
-        content += prop->getKey() + ":" + value + ";";
+        properties[prop->getKey()] = value;
     }
+}
 
+std::string Generator::generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock) {
+    std::map<std::string, std::string> properties;
+    collectStyleProperties(styleBlock, properties);
+
+    std::string content;
+    for (const auto& pair : properties) {
+        content += pair.first + ":" + pair.second + ";";
+    }
     return content;
 }
 

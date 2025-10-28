@@ -90,6 +90,11 @@ Token Lexer::nextToken() {
             value += currentChar();
             advance();
         }
+
+        if (value == "inherit") {
+            return makeToken(TokenType::InheritKeyword, value);
+        }
+
         return makeToken(TokenType::Identifier, value);
     }
 
