@@ -128,6 +128,17 @@ struct BinaryOpNode : public ASTNode {
     }
 };
 
+struct PropertyAccessNode : public ASTNode {
+    std::string selector;
+    std::string property;
+
+    NodeType getType() const override { return NodeType::PropertyAccess; }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "PropertyAccess(" << selector << "." << property << ")" << std::endl;
+    }
+};
+
 // Represents a style block
 struct StyleNode : public ASTNode {
     std::vector<StyleProperty> properties;

@@ -6,6 +6,7 @@
 #include "CHTL/CHTLLexer/Lexer.h"
 #include "CHTL/CHTLParser/Parser.h"
 #include "CHTL/CHTLGenerator/Generator.h"
+#include "CHTL/CHTLAnalyser/Analyser.h"
 
 using namespace CHTL;
 
@@ -29,22 +30,11 @@ int main() {
                     text { "This is a paragraph generated from CHTL." }
                 }
                 div {
+                    class: "box";
                     style {
-                        .auto-class {}
                         width: 100px;
                     }
-                    text { "This div has an auto-generated class." }
-                }
-                a {
-                    href: "https://example.com";
-                    class: "link";
-                    style {
-                        color: red;
-                        &:hover {
-                            color: green;
-                        }
-                    }
-                    text { "This is a link." }
+                    text { "This is a box." }
                 }
                 div {
                     class: "calculated";
@@ -54,6 +44,15 @@ int main() {
                         border: 1px solid black;
                     }
                     text { "This div has a calculated width." }
+                }
+                div {
+                    class: "referenced";
+                    style {
+                        width: .box.width + 25px;
+                        height: 50px;
+                        border: 1px solid red;
+                    }
+                    text { "This div has a referenced width." }
                 }
             }
         }
@@ -68,11 +67,15 @@ int main() {
         Parser parser(tokens);
         std::unique_ptr<ProgramNode> ast = parser.parse();
 
-        // 3. Generator: Generate HTML from the AST
+        // 3. Analyser: Perform semantic analysis and resolve references
+        Analyser analyser(*ast);
+        analyser.analyse();
+
+        // 4. Generator: Generate HTML from the AST
         Generator generator(*ast);
         std::string html_output = generator.generate();
 
-        // 4. Print the result
+        // 5. Print the result
         std::cout << "--- CHTL Source ---" << std::endl;
         std::cout << source << std::endl;
         std::cout << "\n--- Generated HTML ---" << std::endl;

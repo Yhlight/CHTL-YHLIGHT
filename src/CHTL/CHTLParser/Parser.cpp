@@ -164,6 +164,17 @@ std::unique_ptr<ASTNode> Parser::parseExpression(int precedence) {
 }
 
 std::unique_ptr<ASTNode> Parser::parsePrefix() {
+    if (check(TokenType::DOT) || check(TokenType::HASH)) {
+        std::string selector = advance().lexeme;
+        selector += consume(TokenType::IDENTIFIER, "Expect selector name.").lexeme;
+        consume(TokenType::DOT, "Expect '.' after selector.");
+        std::string prop = consume(TokenType::IDENTIFIER, "Expect property name.").lexeme;
+
+        auto node = std::make_unique<PropertyAccessNode>();
+        node->selector = selector;
+        node->property = prop;
+        return node;
+    }
     if (match({TokenType::NUMBER})) {
         auto node = std::make_unique<NumberLiteralNode>();
         try {

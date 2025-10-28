@@ -13,7 +13,6 @@ std::string ExpressionEvaluator::evaluate(const ASTNode* expression) {
     }
 
     auto str_val = std::get<std::string>(result);
-    // A more robust way would be to add another type to the variant.
     if (expression->getType() == NodeType::StringLiteral) {
         return "\"" + str_val + "\"";
     }
@@ -21,6 +20,9 @@ std::string ExpressionEvaluator::evaluate(const ASTNode* expression) {
 }
 
 EvaluatedValue ExpressionEvaluator::visit(const ASTNode* node) {
+    if (!node) {
+        throw std::runtime_error("Cannot visit a null node.");
+    }
     switch (node->getType()) {
         case NodeType::NumberLiteral:
             return visit(static_cast<const NumberLiteralNode*>(node));
@@ -55,7 +57,6 @@ EvaluatedValue ExpressionEvaluator::visit(const BinaryOpNode* node) {
         auto left_num = std::get<NumericValue>(left);
         auto right_num = std::get<NumericValue>(right);
 
-        // Unit compatibility check
         if (!left_num.unit.empty() && !right_num.unit.empty() && left_num.unit != right_num.unit) {
             throw std::runtime_error("Mismatched units in arithmetic operation: " + left_num.unit + " and " + right_num.unit);
         }
@@ -78,11 +79,10 @@ EvaluatedValue ExpressionEvaluator::visit(const BinaryOpNode* node) {
         return NumericValue{result_val, result_unit};
     }
 
-    // Handle string concatenation for identifiers like `center`, `solid`, etc.
     if (node->op.type == TokenType::PLUS) {
          auto left_str = std::holds_alternative<NumericValue>(left) ? (formatDouble(std::get<NumericValue>(left).value) + std::get<NumericValue>(left).unit) : std::get<std::string>(left);
          auto right_str = std::holds_alternative<NumericValue>(right) ? (formatDouble(std::get<NumericValue>(right).value) + std::get<NumericValue>(right).unit) : std::get<std::string>(right);
-         return left_str + " " + right_str; // Add space for css values like `1px solid red`
+         return left_str + " " + right_str;
     }
 
     throw std::runtime_error("Unsupported operator for the given types in binary operation.");

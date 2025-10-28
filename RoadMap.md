@@ -27,6 +27,10 @@ This document outlines the development roadmap for the CHTL project, guided by t
         - [x] Implement an expression parser to handle operator precedence.
         - [x] Create an expression evaluator to compute final values and handle unit rules.
     - [ ] **Attribute Referencing:** Implement the ability for style properties to reference the values of other properties using CSS selectors (`width: .box.width`).
+        - [ ] Create a `SymbolTable` to store element properties.
+        - [ ] Add `PropertyAccessNode` to the AST.
+        - [ ] Update the parser to handle property access expressions.
+        - [ ] Implement an `Analyser` class to populate the symbol table and resolve references.
     - [ ] **Conditional Expressions:** Implement support for ternary conditional expressions in style properties (`background-color: width > 50px ? "red" : "blue"`).
 - [ ] **Templates (`[Template]`):**
     - [ ] Style group templates (`@Style`).

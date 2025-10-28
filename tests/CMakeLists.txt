@@ -12,10 +12,13 @@ add_executable(
   GeneratorTest.cpp
   StyleTest.cpp
   ArithmeticTest.cpp
+  ReferenceTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp
   ../src/CHTL/CHTLGenerator/ExpressionEvaluator.cpp
+  ../src/CHTL/CHTLAnalyser/Analyser.cpp
+  ../src/CHTL/CHTLAnalyser/SymbolTable.cpp
 )
 
 target_include_directories(run_tests PRIVATE ../src)
