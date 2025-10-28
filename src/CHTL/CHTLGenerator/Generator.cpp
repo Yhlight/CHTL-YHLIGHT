@@ -5,6 +5,7 @@ namespace CHTL {
 Generator::Generator(const ProgramNode& program) : m_program(program) {}
 
 std::string Generator::generate() {
+    collectStyles(&m_program);
     visit(&m_program);
     return m_output.str();
 }
@@ -29,12 +30,69 @@ void Generator::visit(const ASTNode* node) {
 }
 
 void Generator::visit(const ProgramNode* node) {
+    // A simplified approach: we assume a single top-level `html` element.
+    // A more robust generator would handle fragments or multiple top-level elements.
+    if (node->children.size() == 1 && node->children[0]->getType() == NodeType::Element) {
+        const auto* html_node = static_cast<const ElementNode*>(node->children[0].get());
+        if (html_node->tagName == "html") {
+             m_output << "<html>\n";
+             // Find head and inject styles
+             bool head_found = false;
+             for(const auto& child : html_node->children){
+                 if(child->getType() == NodeType::Element){
+                     const auto* element = static_cast<const ElementNode*>(child.get());
+                     if(element->tagName == "head"){
+                         head_found = true;
+                     }
+                 }
+             }
+
+            if(!head_found && !m_global_styles.empty()){
+                m_output << "<head>\n<style>\n";
+                for (const auto& style : m_global_styles) {
+                    m_output << style;
+                }
+                m_output << "</style>\n</head>\n";
+            }
+
+            for(const auto& child : html_node->children){
+                visit(child.get());
+            }
+
+            m_output << "</html>\n";
+            return;
+        }
+    }
+
+    // Fallback for non-standard structure
     for (const auto& child : node->children) {
         visit(child.get());
     }
 }
 
 void Generator::visit(const ElementNode* node) {
+    if(node->tagName == "head" && !m_global_styles.empty()){
+        indent();
+        m_output << "<head>\n";
+        m_indent_level++;
+        indent();
+        m_output << "<style>\n";
+        for (const auto& style : m_global_styles) {
+            m_output << style;
+        }
+        m_output << "</style>\n";
+
+        for (const auto& child : node->children) {
+            visit(child.get());
+        }
+
+        m_indent_level--;
+        indent();
+        m_output << "</head>\n";
+        return;
+    }
+
+
     indent();
     m_output << "<" << node->tagName;
 
@@ -57,7 +115,13 @@ void Generator::visit(const ElementNode* node) {
         m_output << " style=\"";
         for (size_t i = 0; i < node->style->properties.size(); ++i) {
             const auto& prop = node->style->properties[i];
-            m_output << prop.key << ": " << prop.value << ";";
+            m_output << prop.key << ": ";
+            if (prop.valueType == TokenType::STRING) {
+                m_output << "\"" << prop.value << "\"";
+            } else {
+                m_output << prop.value;
+            }
+            m_output << ";";
             if (i < node->style->properties.size() - 1) {
                 m_output << " ";
             }
@@ -94,6 +158,67 @@ void Generator::visit(const TextNode* node) {
 void Generator::indent() {
     for (int i = 0; i < m_indent_level; ++i) {
         m_output << "  "; // 2 spaces for indentation
+    }
+}
+
+
+void Generator::collectStyles(const ASTNode* node) {
+    if (!node) return;
+
+    if (node->getType() == NodeType::Element) {
+        const auto* element = static_cast<const ElementNode*>(node);
+        if (element->style) {
+            std::string base_selector;
+            if (!element->auto_ids.empty()) {
+                base_selector = "#" + element->auto_ids[0];
+            } else if (!element->auto_classes.empty()) {
+                base_selector = "." + element->auto_classes[0];
+            } else if (!element->attributes.empty()) {
+                 for(const auto& attr : element->attributes){
+                    if(attr.key == "id"){
+                        base_selector = "#" + attr.value;
+                        break;
+                    }
+                    if(attr.key == "class"){
+                        base_selector = "." + attr.value;
+                        break;
+                    }
+                }
+            }
+
+
+            for (const auto& block : element->style->selector_blocks) {
+                std::string final_selector = block->selector;
+                // Replace '&' with the base selector
+                size_t pos = final_selector.find('&');
+                if (pos != std::string::npos) {
+                    final_selector.replace(pos, 1, base_selector);
+                }
+
+                std::stringstream ss;
+                ss << final_selector << " {\n";
+                for (const auto& prop : block->properties) {
+                    ss << "  " << prop.key << ": ";
+                    if (prop.valueType == TokenType::STRING) {
+                        ss << "\"" << prop.value << "\"";
+                    } else {
+                        ss << prop.value;
+                    }
+                    ss << ";\n";
+                }
+                ss << "}\n";
+                m_global_styles.push_back(ss.str());
+            }
+        }
+
+        for (const auto& child : element->children) {
+            collectStyles(child.get());
+        }
+    } else if (node->getType() == NodeType::Program) {
+        const auto* program = static_cast<const ProgramNode*>(node);
+        for (const auto& child : program->children) {
+            collectStyles(child.get());
+        }
     }
 }
 

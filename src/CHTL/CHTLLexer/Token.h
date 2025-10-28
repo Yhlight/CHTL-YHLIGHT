@@ -11,7 +11,7 @@ enum class TokenType {
     LEFT_BRACE, RIGHT_BRACE,     // { }
     LEFT_PAREN, RIGHT_PAREN,     // ( )
     LEFT_BRACKET, RIGHT_BRACKET, // [ ]
-    COLON, SEMICOLON, COMMA, DOT, // : ; , .
+    COLON, COLON_COLON, SEMICOLON, COMMA, DOT, // : ; , .
     EQUAL,                      // =
     PLUS, MINUS, STAR, SLASH, PERCENT, // + - * / %
     STAR_STAR,                  // **
@@ -66,6 +66,7 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::LEFT_BRACKET: return "LEFT_BRACKET";
         case TokenType::RIGHT_BRACKET: return "RIGHT_BRACKET";
         case TokenType::COLON: return "COLON";
+        case TokenType::COLON_COLON: return "COLON_COLON";
         case TokenType::SEMICOLON: return "SEMICOLON";
         case TokenType::COMMA: return "COMMA";
         case TokenType::DOT: return "DOT";

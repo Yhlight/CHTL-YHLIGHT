@@ -1,8 +1,8 @@
 # CHTL Project Roadmap
 
-This document outlines the development roadmap for the CHTL project. The development will be broken down into several phases, focusing on a Test-Driven Development (TDD) approach to ensure stability and correctness.
+This document outlines the development roadmap for the CHTL project, guided by the official `CHTL.md` specification. Development is broken down into phases, adhering to a Test-Driven Development (TDD) approach to ensure stability and correctness.
 
-## Phase 1: Core Compiler Infrastructure
+## Phase 1: Core Compiler Infrastructure (Completed)
 
 - [x] **Lexer (Tokenizer):** Implement the lexical analyzer to convert CHTL source code into a stream of tokens.
 - [x] **Parser:** Implement the parser to build an Abstract Syntax Tree (AST) from the token stream.
@@ -19,33 +19,44 @@ This document outlines the development roadmap for the CHTL project. The develop
 - [x] **Local Style Blocks (`style {}`):**
     - [x] Inline styles.
     - [x] Automatic class/id generation.
-    - [ ] Context-aware `&` selector.
+    - [x] Context-aware `&` selector (pseudo-classes and pseudo-elements).
 - [ ] **Advanced Style Features:**
-    - [ ] Attribute arithmetic (`width: 100px + 50px`).
+    - [ ] Attribute arithmetic (`width: 100px + 5%`).
     - [ ] Attribute referencing (`width: .box.width`).
     - [ ] Conditional expressions (`background-color: width > 50px ? "red" : "blue"`).
-- [ ] **Templates:**
-    - [ ] Style group templates (`[Template] @Style`).
-    - [ ] Element templates (`[Template] @Element`).
-    - [ ] Variable group templates (`[Template] @Var`).
-    - [ ] Template inheritance.
+- [ ] **Templates (`[Template]`):**
+    - [ ] Style group templates (`@Style`).
+    - [ ] Element templates (`@Element`).
+    - [ ] Variable group templates (`@Var`).
+    - [ ] Template inheritance (`@Style OtherStyle;` and `inherit @Style OtherStyle;`).
 - [ ] **Customization (`[Custom]`):**
     - [ ] Custom style groups with value placeholders.
     - [ ] Specialization (deleting properties, inserting/deleting elements).
 - [ ] **Imports (`[Import]`):**
     - [ ] Import CHTL, HTML, CSS, and JS files.
-    - [ ] Namespace support.
-- [ ] **Configuration (`[Configuration]`):**
-    - [ ] Implement support for custom configurations.
-    - [ ] Keyword renaming (`[Name]`).
+- [ ] **Namespaces (`[Namespace]`):**
+    - [ ] Define and use namespaces.
+    - [ ] Handle automatic namespacing on import.
+- [ ] **Other Features:**
+    - [ ] Raw embedding (`[Origin]`).
+    - [ ] Constraints (`except`).
+    - [ ] Configuration (`[Configuration]`).
 
 ## Phase 3: CHTL JS Integration
 
 - [ ] **Salt Bridge (Shared Core):** Design and implement the communication bridge between the CHTL and CHTL JS compilers.
-- [ ] **CHTL JS Lexer and Parser:** Implement the lexer and parser for the CHTL JS syntax.
-- [ ] **Enhanced Selectors (`{{...}}`):** Implement the enhanced DOM element selector syntax.
-- [ ] **Local Script Blocks (`script {}`):** Handle local script blocks and their interaction with the global script context.
-- [ ] **Dynamic Features:**
+- [ ] **CHTL JS Lexer and Parser:**
+    - [ ] Implement preprocessor for `[__CHTLJS__]` blocks.
+    - [ ] Implement lexer and parser for the CHTL JS syntax.
+- [ ] **CHTL JS Features:**
+    - [ ] Enhanced Selectors (`{{...}}`).
+    - [ ] Local Script Blocks (`script {}`).
+    - [ ] Enhanced Listeners (`Listen {}` and `&->`).
+    - [ ] Event Delegation (`Delegate {}`).
+    - [ ] Animation (`Animate {}`).
+    - [ ] Virtual Objects (`Vir`).
+    - [ ] Routing (`Router {}`).
+- [ ] **Dynamic/Responsive Features:**
     - [ ] Dynamic attribute conditional expressions.
     - [ ] Dynamic conditional rendering.
     - [ ] Responsive values (`$jsVariable$`).
@@ -54,13 +65,13 @@ This document outlines the development roadmap for the CHTL project. The develop
 
 - [ ] **CMOD Packaging:** Create the tooling to package CHTL files into `.cmod` modules.
 - [ ] **CJMOD API:** Implement the C++ API for creating `.cjmod` extensions.
-- [ ] **Module Resolution and Loading:** Implement the logic for resolving and loading CMOD and CJMOD modules from different paths.
+- [ ] **Module Resolution and Loading:** Implement the logic for resolving and loading CMOD and CJMOD modules.
 - [ ] **Official Modules:** Begin development of the official `Chtholly` and `Yuigahama` modules.
 
 ## Phase 5: Tooling and IDE Support
 
 - [ ] **Command-Line Interface (CLI):**
-    - [ ] Basic CLI for compiling files.
+    - [ ] Basic CLI for compiling files from paths.
     - [ ] Advanced features like `--inline` and `--default-struct`.
 - [ ] **VSCode Extension:**
     - [ ] Syntax highlighting.

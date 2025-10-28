@@ -133,3 +133,75 @@ TEST(StyleTest, UsesFirstAutoSelector) {
     std::string expected = R"(<div class="first" id="second"></div>)";
     EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
 }
+
+TEST(StyleTest, GeneratesGlobalStyleForPseudoClass) {
+    std::string source = R"(
+        html {
+            body {
+                a {
+                    class: "link";
+                    style {
+                        &:hover {
+                            color: blue;
+                        }
+                    }
+                }
+            }
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    auto program = parser.parse();
+    Generator generator(*program);
+    std::string result = generator.generate();
+
+    std::string expected_html = R"(
+        <html>
+            <head>
+                <style>
+                    .link:hover {
+                        color: blue;
+                    }
+                </style>
+            </head>
+            <body>
+                <a class="link"></a>
+            </body>
+        </html>
+    )";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected_html));
+}
+
+TEST(StyleTest, GeneratesGlobalStyleForPseudoElement) {
+    std::string source = R"(
+        html {
+            div {
+                id: "main";
+                style {
+                    &::before {
+                        content: "Hello";
+                    }
+                }
+            }
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    auto program = parser.parse();
+    Generator generator(*program);
+    std::string result = generator.generate();
+
+    std::string expected_html = R"(
+        <html>
+            <head>
+                <style>
+                    #main::before {
+                        content: "Hello";
+                    }
+                </style>
+            </head>
+            <div id="main"></div>
+        </html>
+    )";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected_html));
+}

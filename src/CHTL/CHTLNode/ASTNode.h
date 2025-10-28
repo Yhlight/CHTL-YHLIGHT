@@ -5,6 +5,7 @@
 #include <memory>
 #include <map>
 #include <iostream>
+#include "CHTL/CHTLLexer/Token.h"
 
 namespace CHTL {
 
@@ -12,6 +13,7 @@ namespace CHTL {
 struct ElementNode;
 struct TextNode;
 struct StyleNode;
+struct SelectorBlockNode;
 
 // Enum to identify the type of an AST node
 enum class NodeType {
@@ -19,6 +21,7 @@ enum class NodeType {
     Element,
     Text,
     Style,
+    SelectorBlock,
     // Add other node types here as we implement them
 };
 
@@ -40,11 +43,32 @@ struct Attribute {
 struct StyleProperty {
     std::string key;
     std::string value;
+    TokenType valueType;
+};
+
+// Represents a CSS rule block like ".class:hover { ... }"
+struct SelectorBlockNode : public ASTNode {
+    std::string selector;
+    std::vector<StyleProperty> properties;
+
+    NodeType getType() const override { return NodeType::SelectorBlock; }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << selector << " {" << std::endl;
+        for (const auto& prop : properties) {
+            for (int j = 0; j < indent + 1; ++j) std::cout << "  ";
+            std::cout << prop.key << ": " << prop.value << ";" << std::endl;
+        }
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "}" << std::endl;
+    }
 };
 
 // Represents a style block
 struct StyleNode : public ASTNode {
     std::vector<StyleProperty> properties;
+    std::vector<std::unique_ptr<SelectorBlockNode>> selector_blocks;
 
     NodeType getType() const override { return NodeType::Style; }
 
@@ -54,6 +78,9 @@ struct StyleNode : public ASTNode {
         for (const auto& prop : properties) {
             for (int j = 0; j < indent + 1; ++j) std::cout << "  ";
             std::cout << prop.key << ": " << prop.value << ";" << std::endl;
+        }
+        for (const auto& block : selector_blocks) {
+            block->print(indent + 1);
         }
     }
 };

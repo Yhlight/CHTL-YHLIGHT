@@ -35,6 +35,17 @@ int main() {
                     }
                     text { "This div has an auto-generated class." }
                 }
+                a {
+                    href: "https://example.com";
+                    class: "link";
+                    style {
+                        color: red;
+                        &:hover {
+                            color: green;
+                        }
+                    }
+                    text { "This is a link." }
+                }
             }
         }
     )";

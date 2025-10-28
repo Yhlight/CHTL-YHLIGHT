@@ -18,7 +18,10 @@ private:
     void visit(const ProgramNode* node);
     void visit(const StyleNode* node);
 
+    void collectStyles(const ASTNode* node);
+
     const ProgramNode& m_program;
+    std::vector<std::string> m_global_styles;
     std::stringstream m_output;
     int m_indent_level = 0;
 
