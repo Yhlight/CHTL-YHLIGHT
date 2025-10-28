@@ -17,6 +17,7 @@ private:
     std::unique_ptr<ElementNode> parseElementNode();
     std::unique_ptr<TextNode> parseTextNode();
     std::unique_ptr<StyleNode> parseStyleNode(ElementNode* parent);
+    std::unique_ptr<TemplateNode> parseTemplateNode();
     void parseAttributes(ElementNode& node);
 
     std::unique_ptr<ASTNode> parseConditionalExpression();

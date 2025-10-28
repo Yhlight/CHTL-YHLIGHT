@@ -32,10 +32,10 @@ This document outlines the development roadmap for the CHTL project, guided by t
         - [x] Update the parser to handle property access expressions.
         - [x] Implement an `Analyser` class to populate the symbol table and resolve references.
     - [x] **Conditional Expressions:** Implement support for ternary conditional expressions in style properties (`background-color: width > 50px ? "red" : "blue"`).
-- [ ] **Templates (`[Template]`):**
-    - [ ] Style group templates (`@Style`).
-    - [ ] Element templates (`@Element`).
-    - [ ] Variable group templates (`@Var`).
+- [ ] **Templates (`[Template]`):** (In Progress)
+    - [ ] Style group templates (`@Style`). (In Progress)
+    - [ ] Element templates (`@Element`). (In Progress)
+    - [ ] Variable group templates (`@Var`). (In Progress)
     - [ ] Template inheritance (`@Style OtherStyle;` and `inherit @Style OtherStyle;`).
 - [ ] **Customization (`[Custom]`):**
     - [ ] Custom style groups with value placeholders.

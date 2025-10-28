@@ -15,6 +15,7 @@ private:
     void visit(ASTNode* node);
     void visit(ElementNode* node);
     void visit(ProgramNode* node);
+    void visit(TemplateNode* node);
 
     void resolve(ASTNode* node);
     void resolve(ElementNode* node);
@@ -22,9 +23,11 @@ private:
     void resolve(StyleNode* node);
     void resolve(StyleProperty& prop);
     void resolve(std::unique_ptr<ASTNode>& node);
+    void resolve(TemplateUsageNode* node);
 
     ProgramNode& m_program;
     SymbolTable m_symbol_table;
+    std::unordered_map<std::string, const TemplateNode*> m_templates;
 };
 
 } // namespace CHTL

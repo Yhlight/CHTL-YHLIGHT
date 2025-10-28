@@ -33,10 +33,11 @@ enum class TokenType {
     UNQUOTED_LITERAL,
 
     // Keywords
-    TEXT, STYLE, SCRIPT,
+    TEXT, STYLE, SCRIPT, ELEMENT, VAR,
     IF, ELSE, ELSE_IF,
     DELETE, INSERT, AFTER, BEFORE, REPLACE,
     FROM, AS, EXCEPT, USE, HTML5, INHERIT,
+    TEMPLATE,
 
     // Special Keywords / Phrases that might need special handling
     // e.g., "at top", "at bottom"
@@ -100,6 +101,8 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::TEXT: return "TEXT";
         case TokenType::STYLE: return "STYLE";
         case TokenType::SCRIPT: return "SCRIPT";
+        case TokenType::ELEMENT: return "ELEMENT";
+        case TokenType::VAR: return "VAR";
         case TokenType::IF: return "IF";
         case TokenType::ELSE: return "ELSE";
         case TokenType::ELSE_IF: return "ELSE_IF";
@@ -114,6 +117,7 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::USE: return "USE";
         case TokenType::HTML5: return "HTML5";
         case TokenType::INHERIT: return "INHERIT";
+        case TokenType::TEMPLATE: return "TEMPLATE";
         case TokenType::SINGLE_LINE_COMMENT: return "SINGLE_LINE_COMMENT";
         case TokenType::MULTI_LINE_COMMENT: return "MULTI_LINE_COMMENT";
         case TokenType::GENERATOR_COMMENT: return "GENERATOR_COMMENT";

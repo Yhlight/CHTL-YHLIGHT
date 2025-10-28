@@ -15,6 +15,31 @@ std::unique_ptr<ProgramNode> Parser::parse() {
 }
 
 std::unique_ptr<ASTNode> Parser::parseStatement() {
+    if (peek().type == TokenType::LEFT_BRACKET && m_tokens[m_current + 1].type == TokenType::TEMPLATE) {
+        return parseTemplateNode();
+    }
+    if (peek().type == TokenType::AT) {
+        advance(); // consume '@'
+        const auto& typeToken = peek();
+        if (typeToken.type == TokenType::IDENTIFIER) {
+            if (typeToken.lexeme == "Style") {
+                advance(); // consume 'Style'
+                auto node = std::make_unique<TemplateUsageNode>();
+                node->templateType = TemplateType::Style;
+                node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
+                consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+                return node;
+            }
+            if (typeToken.lexeme == "Element") {
+                advance(); // consume 'Element'
+                auto node = std::make_unique<TemplateUsageNode>();
+                node->templateType = TemplateType::Element;
+                node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
+                consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+                return node;
+            }
+        }
+    }
     if (peek().type == TokenType::IDENTIFIER && m_tokens[m_current + 1].type == TokenType::LEFT_BRACE) {
         return parseElementNode();
     }
@@ -22,6 +47,45 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
          return parseTextNode();
     }
     throw std::runtime_error("Unexpected token in parseStatement: " + peek().lexeme);
+}
+
+std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
+    consume(TokenType::LEFT_BRACKET, "Expect '[' before 'Template'.");
+    consume(TokenType::TEMPLATE, "Expect 'Template' keyword.");
+    consume(TokenType::RIGHT_BRACKET, "Expect ']' after 'Template'.");
+
+    auto node = std::make_unique<TemplateNode>();
+
+    consume(TokenType::AT, "Expect '@' after '[Template]'.");
+    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect template type.");
+    if (typeToken.lexeme == "Style") {
+        node->templateType = TemplateType::Style;
+    } else if (typeToken.lexeme == "Element") {
+        node->templateType = TemplateType::Element;
+    } else if (typeToken.lexeme == "Var") {
+        node->templateType = TemplateType::Var;
+    } else {
+        throw std::runtime_error("Unknown template type: " + typeToken.lexeme);
+    }
+
+    node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
+    consume(TokenType::LEFT_BRACE, "Expect '{' after template name.");
+
+    if (node->templateType == TemplateType::Element) {
+        while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+            node->children.push_back(parseStatement());
+        }
+    } else { // Style or Var
+        while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+            std::string key = consume(TokenType::IDENTIFIER, "Expect property key.").lexeme;
+            consume(TokenType::COLON, "Expect ':' after property key.");
+            node->properties.push_back({key, parseConditionalExpression()});
+            consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+        }
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after template block.");
+    return node;
 }
 
 std::unique_ptr<ElementNode> Parser::parseElementNode() {
@@ -65,7 +129,18 @@ std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
     auto node = std::make_unique<StyleNode>();
 
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
-        if (peek().type == TokenType::DOT || peek().type == TokenType::HASH || peek().type == TokenType::AMPERSAND) {
+        if (peek().type == TokenType::AT) {
+            advance(); // consume '@'
+            const auto& typeToken = peek();
+            if (typeToken.type == TokenType::IDENTIFIER && typeToken.lexeme == "Style") {
+                advance(); // consume 'Style'
+                auto usageNode = std::make_unique<TemplateUsageNode>();
+                usageNode->templateType = TemplateType::Style;
+                usageNode->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
+                consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+                node->template_usages.push_back(std::move(usageNode));
+            }
+        } else if (peek().type == TokenType::DOT || peek().type == TokenType::HASH || peek().type == TokenType::AMPERSAND) {
             auto selector_block = std::make_unique<SelectorBlockNode>();
             std::string selector_str;
 
@@ -177,6 +252,21 @@ std::unique_ptr<ASTNode> Parser::parseExpression(int precedence) {
 }
 
 std::unique_ptr<ASTNode> Parser::parsePrefix() {
+    if (m_current + 1 < m_tokens.size() && m_tokens[m_current].type == TokenType::IDENTIFIER && m_tokens[m_current + 1].type == TokenType::DOT) {
+        const std::string& name = peek().lexeme;
+        // Heuristic: Var templates start with an uppercase letter, tags are lowercase.
+        if (!name.empty() && isupper(name[0])) {
+            advance(); // consume template name
+            consume(TokenType::DOT, "Expect '.' after var template name.");
+            std::string prop = consume(TokenType::IDENTIFIER, "Expect property name.").lexeme;
+            auto node = std::make_unique<VarAccessNode>();
+            node->templateName = name;
+            node->property = prop;
+            return node;
+        }
+    }
+
+
     bool isPropAccess = false;
     if (m_current + 1 < m_tokens.size()) {
         if (check(TokenType::IDENTIFIER) && m_tokens[m_current + 1].type == TokenType::DOT) {
@@ -206,6 +296,7 @@ std::unique_ptr<ASTNode> Parser::parsePrefix() {
         node->property = prop;
         return node;
     }
+
 
     if (match({TokenType::NUMBER})) {
         auto node = std::make_unique<NumberLiteralNode>();

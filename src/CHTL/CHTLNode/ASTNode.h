@@ -22,6 +22,8 @@ struct StringLiteralNode;
 struct IdentifierNode;
 struct PropertyAccessNode;
 struct TernaryOpNode;
+struct TemplateNode;
+struct TemplateUsageNode;
 
 
 // Enum to identify the type of an AST node
@@ -31,6 +33,8 @@ enum class NodeType {
     Text,
     Style,
     SelectorBlock,
+    Template,
+    TemplateUsage,
 
     // Expression Nodes
     BinaryOp,
@@ -39,6 +43,7 @@ enum class NodeType {
     StringLiteral,
     Identifier,
     PropertyAccess,
+    VarAccess,
     TernaryOp,
 };
 
@@ -178,6 +183,23 @@ struct PropertyAccessNode : public ASTNode {
     }
 };
 
+struct VarAccessNode : public ASTNode {
+    std::string templateName;
+    std::string property;
+
+    NodeType getType() const override { return NodeType::VarAccess; }
+     std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<VarAccessNode>();
+        node->templateName = templateName;
+        node->property = property;
+        return node;
+    }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "VarAccess(" << templateName << "." << property << ")" << std::endl;
+    }
+};
+
 struct TernaryOpNode : public ASTNode {
     std::unique_ptr<ASTNode> condition;
     std::unique_ptr<ASTNode> then_expr;
@@ -200,10 +222,33 @@ struct TernaryOpNode : public ASTNode {
     }
 };
 
+enum class TemplateType { Style, Element, Var };
+
+// Represents the usage of a template, e.g., @Element Box;
+struct TemplateUsageNode : public ASTNode {
+    TemplateType templateType;
+    std::string name;
+
+    NodeType getType() const override { return NodeType::TemplateUsage; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<TemplateUsageNode>();
+        node->templateType = templateType;
+        node->name = name;
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "TemplateUsage(" << name << ")" << std::endl;
+    }
+};
+
 // Represents a style block
 struct StyleNode : public ASTNode {
     std::vector<StyleProperty> properties;
     std::vector<std::unique_ptr<SelectorBlockNode>> selector_blocks;
+    std::vector<std::unique_ptr<TemplateUsageNode>> template_usages;
 
     NodeType getType() const override { return NodeType::Style; }
 
@@ -214,6 +259,9 @@ struct StyleNode : public ASTNode {
         }
         for (const auto& block : selector_blocks) {
             node->selector_blocks.push_back(std::unique_ptr<SelectorBlockNode>(static_cast<SelectorBlockNode*>(block->clone().release())));
+        }
+        for (const auto& usage : template_usages) {
+            node->template_usages.push_back(std::unique_ptr<TemplateUsageNode>(static_cast<TemplateUsageNode*>(usage->clone().release())));
         }
         return node;
     }
@@ -304,6 +352,38 @@ struct TextNode : public ASTNode {
         std::cout << "Text(\"" << content << "\")" << std::endl;
     }
 };
+
+// Represents a [Template] definition
+struct TemplateNode : public ASTNode {
+    TemplateType templateType;
+    std::string name;
+    std::vector<std::unique_ptr<ASTNode>> children;
+    std::vector<StyleProperty> properties; // For @Style and @Var templates
+
+    NodeType getType() const override { return NodeType::Template; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<TemplateNode>();
+        node->templateType = templateType;
+        node->name = name;
+        for (const auto& child : children) {
+            node->children.push_back(child->clone());
+        }
+        for (const auto& prop : properties) {
+            node->properties.push_back({prop.key, prop.value->clone()});
+        }
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Template(" << name << "):" << std::endl;
+        for (const auto& child : children) {
+            child->print(indent + 1);
+        }
+    }
+};
+
 
 // Represents the root of the AST
 struct ProgramNode : public ASTNode {

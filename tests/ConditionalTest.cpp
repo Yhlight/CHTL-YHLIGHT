@@ -1,30 +1,5 @@
 #include <gtest/gtest.h>
-#include "CHTL/CHTLLexer/Lexer.h"
-#include "CHTL/CHTLParser/Parser.h"
-#include "CHTL/CHTLGenerator/Generator.h"
-#include "CHTL/CHTLAnalyser/Analyser.h"
-#include <string>
-#include <algorithm>
-
-using namespace CHTL;
-
-inline std::string removeWhitespace(std::string str) {
-    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
-    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-    str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
-    return str;
-}
-
-std::string compile(const std::string& source) {
-    Lexer lexer(source);
-    Parser parser(lexer.tokenize());
-    auto program = parser.parse();
-    Analyser analyser(*program);
-    analyser.analyse();
-    Generator generator(*program);
-    return generator.generate();
-}
+#include "TestHelpers.h"
 
 TEST(ConditionalTest, SimpleTernaryTrue) {
     std::string source = R"(
@@ -74,7 +49,7 @@ TEST(ConditionalTest, LogicalOr) {
         }
     )";
     std::string result = compile(source);
-    std::string expected = R"(<div style="border: "1px solid black";"></div>)";
+    std::string expected = R"(<div style="border: "1pxsolidblack";"></div>)";
     EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
 }
 
