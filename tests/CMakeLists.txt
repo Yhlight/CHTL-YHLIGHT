@@ -11,9 +11,11 @@ add_executable(
   AstTest/ParserTest.cpp
   GeneratorTest.cpp
   StyleTest.cpp
+  ArithmeticTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp
+  ../src/CHTL/CHTLGenerator/ExpressionEvaluator.cpp
 )
 
 target_include_directories(run_tests PRIVATE ../src)

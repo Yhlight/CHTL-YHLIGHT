@@ -21,9 +21,13 @@ This document outlines the development roadmap for the CHTL project, guided by t
     - [x] Automatic class/id generation.
     - [x] Context-aware `&` selector (pseudo-classes and pseudo-elements).
 - [ ] **Advanced Style Features:**
-    - [ ] Attribute arithmetic (`width: 100px + 5%`).
-    - [ ] Attribute referencing (`width: .box.width`).
-    - [ ] Conditional expressions (`background-color: width > 50px ? "red" : "blue"`).
+    - [x] **Attribute Arithmetic:** Implement support for arithmetic operations (`+`, `-`, `*`, `/`, `%`, `**`) on style property values.
+        - [x] Update Lexer to tokenize arithmetic operators.
+        - [x] Refactor AST to support expression trees for style values.
+        - [x] Implement an expression parser to handle operator precedence.
+        - [x] Create an expression evaluator to compute final values and handle unit rules.
+    - [ ] **Attribute Referencing:** Implement the ability for style properties to reference the values of other properties using CSS selectors (`width: .box.width`).
+    - [ ] **Conditional Expressions:** Implement support for ternary conditional expressions in style properties (`background-color: width > 50px ? "red" : "blue"`).
 - [ ] **Templates (`[Template]`):**
     - [ ] Style group templates (`@Style`).
     - [ ] Element templates (`@Element`).

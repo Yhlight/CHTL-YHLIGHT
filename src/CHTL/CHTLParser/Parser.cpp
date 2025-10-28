@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include "CHTL/Util/StringUtil.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -101,12 +102,7 @@ std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
             while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
                 std::string key = consume(TokenType::IDENTIFIER, "Expect style property key.").lexeme;
                 consume(TokenType::COLON, "Expect ':' after style property key.");
-                const Token& valueToken = advance();
-                std::string value = valueToken.lexeme;
-                if (peek().type == TokenType::IDENTIFIER || peek().type == TokenType::PERCENT) {
-                    value += advance().lexeme;
-                }
-                selector_block->properties.push_back({key, value, valueToken.type});
+                selector_block->properties.push_back({key, parseExpression()});
                 consume(TokenType::SEMICOLON, "Expect ';' after style property.");
             }
             consume(TokenType::RIGHT_BRACE, "Expect '}' after selector block.");
@@ -115,17 +111,7 @@ std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
             std::string key = consume(TokenType::IDENTIFIER, "Expect style property key.").lexeme;
             consume(TokenType::COLON, "Expect ':' after style property key.");
 
-            const Token& valueToken = advance();
-            if (valueToken.type != TokenType::IDENTIFIER && valueToken.type != TokenType::STRING && valueToken.type != TokenType::NUMBER) {
-                 throw std::runtime_error("Expect style property value.");
-            }
-            std::string value = valueToken.lexeme;
-
-            if (peek().type == TokenType::IDENTIFIER || peek().type == TokenType::PERCENT) {
-                value += advance().lexeme;
-            }
-
-            node->properties.push_back({key, value, valueToken.type});
+            node->properties.push_back({key, parseExpression()});
             consume(TokenType::SEMICOLON, "Expect ';' after style property.");
         }
     }
@@ -147,6 +133,88 @@ void Parser::parseAttributes(ElementNode& node) {
 
     node.attributes.push_back({key, valueToken.lexeme});
     consume(TokenType::SEMICOLON, "Expect ';' after attribute value.");
+}
+
+// --- Expression Parsing ---
+
+int Parser::getPrecedence(TokenType type) {
+    switch (type) {
+        case TokenType::PLUS:
+        case TokenType::MINUS:
+            return 1;
+        case TokenType::STAR:
+        case TokenType::SLASH:
+        case TokenType::PERCENT:
+            return 2;
+        case TokenType::STAR_STAR:
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+std::unique_ptr<ASTNode> Parser::parseExpression(int precedence) {
+    auto left = parsePrefix();
+
+    while (precedence < getPrecedence(peek().type)) {
+        left = parseInfix(std::move(left));
+    }
+
+    return left;
+}
+
+std::unique_ptr<ASTNode> Parser::parsePrefix() {
+    if (match({TokenType::NUMBER})) {
+        auto node = std::make_unique<NumberLiteralNode>();
+        try {
+            node->value = std::stod(previous().lexeme);
+        } catch (const std::invalid_argument& e) {
+            throw std::runtime_error("Invalid number format: " + previous().lexeme);
+        }
+
+        // Check for a unit
+        if (check(TokenType::IDENTIFIER) || check(TokenType::PERCENT)) {
+            node->unit = advance().lexeme;
+        }
+
+        if (check(TokenType::IDENTIFIER)) {
+            std::string full_value = formatDouble(node->value) + node->unit;
+            while(check(TokenType::IDENTIFIER)) {
+                full_value += " " + advance().lexeme;
+            }
+            auto str_node = std::make_unique<IdentifierNode>();
+            str_node->name = full_value;
+            return str_node;
+        }
+
+        return node;
+    }
+    if (match({TokenType::STRING})) {
+        auto node = std::make_unique<StringLiteralNode>();
+        node->value = previous().lexeme;
+        return node;
+    }
+    // Handle IDENTIFIER for things like `red`, `center`, etc.
+     if (check(TokenType::IDENTIFIER)) {
+        std::string value = advance().lexeme;
+        while(check(TokenType::IDENTIFIER) || check(TokenType::NUMBER)) {
+            value += " " + advance().lexeme;
+        }
+        auto node = std::make_unique<IdentifierNode>();
+        node->name = value;
+        return node;
+    }
+
+    throw std::runtime_error("Unexpected token in expression: " + peek().lexeme);
+}
+
+std::unique_ptr<ASTNode> Parser::parseInfix(std::unique_ptr<ASTNode> left) {
+    auto node = std::make_unique<BinaryOpNode>();
+    node->op = peek();
+    advance(); // Consume the operator
+    node->left = std::move(left);
+    node->right = parseExpression(getPrecedence(node->op.type));
+    return node;
 }
 
 

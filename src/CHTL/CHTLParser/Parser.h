@@ -19,6 +19,12 @@ private:
     std::unique_ptr<StyleNode> parseStyleNode(ElementNode* parent);
     void parseAttributes(ElementNode& node);
 
+    // Expression Parsing (Pratt Parser)
+    std::unique_ptr<ASTNode> parseExpression(int precedence = 0);
+    std::unique_ptr<ASTNode> parsePrefix();
+    std::unique_ptr<ASTNode> parseInfix(std::unique_ptr<ASTNode> left);
+    int getPrecedence(TokenType type);
+
 
     const Token& advance();
     const Token& peek() const;

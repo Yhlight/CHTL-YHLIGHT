@@ -14,6 +14,15 @@ struct ElementNode;
 struct TextNode;
 struct StyleNode;
 struct SelectorBlockNode;
+struct ValueNode;
+struct BinaryOpNode;
+struct UnaryOpNode;
+struct NumberLiteralNode;
+struct StringLiteralNode;
+struct IdentifierNode;
+struct PropertyAccessNode;
+struct TernaryOpNode;
+
 
 // Enum to identify the type of an AST node
 enum class NodeType {
@@ -22,7 +31,15 @@ enum class NodeType {
     Text,
     Style,
     SelectorBlock,
-    // Add other node types here as we implement them
+
+    // Expression Nodes
+    BinaryOp,
+    UnaryOp,
+    NumberLiteral,
+    StringLiteral,
+    Identifier,
+    PropertyAccess,
+    TernaryOp,
 };
 
 // Base class for all AST nodes
@@ -42,8 +59,7 @@ struct Attribute {
 // Represents a single CSS property
 struct StyleProperty {
     std::string key;
-    std::string value;
-    TokenType valueType;
+    std::unique_ptr<ASTNode> value; // Now an expression tree
 };
 
 // Represents a CSS rule block like ".class:hover { ... }"
@@ -62,6 +78,53 @@ struct SelectorBlockNode : public ASTNode {
         }
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "}" << std::endl;
+    }
+};
+
+// --- Expression Nodes ---
+
+struct NumberLiteralNode : public ASTNode {
+    double value;
+    std::string unit;
+
+    NodeType getType() const override { return NodeType::NumberLiteral; }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Number(" << value << unit << ")" << std::endl;
+    }
+};
+
+struct StringLiteralNode : public ASTNode {
+    std::string value;
+
+    NodeType getType() const override { return NodeType::StringLiteral; }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "String(\"" << value << "\")" << std::endl;
+    }
+};
+
+struct IdentifierNode : public ASTNode {
+    std::string name;
+
+    NodeType getType() const override { return NodeType::Identifier; }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Identifier(" << name << ")" << std::endl;
+    }
+};
+
+struct BinaryOpNode : public ASTNode {
+    std::unique_ptr<ASTNode> left;
+    Token op;
+    std::unique_ptr<ASTNode> right;
+
+    NodeType getType() const override { return NodeType::BinaryOp; }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "BinaryOp(" << op.lexeme << "):" << std::endl;
+        left->print(indent + 1);
+        right->print(indent + 1);
     }
 };
 

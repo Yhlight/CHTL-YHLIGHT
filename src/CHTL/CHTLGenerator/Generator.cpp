@@ -115,13 +115,7 @@ void Generator::visit(const ElementNode* node) {
         m_output << " style=\"";
         for (size_t i = 0; i < node->style->properties.size(); ++i) {
             const auto& prop = node->style->properties[i];
-            m_output << prop.key << ": ";
-            if (prop.valueType == TokenType::STRING) {
-                m_output << "\"" << prop.value << "\"";
-            } else {
-                m_output << prop.value;
-            }
-            m_output << ";";
+            m_output << prop.key << ": " << m_evaluator.evaluate(prop.value.get()) << ";";
             if (i < node->style->properties.size() - 1) {
                 m_output << " ";
             }
@@ -198,13 +192,7 @@ void Generator::collectStyles(const ASTNode* node) {
                 std::stringstream ss;
                 ss << final_selector << " {\n";
                 for (const auto& prop : block->properties) {
-                    ss << "  " << prop.key << ": ";
-                    if (prop.valueType == TokenType::STRING) {
-                        ss << "\"" << prop.value << "\"";
-                    } else {
-                        ss << prop.value;
-                    }
-                    ss << ";\n";
+                    ss << "  " << prop.key << ": " << m_evaluator.evaluate(prop.value.get()) << ";\n";
                 }
                 ss << "}\n";
                 m_global_styles.push_back(ss.str());

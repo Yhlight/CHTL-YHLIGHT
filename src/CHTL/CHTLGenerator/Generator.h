@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CHTL/CHTLNode/ASTNode.h"
+#include "ExpressionEvaluator.h"
 #include <string>
 #include <sstream>
 
@@ -24,6 +25,7 @@ private:
     std::vector<std::string> m_global_styles;
     std::stringstream m_output;
     int m_indent_level = 0;
+    ExpressionEvaluator m_evaluator;
 
     void indent();
 };

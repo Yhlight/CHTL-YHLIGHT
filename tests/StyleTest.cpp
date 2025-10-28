@@ -37,10 +37,19 @@ TEST(StyleTest, ParsesAndGeneratesInlineStyles) {
     ASSERT_NE(div, nullptr);
     ASSERT_NE(div->style, nullptr);
     ASSERT_EQ(div->style->properties.size(), 2);
+
+    // Test property 1: color: red
     EXPECT_EQ(div->style->properties[0].key, "color");
-    EXPECT_EQ(div->style->properties[0].value, "red");
+    auto* color_value_node = dynamic_cast<IdentifierNode*>(div->style->properties[0].value.get());
+    ASSERT_NE(color_value_node, nullptr);
+    EXPECT_EQ(color_value_node->name, "red");
+
+    // Test property 2: font-size: 16px
     EXPECT_EQ(div->style->properties[1].key, "font-size");
-    EXPECT_EQ(div->style->properties[1].value, "16px");
+    auto* font_size_value_node = dynamic_cast<NumberLiteralNode*>(div->style->properties[1].value.get());
+    ASSERT_NE(font_size_value_node, nullptr);
+    EXPECT_EQ(font_size_value_node->value, 16);
+    EXPECT_EQ(font_size_value_node->unit, "px");
 
     // Test Generator
     Generator generator(*program);

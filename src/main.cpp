@@ -46,6 +46,15 @@ int main() {
                     }
                     text { "This is a link." }
                 }
+                div {
+                    class: "calculated";
+                    style {
+                        width: 100px * 2 + 50px;
+                        height: 50 * 2;
+                        border: 1px solid black;
+                    }
+                    text { "This div has a calculated width." }
+                }
             }
         }
     )";
