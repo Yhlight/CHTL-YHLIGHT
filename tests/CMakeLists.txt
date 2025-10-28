@@ -9,8 +9,10 @@ add_executable(
   run_tests
   TokenTest/LexerTest.cpp
   AstTest/ParserTest.cpp
+  GeneratorTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
+  ../src/CHTL/CHTLGenerator/Generator.cpp
 )
 
 target_include_directories(run_tests PRIVATE ../src)

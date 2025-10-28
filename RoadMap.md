@@ -7,10 +7,10 @@ This document outlines the development roadmap for the CHTL project. The develop
 - [x] **Lexer (Tokenizer):** Implement the lexical analyzer to convert CHTL source code into a stream of tokens.
 - [x] **Parser:** Implement the parser to build an Abstract Syntax Tree (AST) from the token stream.
 - [x] **AST Node Definitions:** Define the structure of the AST nodes for all CHTL grammar constructs.
-- [ ] **Basic Code Generation:** Implement a basic code generator to traverse the AST and produce HTML.
-- [ ] **CMake Build System:** Establish the initial CMake build system for the C++ project.
-- [ ] **Python Build Script:** Create a Python script to automate the build process.
-- [ ] **Testing Framework:** Set up the Google Test framework and write initial tests for the lexer and parser.
+- [x] **Basic Code Generation:** Implement a basic code generator to traverse the AST and produce HTML.
+- [x] **CMake Build System:** Establish the initial CMake build system for the C++ project.
+- [x] **Python Build Script:** Create a Python script to automate the build process.
+- [x] **Testing Framework:** Set up the Google Test framework and write initial tests for the lexer and parser.
 
 ## Phase 2: CHTL Language Features
 
