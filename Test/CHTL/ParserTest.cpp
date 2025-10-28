@@ -4,6 +4,27 @@
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
+#include "CHTL/CHTLNode/TemplateStyleUsageNode.h"
+
+TEST(ParserTest, ParseElementWithStyleBlockAndTemplateUsage) {
+    std::string source = "div { style { @Style MyStyles; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
+
+    auto elementNode = std::static_pointer_cast<CHTL::ElementNode>(root);
+    EXPECT_EQ(elementNode->getTagName(), "div");
+
+    auto styleBlock = elementNode->getStyleBlock();
+    ASSERT_NE(styleBlock, nullptr);
+
+    // This is a placeholder for a more complex assertion later
+    // For now, we're just checking that the style block is not null.
+}
 
 TEST(ParserTest, ParseTemplateStyleDefinition) {
     std::string source = "[Template] @Style MyStyles { color: red; }";

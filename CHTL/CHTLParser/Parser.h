@@ -3,6 +3,7 @@
 #include "CHTL/Lexer.h"
 #include "CHTL/CHTLNode/BaseNode.h"
 #include "CHTL/CHTLNode/AttributeNode.h"
+#include "CHTL/CHTLNode/StyleBlockNode.h"
 #include <memory>
 #include <vector>
 
@@ -23,6 +24,7 @@ private:
     std::shared_ptr<BaseNode> parseElement();
     std::shared_ptr<BaseNode> parseText();
     std::shared_ptr<BaseNode> parseTemplateStyleDefinition();
+    std::shared_ptr<StyleBlockNode> parseStyleBlock();
     void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
 };
 

@@ -73,6 +73,10 @@ std::shared_ptr<BaseNode> Parser::parseElement() {
 void Parser::parseAttributesAndChildren(std::shared_ptr<ElementNode> element) {
     while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
         if (m_currentToken.type == TokenType::Identifier) {
+            if (m_currentToken.value == "style") {
+                element->setStyleBlock(parseStyleBlock());
+                continue;
+            }
             if (m_lexer.peek().type == TokenType::Colon) {
                 // It's an attribute
                 std::string key = m_currentToken.value;
@@ -108,6 +112,22 @@ std::shared_ptr<BaseNode> Parser::parseText() {
     eat(TokenType::String);
     eat(TokenType::CloseBrace);
     return std::make_shared<TextNode>(textValue);
+}
+
+std::shared_ptr<StyleBlockNode> Parser::parseStyleBlock() {
+    eat(TokenType::Identifier); // Eat "style"
+    eat(TokenType::OpenBrace);
+
+    std::string content;
+    while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        // This is a naive implementation that just captures the raw content.
+        // In the future, we will parse this into a more structured representation.
+        content += m_currentToken.value;
+        eat(m_currentToken.type);
+    }
+
+    eat(TokenType::CloseBrace);
+    return std::make_shared<StyleBlockNode>(content);
 }
 
 } // namespace CHTL
