@@ -10,6 +10,9 @@ enum class NodeType {
     Element,
     Text,
     Attribute,
+    StyleBlock,
+    TemplateStyleDefinition,
+    TemplateStyleUsage,
     // ... other node types
 };
 

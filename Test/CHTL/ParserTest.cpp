@@ -3,6 +3,25 @@
 #include "CHTL/CHTLParser/Parser.h"
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
+#include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
+
+TEST(ParserTest, ParseTemplateStyleDefinition) {
+    std::string source = "[Template] @Style MyStyles { color: red; }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::TemplateStyleDefinition);
+
+    auto templateNode = std::static_pointer_cast<CHTL::TemplateStyleDefinitionNode>(root);
+    EXPECT_EQ(templateNode->getName(), "MyStyles");
+
+    auto styleBlock = templateNode->getStyleBlock();
+    ASSERT_NE(styleBlock, nullptr);
+    EXPECT_EQ(styleBlock->getContent(), "color:red;");
+}
 
 TEST(ParserTest, ParseElementWithTextAttribute) {
     std::string source = "div { text: \"hello\"; }";

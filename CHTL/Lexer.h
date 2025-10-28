@@ -20,7 +20,7 @@ private:
 
     char currentChar();
     char peekChar();
-    void advance();
+    void advance(int count = 1);
     Token makeToken(TokenType type, const std::string& value);
 };
 

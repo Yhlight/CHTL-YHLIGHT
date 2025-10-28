@@ -19,14 +19,16 @@ char Lexer::peekChar() {
     return m_source[m_position + 1];
 }
 
-void Lexer::advance() {
-    if (currentChar() == '\n') {
-        m_line++;
-        m_column = 1;
-    } else {
-        m_column++;
+void Lexer::advance(int count) {
+    for (int i = 0; i < count; ++i) {
+        if (currentChar() == '\n') {
+            m_line++;
+            m_column = 1;
+        } else {
+            m_column++;
+        }
+        m_position++;
     }
-    m_position++;
 }
 
 Token Lexer::makeToken(TokenType type, const std::string& value) {
@@ -75,9 +77,16 @@ Token Lexer::nextToken() {
         return makeToken(TokenType::EndOfFile, "");
     }
 
-    if (isalpha(c)) {
+    if (c == '[') {
+        if (m_source.substr(m_position, 10) == "[Template]") {
+            advance(10);
+            return makeToken(TokenType::TemplateKeyword, "[Template]");
+        }
+    }
+
+    if (isalpha(c) || c == '@') {
         std::string value;
-        while (isalnum(currentChar())) {
+        while (isalnum(currentChar()) || currentChar() == '@') {
             value += currentChar();
             advance();
         }

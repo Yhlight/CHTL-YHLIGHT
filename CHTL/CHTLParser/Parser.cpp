@@ -2,6 +2,8 @@
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/AttributeNode.h"
+#include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
+#include "CHTL/CHTLNode/StyleBlockNode.h"
 
 namespace CHTL {
 
@@ -24,13 +26,35 @@ std::shared_ptr<BaseNode> Parser::parse() {
 }
 
 std::shared_ptr<BaseNode> Parser::parseStatement() {
+    if (m_currentToken.type == TokenType::TemplateKeyword) {
+        return parseTemplateStyleDefinition();
+    }
     if (m_currentToken.type == TokenType::Identifier) {
         if (m_currentToken.value == "text") {
             return parseText();
         }
         return parseElement();
     }
-    return nullptr; // Return null for now if it's not an identifier
+    return nullptr; // Return null for now
+}
+
+std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
+    eat(TokenType::TemplateKeyword);
+    eat(TokenType::Identifier); // @Style
+    std::string templateName = m_currentToken.value;
+    eat(TokenType::Identifier);
+    eat(TokenType::OpenBrace);
+
+    std::string styleContent;
+    while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        styleContent += m_currentToken.value;
+        eat(m_currentToken.type);
+    }
+
+    eat(TokenType::CloseBrace);
+
+    auto styleBlock = std::make_shared<StyleBlockNode>(styleContent);
+    return std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
 }
 
 std::shared_ptr<BaseNode> Parser::parseElement() {

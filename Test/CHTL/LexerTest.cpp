@@ -127,6 +127,31 @@ TEST(LexerTest, Comments) {
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
 }
 
+TEST(LexerTest, TemplateStyleDefinition) {
+    std::string source = "[Template] @Style MyStyles {}";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::TemplateKeyword);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "@Style");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "MyStyles");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::OpenBrace);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::CloseBrace);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
 TEST(LexerTest, Identifier) {
     std::string source = "div";
     CHTL::Lexer lexer(source);
