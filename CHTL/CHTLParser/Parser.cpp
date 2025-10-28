@@ -10,6 +10,8 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/OriginUsageNode.h"
+#include "Util/File.h"
 
 namespace CHTL {
 
@@ -38,6 +40,9 @@ std::shared_ptr<ProgramNode> Parser::parse() {
 std::shared_ptr<BaseNode> Parser::parseStatement() {
     if (m_currentToken.type == TokenType::OriginKeyword) {
         return parseOrigin();
+    }
+    if (m_currentToken.type == TokenType::ImportKeyword) {
+        return parseImport();
     }
     if (m_currentToken.type == TokenType::TemplateKeyword) {
         if (m_lexer.peek().value == "@Style") {
@@ -185,9 +190,14 @@ std::shared_ptr<BaseNode> Parser::parseOrigin() {
     eat(TokenType::Identifier); // e.g. @Html
 
     std::string name = "";
-    if (m_currentToken.type != TokenType::OpenBrace) {
+    if (m_currentToken.type == TokenType::Identifier) {
         name = m_currentToken.value;
         eat(TokenType::Identifier);
+    }
+
+    if (m_currentToken.type == TokenType::Semicolon) {
+        eat(TokenType::Semicolon);
+        return std::make_shared<OriginUsageNode>(type, name);
     }
 
     int startPos = m_currentToken.pos;
@@ -195,7 +205,7 @@ std::shared_ptr<BaseNode> Parser::parseOrigin() {
     const std::string& source = m_lexer.getSource();
 
     int braceCount = 1;
-    int currentPos = startPos;
+    size_t currentPos = startPos;
     while (braceCount > 0 && currentPos < source.length()) {
         if (source[currentPos] == '{') {
             braceCount++;
@@ -209,10 +219,33 @@ std::shared_ptr<BaseNode> Parser::parseOrigin() {
     m_lexer.setPosition(currentPos);
     m_currentToken = m_lexer.nextToken();
 
-    if (name.empty()) {
-        return std::make_shared<OriginNode>(type, content);
+    auto originNode = std::make_shared<OriginNode>(type, name, content);
+    if (!name.empty()) {
+        m_originBlocks[name] = originNode;
     }
-    return std::make_shared<OriginNode>(type, name, content);
+    return originNode;
+}
+
+std::shared_ptr<BaseNode> Parser::parseImport() {
+    eat(TokenType::ImportKeyword);
+    std::string type = m_currentToken.value;
+    eat(TokenType::Identifier); // e.g. @Html
+
+    eat(TokenType::FromKeyword);
+    std::string path = m_currentToken.value;
+    eat(TokenType::String);
+
+    eat(TokenType::AsKeyword);
+    std::string name = m_currentToken.value;
+    eat(TokenType::Identifier);
+
+    eat(TokenType::Semicolon);
+
+    std::string content = Util::readFile(path);
+    auto originNode = std::make_shared<OriginNode>(type, name, content);
+    m_originBlocks[name] = originNode;
+
+    return originNode;
 }
 
 std::shared_ptr<BaseNode> Parser::parseElement() {

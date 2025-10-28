@@ -8,11 +8,12 @@ namespace CHTL {
 
 class OriginNode : public BaseNode {
 public:
-    OriginNode(const std::string& type, const std::string& content)
-        : m_type(type), m_content(content) {}
-
     OriginNode(const std::string& type, const std::string& name, const std::string& content)
-        : m_type(type), m_name(name), m_content(content) {}
+        : m_type(type), m_content(content) {
+        if (!name.empty()) {
+            m_name = name;
+        }
+    }
 
     NodeType getType() const override { return NodeType::Origin; }
 

@@ -17,7 +17,7 @@ TEST(GeneratorTest, EndToEndElementTemplate) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     std::string expected = "<div><span>hello</span></div>";
@@ -38,7 +38,7 @@ TEST(GeneratorTest, EndToEndStyleTemplate) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
@@ -60,7 +60,7 @@ TEST(GeneratorTest, EndToEndVarTemplate) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     std::string expected = "<div style=\"color:#ff6347;\"></div>";
@@ -90,7 +90,7 @@ TEST(GeneratorTest, EndToEndStyleTemplateInheritance) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     // A more robust test checks for the presence of correct properties, ignoring order.
@@ -123,7 +123,7 @@ TEST(GeneratorTest, EndToEndStyleTemplateExplicitInheritance) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     // Assertions are the same as the implicit inheritance test
@@ -152,7 +152,7 @@ TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     std::string expected = "<div><p>from base</p><span>from child</span></div>";
@@ -169,7 +169,8 @@ TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyStyleMap;
     std::map<std::string, std::shared_ptr<CHTL::TemplateElementDefinitionNode>> emptyElementMap;
     std::map<std::string, std::shared_ptr<CHTL::TemplateVarDefinitionNode>> emptyVarMap;
-    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap);
+	std::map<std::string, std::shared_ptr<CHTL::OriginNode>> emptyOriginMap;
+    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap, emptyOriginMap);
     std::string result = generator.generate();
 
     std::string expected = "<div id=\"box\"></div>";
@@ -187,7 +188,8 @@ TEST(GeneratorTest, GenerateSimpleHTML) {
     std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyStyleMap;
     std::map<std::string, std::shared_ptr<CHTL::TemplateElementDefinitionNode>> emptyElementMap;
     std::map<std::string, std::shared_ptr<CHTL::TemplateVarDefinitionNode>> emptyVarMap;
-    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap);
+    std::map<std::string, std::shared_ptr<CHTL::OriginNode>> emptyOriginMap;
+    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap, emptyOriginMap);
     std::string result = generator.generate();
 
     std::string expected = "<div><span>hello</span></div>";

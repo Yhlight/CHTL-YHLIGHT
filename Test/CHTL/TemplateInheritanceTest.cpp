@@ -11,7 +11,7 @@ protected:
         CHTL::Lexer lexer(input);
         CHTL::Parser parser(lexer);
         auto program = parser.parse();
-        CHTL::Generator generator(program, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+        CHTL::Generator generator(program, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
         return generator.generate();
     }
 };

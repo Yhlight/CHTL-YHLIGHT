@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     CHTL::Parser parser(lexer);
     std::shared_ptr<CHTL::BaseNode> root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates(), parser.getOriginBlocks());
     std::string result = generator.generate();
 
     std::cout << result << std::endl;

@@ -14,7 +14,7 @@ add_subdirectory(CHTL)
 
 # CHTL Executable
 add_executable(chtl CHTL/main.cpp)
-target_link_libraries(chtl PRIVATE CHTLLexer CHTLParser CHTLGenerator)
+target_link_libraries(chtl PRIVATE CHTLLexer CHTLParser CHTLGenerator FileUtil)
 
 
 # Enable testing

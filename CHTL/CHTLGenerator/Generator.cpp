@@ -8,14 +8,16 @@
 #include "CHTL/CHTLNode/TemplateElementUsageNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/OriginUsageNode.h"
 
 namespace CHTL {
 
 Generator::Generator(std::shared_ptr<BaseNode> root,
                      const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& styleTemplates,
                      const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& elementTemplates,
-                     const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& varTemplates)
-    : m_root(root), m_styleTemplates(styleTemplates), m_elementTemplates(elementTemplates), m_varTemplates(varTemplates) {}
+                     const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& varTemplates,
+                     const std::map<std::string, std::shared_ptr<OriginNode>>& originBlocks)
+    : m_root(root), m_styleTemplates(styleTemplates), m_elementTemplates(elementTemplates), m_varTemplates(varTemplates), m_originBlocks(originBlocks) {}
 
 std::string Generator::generate() {
     std::string output;
@@ -71,7 +73,16 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
         }
         case NodeType::Origin: {
             auto originNode = std::static_pointer_cast<OriginNode>(node);
-            output += originNode->getContent();
+            if (!originNode->getName()) {
+                output += originNode->getContent();
+            }
+            break;
+        }
+        case NodeType::OriginUsage: {
+            auto originUsageNode = std::static_pointer_cast<OriginUsageNode>(node);
+            if (m_originBlocks.count(originUsageNode->getName())) {
+                output += m_originBlocks.at(originUsageNode->getName())->getContent();
+            }
             break;
         }
         default:

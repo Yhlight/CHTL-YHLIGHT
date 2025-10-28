@@ -86,6 +86,10 @@ Token Lexer::nextToken() {
             advance(8);
             return makeToken(TokenType::OriginKeyword, "[Origin]");
         }
+        if (m_source.substr(m_position, 8) == "[Import]") {
+            advance(8);
+            return makeToken(TokenType::ImportKeyword, "[Import]");
+        }
     }
 
     if (isalpha(c) || c == '@') {
@@ -97,6 +101,12 @@ Token Lexer::nextToken() {
 
         if (value == "inherit") {
             return makeToken(TokenType::InheritKeyword, value);
+        }
+        if (value == "from") {
+            return makeToken(TokenType::FromKeyword, value);
+        }
+        if (value == "as") {
+            return makeToken(TokenType::AsKeyword, value);
         }
 
         return makeToken(TokenType::Identifier, value);
