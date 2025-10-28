@@ -4,7 +4,7 @@ This document outlines the development roadmap for the CHTL project. The develop
 
 ## Phase 1: Core Compiler Infrastructure
 
-- [ ] **Lexer (Tokenizer):** Implement the lexical analyzer to convert CHTL source code into a stream of tokens.
+- [x] **Lexer (Tokenizer):** Implement the lexical analyzer to convert CHTL source code into a stream of tokens.
 - [ ] **Parser:** Implement the parser to build an Abstract Syntax Tree (AST) from the token stream.
 - [ ] **AST Node Definitions:** Define the structure of the AST nodes for all CHTL grammar constructs.
 - [ ] **Basic Code Generation:** Implement a basic code generator to traverse the AST and produce HTML.

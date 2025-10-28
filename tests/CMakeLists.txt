@@ -7,8 +7,11 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(
   run_tests
-  main.cpp
+  TokenTest/LexerTest.cpp
+  ../src/CHTL/CHTLLexer/Lexer.cpp
 )
+
+target_include_directories(run_tests PRIVATE ../src)
 
 target_link_libraries(
   run_tests
