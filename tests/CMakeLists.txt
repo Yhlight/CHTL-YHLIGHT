@@ -10,6 +10,7 @@ add_executable(
   TokenTest/LexerTest.cpp
   AstTest/ParserTest.cpp
   GeneratorTest.cpp
+  StyleTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp

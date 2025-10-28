@@ -18,6 +18,10 @@ int main() {
             body {
                 h1 {
                     id: "main-heading";
+                    style {
+                        color: blue;
+                        text-align: center;
+                    }
                     text { "Welcome to CHTL!" }
                 }
                 p {

@@ -22,6 +22,9 @@ void Generator::visit(const ASTNode* node) {
         case NodeType::Text:
             visit(static_cast<const TextNode*>(node));
             break;
+        case NodeType::Style:
+             // Style nodes are handled within element nodes, so we don't visit them directly.
+            break;
     }
 }
 
@@ -39,8 +42,24 @@ void Generator::visit(const ElementNode* node) {
         m_output << " " << attr.key << "=\"" << attr.value << "\"";
     }
 
+    if (node->style && !node->style->properties.empty()) {
+        m_output << " style=\"";
+        for (size_t i = 0; i < node->style->properties.size(); ++i) {
+            const auto& prop = node->style->properties[i];
+            m_output << prop.key << ": " << prop.value << ";";
+            if (i < node->style->properties.size() - 1) {
+                m_output << " ";
+            }
+        }
+        m_output << "\"";
+    }
+
+
+    // CHTL does not use self-closing tags for elements that can have content,
+    // to align with HTML semantics (e.g., div, p, etc.).
+    // We will always generate a closing tag.
     if (node->children.empty()) {
-        m_output << " />\n";
+        m_output << "></" << node->tagName << ">\n";
         return;
     }
 

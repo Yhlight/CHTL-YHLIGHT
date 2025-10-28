@@ -11,12 +11,14 @@ namespace CHTL {
 // Forward declare node types
 struct ElementNode;
 struct TextNode;
+struct StyleNode;
 
 // Enum to identify the type of an AST node
 enum class NodeType {
     Program,
     Element,
     Text,
+    Style,
     // Add other node types here as we implement them
 };
 
@@ -34,10 +36,34 @@ struct Attribute {
     std::string value;
 };
 
+// Represents a single CSS property
+struct StyleProperty {
+    std::string key;
+    std::string value;
+};
+
+// Represents a style block
+struct StyleNode : public ASTNode {
+    std::vector<StyleProperty> properties;
+
+    NodeType getType() const override { return NodeType::Style; }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Style:" << std::endl;
+        for (const auto& prop : properties) {
+            for (int j = 0; j < indent + 1; ++j) std::cout << "  ";
+            std::cout << prop.key << ": " << prop.value << ";" << std::endl;
+        }
+    }
+};
+
+
 // Represents an element node, like <div> or <span>
 struct ElementNode : public ASTNode {
     std::string tagName;
     std::vector<Attribute> attributes;
+    std::unique_ptr<StyleNode> style;
     std::vector<std::unique_ptr<ASTNode>> children;
 
     NodeType getType() const override { return NodeType::Element; }
@@ -49,6 +75,10 @@ struct ElementNode : public ASTNode {
             std::cout << " " << attr.key << "=\"" << attr.value << "\"";
         }
         std::cout << ">" << std::endl;
+
+        if (style) {
+            style->print(indent + 1);
+        }
 
         for (const auto& child : children) {
             child->print(indent + 1);

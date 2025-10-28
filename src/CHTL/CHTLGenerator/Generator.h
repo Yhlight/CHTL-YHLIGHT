@@ -16,6 +16,7 @@ private:
     void visit(const ElementNode* node);
     void visit(const TextNode* node);
     void visit(const ProgramNode* node);
+    void visit(const StyleNode* node);
 
     const ProgramNode& m_program;
     std::stringstream m_output;

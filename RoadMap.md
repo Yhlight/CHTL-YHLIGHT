@@ -16,8 +16,8 @@ This document outlines the development roadmap for the CHTL project. The develop
 
 - [ ] **Text and Element Nodes:** Implement parsing and code generation for `text` and standard HTML element nodes.
 - [ ] **Attributes:** Add support for element attributes.
-- [ ] **Local Style Blocks (`style {}`):**
-    - [ ] Inline styles.
+- [x] **Local Style Blocks (`style {}`):**
+    - [x] Inline styles.
     - [ ] Automatic class/id generation.
     - [ ] Context-aware `&` selector.
 - [ ] **Advanced Style Features:**

@@ -6,7 +6,7 @@
 using namespace CHTL;
 
 // Helper function to remove whitespace for easier comparison
-std::string removeWhitespace(std::string str) {
+inline std::string removeWhitespace(std::string str) {
     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
     str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
@@ -38,7 +38,7 @@ TEST(GeneratorTest, GeneratesHtmlFromAst) {
     std::string expected = R"(
         <html>
           <body>
-            <div id="main-content" class="container" />
+            <div id="main-content" class="container"></div>
             <p>
               Hello, CHTL!
             </p>
