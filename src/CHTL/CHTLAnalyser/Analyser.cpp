@@ -137,23 +137,35 @@ void Analyser::resolve(StyleNode* node) {
 void Analyser::resolve(std::unique_ptr<ASTNode>& node) {
     if (!node) return;
 
-    if (node->getType() == NodeType::BinaryOp) {
-        auto* bin_op_node = static_cast<BinaryOpNode*>(node.get());
-        resolve(bin_op_node->left);
-        resolve(bin_op_node->right);
-    } else if (node->getType() == NodeType::PropertyAccess) {
-        auto* access_node = static_cast<PropertyAccessNode*>(node.get());
-        const Symbol* symbol = m_symbol_table.find(access_node->selector);
-        if (!symbol) {
-            throw std::runtime_error("Unknown selector in property access: " + access_node->selector);
+    switch (node->getType()) {
+        case NodeType::BinaryOp: {
+            auto* bin_op_node = static_cast<BinaryOpNode*>(node.get());
+            resolve(bin_op_node->left);
+            resolve(bin_op_node->right);
+            break;
         }
-        auto it = symbol->properties.find(access_node->property);
-        if (it == symbol->properties.end()) {
-            throw std::runtime_error("Unknown property in property access: " + access_node->property);
+        case NodeType::TernaryOp: {
+            auto* ternary_node = static_cast<TernaryOpNode*>(node.get());
+            resolve(ternary_node->condition);
+            resolve(ternary_node->then_expr);
+            resolve(ternary_node->else_expr);
+            break;
         }
-
-        // Clone the entire referenced expression tree
-        node = it->second->clone();
+        case NodeType::PropertyAccess: {
+            auto* access_node = static_cast<PropertyAccessNode*>(node.get());
+            const Symbol* symbol = m_symbol_table.find(access_node->selector);
+            if (!symbol) {
+                throw std::runtime_error("Unknown selector in property access: " + access_node->selector);
+            }
+            auto it = symbol->properties.find(access_node->property);
+            if (it == symbol->properties.end()) {
+                throw std::runtime_error("Unknown property in property access: " + access_node->property);
+            }
+            node = it->second->clone();
+            break;
+        }
+        default:
+            break;
     }
 }
 

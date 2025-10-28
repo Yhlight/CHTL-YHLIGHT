@@ -1,9 +1,9 @@
 #pragma once
 
-#include "CHTL/CHTLLexer/Token.h"
-#include "CHTL/CHTLNode/ASTNode.h"
 #include <vector>
 #include <memory>
+#include "CHTL/CHTLLexer/Token.h"
+#include "CHTL/CHTLNode/ASTNode.h"
 
 namespace CHTL {
 
@@ -19,12 +19,11 @@ private:
     std::unique_ptr<StyleNode> parseStyleNode(ElementNode* parent);
     void parseAttributes(ElementNode& node);
 
-    // Expression Parsing (Pratt Parser)
+    std::unique_ptr<ASTNode> parseConditionalExpression();
     std::unique_ptr<ASTNode> parseExpression(int precedence = 0);
     std::unique_ptr<ASTNode> parsePrefix();
     std::unique_ptr<ASTNode> parseInfix(std::unique_ptr<ASTNode> left);
     int getPrecedence(TokenType type);
-
 
     const Token& advance();
     const Token& peek() const;
@@ -34,9 +33,8 @@ private:
     bool match(const std::vector<TokenType>& types);
     const Token& consume(TokenType type, const std::string& message);
 
-
     std::vector<Token> m_tokens;
     size_t m_current = 0;
 };
 
-} // namespace CHTL
+}

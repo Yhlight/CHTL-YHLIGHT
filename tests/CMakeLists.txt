@@ -13,6 +13,7 @@ add_executable(
   StyleTest.cpp
   ArithmeticTest.cpp
   ReferenceTest.cpp
+  ConditionalTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp

@@ -54,10 +54,19 @@ void Lexer::scanToken() {
         case '?': addToken(TokenType::QUESTION); break;
         case '@': addToken(TokenType::AT); break;
 
-        case '=': addToken(TokenType::EQUAL); break;
+        case '=':
+            addToken(match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
+            break;
+        case '!':
+            addToken(match('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
+            break;
+        case '>':
+            addToken(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
+            break;
+        case '<':
+            addToken(match('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
+            break;
         case '+': addToken(TokenType::PLUS); break;
-        case '>': addToken(TokenType::GREATER); break;
-        case '<': addToken(TokenType::LESS); break;
 
         case '-':
             addToken(match('>') ? TokenType::MINUS_GREATER : TokenType::MINUS);

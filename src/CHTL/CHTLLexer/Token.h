@@ -12,10 +12,12 @@ enum class TokenType {
     LEFT_PAREN, RIGHT_PAREN,     // ( )
     LEFT_BRACKET, RIGHT_BRACKET, // [ ]
     COLON, COLON_COLON, SEMICOLON, COMMA, DOT, // : ; , .
-    EQUAL,                      // =
+    EQUAL, EQUAL_EQUAL,          // = ==
+    BANG, BANG_EQUAL,            // ! !=
     PLUS, MINUS, STAR, SLASH, PERCENT, // + - * / %
     STAR_STAR,                  // **
-    GREATER, LESS,               // > <
+    GREATER, GREATER_EQUAL,      // > >=
+    LESS, LESS_EQUAL,            // < <=
     AMPERSAND,                  // &
     AMPERSAND_AMPERSAND,        // &&
     PIPE_PIPE,                  // ||
@@ -71,6 +73,9 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::COMMA: return "COMMA";
         case TokenType::DOT: return "DOT";
         case TokenType::EQUAL: return "EQUAL";
+        case TokenType::EQUAL_EQUAL: return "EQUAL_EQUAL";
+        case TokenType::BANG: return "BANG";
+        case TokenType::BANG_EQUAL: return "BANG_EQUAL";
         case TokenType::PLUS: return "PLUS";
         case TokenType::MINUS: return "MINUS";
         case TokenType::STAR: return "STAR";
@@ -78,7 +83,9 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::PERCENT: return "PERCENT";
         case TokenType::STAR_STAR: return "STAR_STAR";
         case TokenType::GREATER: return "GREATER";
+        case TokenType::GREATER_EQUAL: return "GREATER_EQUAL";
         case TokenType::LESS: return "LESS";
+        case TokenType::LESS_EQUAL: return "LESS_EQUAL";
         case TokenType::AMPERSAND: return "AMPERSAND";
         case TokenType::AMPERSAND_AMPERSAND: return "AMPERSAND_AMPERSAND";
         case TokenType::PIPE_PIPE: return "PIPE_PIPE";

@@ -31,7 +31,7 @@ This document outlines the development roadmap for the CHTL project, guided by t
         - [x] Add `PropertyAccessNode` to the AST.
         - [x] Update the parser to handle property access expressions.
         - [x] Implement an `Analyser` class to populate the symbol table and resolve references.
-    - [ ] **Conditional Expressions:** Implement support for ternary conditional expressions in style properties (`background-color: width > 50px ? "red" : "blue"`).
+    - [x] **Conditional Expressions:** Implement support for ternary conditional expressions in style properties (`background-color: width > 50px ? "red" : "blue"`).
 - [ ] **Templates (`[Template]`):**
     - [ ] Style group templates (`@Style`).
     - [ ] Element templates (`@Element`).

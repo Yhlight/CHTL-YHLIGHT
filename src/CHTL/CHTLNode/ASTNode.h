@@ -178,6 +178,28 @@ struct PropertyAccessNode : public ASTNode {
     }
 };
 
+struct TernaryOpNode : public ASTNode {
+    std::unique_ptr<ASTNode> condition;
+    std::unique_ptr<ASTNode> then_expr;
+    std::unique_ptr<ASTNode> else_expr;
+
+    NodeType getType() const override { return NodeType::TernaryOp; }
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<TernaryOpNode>();
+        node->condition = condition->clone();
+        node->then_expr = then_expr->clone();
+        node->else_expr = else_expr->clone();
+        return node;
+    }
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "TernaryOp:" << std::endl;
+        condition->print(indent + 1);
+        then_expr->print(indent + 1);
+        else_expr->print(indent + 1);
+    }
+};
+
 // Represents a style block
 struct StyleNode : public ASTNode {
     std::vector<StyleProperty> properties;
