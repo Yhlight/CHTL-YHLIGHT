@@ -359,6 +359,7 @@ struct TemplateNode : public ASTNode {
     std::string name;
     std::vector<std::unique_ptr<ASTNode>> children;
     std::vector<StyleProperty> properties; // For @Style and @Var templates
+    std::vector<std::unique_ptr<TemplateUsageNode>> inheritances;
 
     NodeType getType() const override { return NodeType::Template; }
 
@@ -371,6 +372,9 @@ struct TemplateNode : public ASTNode {
         }
         for (const auto& prop : properties) {
             node->properties.push_back({prop.key, prop.value->clone()});
+        }
+        for (const auto& inheritance : inheritances) {
+            node->inheritances.push_back(std::unique_ptr<TemplateUsageNode>(static_cast<TemplateUsageNode*>(inheritance->clone().release())));
         }
         return node;
     }

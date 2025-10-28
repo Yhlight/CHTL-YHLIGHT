@@ -19,26 +19,7 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseTemplateNode();
     }
     if (peek().type == TokenType::AT) {
-        advance(); // consume '@'
-        const auto& typeToken = peek();
-        if (typeToken.type == TokenType::IDENTIFIER) {
-            if (typeToken.lexeme == "Style") {
-                advance(); // consume 'Style'
-                auto node = std::make_unique<TemplateUsageNode>();
-                node->templateType = TemplateType::Style;
-                node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
-                consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
-                return node;
-            }
-            if (typeToken.lexeme == "Element") {
-                advance(); // consume 'Element'
-                auto node = std::make_unique<TemplateUsageNode>();
-                node->templateType = TemplateType::Element;
-                node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
-                consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
-                return node;
-            }
-        }
+        return parseTemplateUsage();
     }
     if (peek().type == TokenType::IDENTIFIER && m_tokens[m_current + 1].type == TokenType::LEFT_BRACE) {
         return parseElementNode();
@@ -47,6 +28,22 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
          return parseTextNode();
     }
     throw std::runtime_error("Unexpected token in parseStatement: " + peek().lexeme);
+}
+
+std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsage() {
+    consume(TokenType::AT, "Expect '@' before template type.");
+    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect template type.");
+    auto node = std::make_unique<TemplateUsageNode>();
+    if (typeToken.lexeme == "Style") {
+        node->templateType = TemplateType::Style;
+    } else if (typeToken.lexeme == "Element") {
+        node->templateType = TemplateType::Element;
+    } else {
+        throw std::runtime_error("Invalid template type for usage: " + typeToken.lexeme);
+    }
+    node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
+    consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+    return node;
 }
 
 std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
@@ -71,12 +68,12 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
     consume(TokenType::LEFT_BRACE, "Expect '{' after template name.");
 
-    if (node->templateType == TemplateType::Element) {
-        while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        if (match({TokenType::INHERIT}) || peek().type == TokenType::AT) {
+            node->inheritances.push_back(parseTemplateUsage());
+        } else if (node->templateType == TemplateType::Element) {
             node->children.push_back(parseStatement());
-        }
-    } else { // Style or Var
-        while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        } else { // Style or Var
             std::string key = consume(TokenType::IDENTIFIER, "Expect property key.").lexeme;
             consume(TokenType::COLON, "Expect ':' after property key.");
             node->properties.push_back({key, parseConditionalExpression()});
@@ -130,16 +127,7 @@ std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
 
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
         if (peek().type == TokenType::AT) {
-            advance(); // consume '@'
-            const auto& typeToken = peek();
-            if (typeToken.type == TokenType::IDENTIFIER && typeToken.lexeme == "Style") {
-                advance(); // consume 'Style'
-                auto usageNode = std::make_unique<TemplateUsageNode>();
-                usageNode->templateType = TemplateType::Style;
-                usageNode->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
-                consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
-                node->template_usages.push_back(std::move(usageNode));
-            }
+            node->template_usages.push_back(parseTemplateUsage());
         } else if (peek().type == TokenType::DOT || peek().type == TokenType::HASH || peek().type == TokenType::AMPERSAND) {
             auto selector_block = std::make_unique<SelectorBlockNode>();
             std::string selector_str;

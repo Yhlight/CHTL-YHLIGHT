@@ -26,3 +26,12 @@ inline std::string compile(const std::string& source) {
     Generator generator(*program);
     return generator.generate();
 }
+
+inline void expect_compile_error(const std::string& source, const std::string& expected_error) {
+    try {
+        compile(source);
+        FAIL() << "Expected a compile error, but none was thrown.";
+    } catch (const std::runtime_error& e) {
+        EXPECT_STREQ(e.what(), expected_error.c_str());
+    }
+}

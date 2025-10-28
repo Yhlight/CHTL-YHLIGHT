@@ -8,8 +8,13 @@ namespace CHTL {
 Analyser::Analyser(ProgramNode& program) : m_program(program) {}
 
 void Analyser::analyse() {
-    visit(&m_program); // First pass: collect symbols
-    resolve(&m_program); // Second pass: resolve references
+    visit(&m_program);
+
+    for (auto const& [name, node] : m_templates) {
+        resolveInheritance(node);
+    }
+
+    resolve(&m_program);
 }
 
 void Analyser::visit(ASTNode* node) {
@@ -86,6 +91,47 @@ void Analyser::visit(TemplateNode* node) {
         throw std::runtime_error("Template with name '" + node->name + "' already defined.");
     }
     m_templates[node->name] = node;
+}
+
+void Analyser::resolveInheritance(TemplateNode* node) {
+    if (m_inheritance_stack.count(node->name)) {
+        throw std::runtime_error("Circular template inheritance detected: " + node->name);
+    }
+    m_inheritance_stack.insert(node->name);
+
+    std::vector<std::unique_ptr<ASTNode>> inherited_children;
+    std::vector<StyleProperty> inherited_properties;
+
+    for (const auto& inheritance : node->inheritances) {
+        auto it = m_templates.find(inheritance->name);
+        if (it == m_templates.end()) {
+            throw std::runtime_error("Unknown template in inheritance: " + inheritance->name);
+        }
+        TemplateNode* parent = it->second;
+        resolveInheritance(parent); // Recurse
+
+        if (node->templateType == TemplateType::Element) {
+            for (const auto& child : parent->children) {
+                inherited_children.push_back(child->clone());
+            }
+        } else { // Style
+            for (const auto& prop : parent->properties) {
+                inherited_properties.push_back({prop.key, prop.value->clone()});
+            }
+        }
+    }
+
+    // Prepend inherited children
+    node->children.insert(node->children.begin(), std::make_move_iterator(inherited_children.begin()), std::make_move_iterator(inherited_children.end()));
+
+    // Combine properties: inherited first, then local (overwriting)
+    for (auto& prop : node->properties) {
+        inherited_properties.push_back(std::move(prop));
+    }
+    node->properties = std::move(inherited_properties);
+
+
+    m_inheritance_stack.erase(node->name);
 }
 
 void Analyser::resolve(ASTNode* node) {

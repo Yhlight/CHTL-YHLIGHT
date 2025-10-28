@@ -1,4 +1,7 @@
 #include "Generator.h"
+#include <algorithm>
+#include <vector>
+#include <unordered_set>
 
 namespace CHTL {
 
@@ -113,10 +116,23 @@ void Generator::visit(const ElementNode* node) {
 
     if (node->style && !node->style->properties.empty()) {
         m_output << " style=\"";
-        for (size_t i = 0; i < node->style->properties.size(); ++i) {
+        std::vector<const StyleProperty*> props_to_generate;
+        std::unordered_set<std::string> keys;
+
+        for (int i = node->style->properties.size() - 1; i >= 0; --i) {
             const auto& prop = node->style->properties[i];
-            m_output << prop.key << ": " << m_evaluator.evaluate(prop.value.get()) << ";";
-            if (i < node->style->properties.size() - 1) {
+            if (keys.find(prop.key) == keys.end()) {
+                props_to_generate.push_back(&prop);
+                keys.insert(prop.key);
+            }
+        }
+
+        std::reverse(props_to_generate.begin(), props_to_generate.end());
+
+        for (size_t i = 0; i < props_to_generate.size(); ++i) {
+            const auto* prop = props_to_generate[i];
+            m_output << prop->key << ": " << m_evaluator.evaluate(prop->value.get()) << ";";
+            if (i < props_to_generate.size() - 1) {
                 m_output << " ";
             }
         }

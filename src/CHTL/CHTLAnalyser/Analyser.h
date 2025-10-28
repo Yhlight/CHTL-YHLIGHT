@@ -3,6 +3,7 @@
 #include "CHTL/CHTLNode/ASTNode.h"
 #include "SymbolTable.h"
 #include <memory>
+#include <unordered_set>
 
 namespace CHTL {
 
@@ -17,6 +18,8 @@ private:
     void visit(ProgramNode* node);
     void visit(TemplateNode* node);
 
+    void resolveInheritance(TemplateNode* node);
+
     void resolve(ASTNode* node);
     void resolve(ElementNode* node);
     void resolve(ProgramNode* node);
@@ -27,7 +30,8 @@ private:
 
     ProgramNode& m_program;
     SymbolTable m_symbol_table;
-    std::unordered_map<std::string, const TemplateNode*> m_templates;
+    std::unordered_map<std::string, TemplateNode*> m_templates;
+    std::unordered_set<std::string> m_inheritance_stack;
 };
 
 } // namespace CHTL
