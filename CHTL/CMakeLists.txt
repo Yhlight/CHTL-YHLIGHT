@@ -3,7 +3,7 @@ target_include_directories(CHTLLexer PUBLIC ${CMAKE_SOURCE_DIR})
 
 add_library(CHTLParser STATIC CHTLParser/Parser.cpp)
 target_include_directories(CHTLParser PUBLIC ${CMAKE_SOURCE_DIR})
-target_link_libraries(CHTLParser PRIVATE CHTLLexer)
+target_link_libraries(CHTLParser PRIVATE CHTLLexer Util)
 
 add_library(CHTLGenerator STATIC CHTLGenerator/Generator.cpp)
 target_include_directories(CHTLGenerator PUBLIC ${CMAKE_SOURCE_DIR})

@@ -10,6 +10,7 @@
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
 #include "CHTL/CHTLNode/OriginUsageNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -19,20 +20,25 @@ namespace CHTL {
 class Parser {
 public:
     Parser(Lexer& lexer);
+    Parser(Lexer& lexer,
+        std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>> styleTemplates,
+        std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>> elementTemplates,
+        std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>> varTemplates,
+        std::shared_ptr<std::map<std::string, std::shared_ptr<OriginNode>>> originTemplates);
 
     std::shared_ptr<ProgramNode> parse();
-    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_styleTemplates; }
-    const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return m_elementTemplates; }
-    const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return m_varTemplates; }
-    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return m_originTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return *m_styleTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return *m_elementTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return *m_varTemplates; }
+    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return *m_originTemplates; }
 
 private:
     Lexer& m_lexer;
     Token m_currentToken;
-    std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>> m_styleTemplates;
-    std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>> m_elementTemplates;
-    std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>> m_varTemplates;
-    std::map<std::string, std::shared_ptr<OriginNode>> m_originTemplates;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>> m_styleTemplates;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>> m_elementTemplates;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>> m_varTemplates;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<OriginNode>>> m_originTemplates;
 
     void eat(TokenType type);
     std::shared_ptr<BaseNode> parseStatement();
@@ -45,6 +51,7 @@ private:
     std::shared_ptr<StyleBlockNode> parseStyleBlock();
     void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
     std::shared_ptr<BaseNode> parseOriginBlock();
+    std::shared_ptr<BaseNode> parseImportStatement();
     void parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock);
 };
 
