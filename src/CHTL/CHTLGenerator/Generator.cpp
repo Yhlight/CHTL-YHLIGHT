@@ -38,8 +38,19 @@ void Generator::visit(const ElementNode* node) {
     indent();
     m_output << "<" << node->tagName;
 
+    bool has_class = false;
+    bool has_id = false;
     for (const auto& attr : node->attributes) {
+        if (attr.key == "class") has_class = true;
+        if (attr.key == "id") has_id = true;
         m_output << " " << attr.key << "=\"" << attr.value << "\"";
+    }
+
+    if (!has_class && !node->auto_classes.empty()) {
+        m_output << " class=\"" << node->auto_classes[0] << "\"";
+    }
+    if (!has_id && !node->auto_ids.empty()) {
+        m_output << " id=\"" << node->auto_ids[0] << "\"";
     }
 
     if (node->style && !node->style->properties.empty()) {

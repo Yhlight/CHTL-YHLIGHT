@@ -89,3 +89,47 @@ TEST(StyleTest, CombinesAttributesAndStyles) {
 
     EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
 }
+
+TEST(StyleTest, GeneratesAutoClass) {
+    std::string source = "div { style { .box {} } }";
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    auto program = parser.parse();
+    Generator generator(*program);
+    std::string result = generator.generate();
+    std::string expected = R"(<div class="box"></div>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}
+
+TEST(StyleTest, GeneratesAutoId) {
+    std::string source = "div { style { #main {} } }";
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    auto program = parser.parse();
+    Generator generator(*program);
+    std::string result = generator.generate();
+    std::string expected = R"(<div id="main"></div>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}
+
+TEST(StyleTest, DoesNotOverrideExistingClass) {
+    std::string source = R"(div { class: "manual"; style { .auto {} } })";
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    auto program = parser.parse();
+    Generator generator(*program);
+    std::string result = generator.generate();
+    std::string expected = R"(<div class="manual"></div>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}
+
+TEST(StyleTest, UsesFirstAutoSelector) {
+    std::string source = "div { style { .first {} #second {} } }";
+    Lexer lexer(source);
+    Parser parser(lexer.tokenize());
+    auto program = parser.parse();
+    Generator generator(*program);
+    std::string result = generator.generate();
+    std::string expected = R"(<div class="first" id="second"></div>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}

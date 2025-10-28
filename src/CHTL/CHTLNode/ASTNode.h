@@ -63,6 +63,8 @@ struct StyleNode : public ASTNode {
 struct ElementNode : public ASTNode {
     std::string tagName;
     std::vector<Attribute> attributes;
+    std::vector<std::string> auto_classes;
+    std::vector<std::string> auto_ids;
     std::unique_ptr<StyleNode> style;
     std::vector<std::unique_ptr<ASTNode>> children;
 
@@ -75,6 +77,14 @@ struct ElementNode : public ASTNode {
             std::cout << " " << attr.key << "=\"" << attr.value << "\"";
         }
         std::cout << ">" << std::endl;
+
+        if (!auto_classes.empty() || !auto_ids.empty()) {
+            for (int i = 0; i < indent + 1; ++i) std::cout << "  ";
+            std::cout << "Auto selectors: ";
+            for (const auto& c : auto_classes) std::cout << "." << c << " ";
+            for (const auto& i : auto_ids) std::cout << "#" << i << " ";
+            std::cout << std::endl;
+        }
 
         if (style) {
             style->print(indent + 1);

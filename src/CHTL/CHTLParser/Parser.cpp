@@ -37,7 +37,7 @@ std::unique_ptr<ElementNode> Parser::parseElementNode() {
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
         // Inside an element, we can have attributes, a style block, or child elements.
         if (peek().type == TokenType::STYLE) {
-            node->style = parseStyleNode();
+            node->style = parseStyleNode(node.get());
         } else if (peek().type == TokenType::IDENTIFIER && m_tokens[m_current + 1].type == TokenType::COLON) {
             parseAttributes(*node);
         } else {
@@ -65,30 +65,42 @@ std::unique_ptr<TextNode> Parser::parseTextNode() {
     return node;
 }
 
-std::unique_ptr<StyleNode> Parser::parseStyleNode() {
+std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
     consume(TokenType::STYLE, "Expect 'style' keyword.");
     consume(TokenType::LEFT_BRACE, "Expect '{' after 'style' keyword.");
 
     auto node = std::make_unique<StyleNode>();
 
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
-        std::string key = consume(TokenType::IDENTIFIER, "Expect style property key.").lexeme;
-        consume(TokenType::COLON, "Expect ':' after style property key.");
+        if (peek().type == TokenType::DOT) {
+            advance(); // consume '.'
+            parent->auto_classes.push_back(consume(TokenType::IDENTIFIER, "Expect class name.").lexeme);
+            consume(TokenType::LEFT_BRACE, "Expect '{' after class name.");
+            // We are not parsing the content of selector blocks yet.
+            consume(TokenType::RIGHT_BRACE, "Expect '}' after class block.");
+        } else if (peek().type == TokenType::HASH) {
+            advance(); // consume '#'
+            parent->auto_ids.push_back(consume(TokenType::IDENTIFIER, "Expect id name.").lexeme);
+            consume(TokenType::LEFT_BRACE, "Expect '{' after id name.");
+            // We are not parsing the content of selector blocks yet.
+            consume(TokenType::RIGHT_BRACE, "Expect '}' after id block.");
+        } else {
+            std::string key = consume(TokenType::IDENTIFIER, "Expect style property key.").lexeme;
+            consume(TokenType::COLON, "Expect ':' after style property key.");
 
-        // For now, we'll parse a simple value (identifier or string)
-        const Token& valueToken = advance();
-        if (valueToken.type != TokenType::IDENTIFIER && valueToken.type != TokenType::STRING && valueToken.type != TokenType::NUMBER) {
-             throw std::runtime_error("Expect style property value.");
+            const Token& valueToken = advance();
+            if (valueToken.type != TokenType::IDENTIFIER && valueToken.type != TokenType::STRING && valueToken.type != TokenType::NUMBER) {
+                 throw std::runtime_error("Expect style property value.");
+            }
+            std::string value = valueToken.lexeme;
+
+            if (peek().type == TokenType::IDENTIFIER || peek().type == TokenType::PERCENT) {
+                value += advance().lexeme;
+            }
+
+            node->properties.push_back({key, value});
+            consume(TokenType::SEMICOLON, "Expect ';' after style property.");
         }
-        std::string value = valueToken.lexeme;
-
-        // Handle units like 'px', '%', etc. which are tokenized as separate identifiers
-        if (peek().type == TokenType::IDENTIFIER || peek().type == TokenType::PERCENT) {
-            value += advance().lexeme;
-        }
-
-        node->properties.push_back({key, value});
-        consume(TokenType::SEMICOLON, "Expect ';' after style property.");
     }
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after style block.");

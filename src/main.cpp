@@ -28,6 +28,13 @@ int main() {
                     class: "intro";
                     text { "This is a paragraph generated from CHTL." }
                 }
+                div {
+                    style {
+                        .auto-class {}
+                        width: 100px;
+                    }
+                    text { "This div has an auto-generated class." }
+                }
             }
         }
     )";
