@@ -15,6 +15,7 @@ add_executable(
   ReferenceTest.cpp
   ConditionalTest.cpp
   TemplateTest.cpp
+  CustomTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp

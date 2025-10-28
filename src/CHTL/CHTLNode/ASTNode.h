@@ -228,6 +228,8 @@ enum class TemplateType { Style, Element, Var };
 struct TemplateUsageNode : public ASTNode {
     TemplateType templateType;
     std::string name;
+    std::vector<StyleProperty> provided_values; // For custom styles
+    std::vector<std::string> deleted_properties; // For custom style deletion
 
     NodeType getType() const override { return NodeType::TemplateUsage; }
 
@@ -235,6 +237,10 @@ struct TemplateUsageNode : public ASTNode {
         auto node = std::make_unique<TemplateUsageNode>();
         node->templateType = templateType;
         node->name = name;
+        for (const auto& prop : provided_values) {
+            node->provided_values.push_back({prop.key, prop.value->clone()});
+        }
+        node->deleted_properties = deleted_properties;
         return node;
     }
 
@@ -353,13 +359,15 @@ struct TextNode : public ASTNode {
     }
 };
 
-// Represents a [Template] definition
+// Represents a [Template] or [Custom] definition
 struct TemplateNode : public ASTNode {
     TemplateType templateType;
     std::string name;
+    bool isCustom = false;
     std::vector<std::unique_ptr<ASTNode>> children;
     std::vector<StyleProperty> properties; // For @Style and @Var templates
     std::vector<std::unique_ptr<TemplateUsageNode>> inheritances;
+    std::vector<std::string> deleted_properties;
 
     NodeType getType() const override { return NodeType::Template; }
 
@@ -367,21 +375,23 @@ struct TemplateNode : public ASTNode {
         auto node = std::make_unique<TemplateNode>();
         node->templateType = templateType;
         node->name = name;
+        node->isCustom = isCustom;
         for (const auto& child : children) {
             node->children.push_back(child->clone());
         }
         for (const auto& prop : properties) {
-            node->properties.push_back({prop.key, prop.value->clone()});
+            node->properties.push_back({prop.key, prop.value ? prop.value->clone() : nullptr});
         }
         for (const auto& inheritance : inheritances) {
             node->inheritances.push_back(std::unique_ptr<TemplateUsageNode>(static_cast<TemplateUsageNode*>(inheritance->clone().release())));
         }
+        node->deleted_properties = deleted_properties;
         return node;
     }
 
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
-        std::cout << "Template(" << name << "):" << std::endl;
+        std::cout << (isCustom ? "Custom(" : "Template(") << name << "):" << std::endl;
         for (const auto& child : children) {
             child->print(indent + 1);
         }

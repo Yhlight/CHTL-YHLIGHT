@@ -37,7 +37,7 @@ enum class TokenType {
     IF, ELSE, ELSE_IF,
     DELETE, INSERT, AFTER, BEFORE, REPLACE,
     FROM, AS, EXCEPT, USE, HTML5, INHERIT,
-    TEMPLATE,
+    TEMPLATE, CUSTOM,
 
     // Special Keywords / Phrases that might need special handling
     // e.g., "at top", "at bottom"

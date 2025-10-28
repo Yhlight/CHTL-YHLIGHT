@@ -36,10 +36,11 @@ This document outlines the development roadmap for the CHTL project, guided by t
     - [x] Style group templates (`@Style`).
     - [x] Element templates (`@Element`).
     - [x] Variable group templates (`@Var`).
-    - [ ] Template inheritance (`@Style OtherStyle;` and `inherit @Style OtherStyle;`). (In Progress)
-- [ ] **Customization (`[Custom]`):**
-    - [ ] Custom style groups with value placeholders.
-    - [ ] Specialization (deleting properties, inserting/deleting elements).
+    - [x] Template inheritance (`@Style OtherStyle;` and `inherit @Style OtherStyle;`).
+- [x] **Customization (`[Custom]`):**
+    - [x] Custom style groups with value placeholders.
+    - [x] Specialization (deleting properties).
+    - [ ] Specialization (inserting/deleting elements).
 - [ ] **Imports (`[Import]`):**
     - [ ] Import CHTL, HTML, CSS, and JS files.
 - [ ] **Namespaces (`[Namespace]`):**

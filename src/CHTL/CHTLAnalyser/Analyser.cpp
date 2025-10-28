@@ -1,7 +1,10 @@
 #include "Analyser.h"
 #include <stdexcept>
-#include <sstream>
+#include <vector>
+#include <iterator>
 #include <algorithm>
+#include <sstream>
+
 
 namespace CHTL {
 
@@ -116,7 +119,7 @@ void Analyser::resolveInheritance(TemplateNode* node) {
             }
         } else { // Style
             for (const auto& prop : parent->properties) {
-                inherited_properties.push_back({prop.key, prop.value->clone()});
+                inherited_properties.push_back({prop.key, prop.value ? prop.value->clone() : nullptr});
             }
         }
     }
@@ -124,12 +127,33 @@ void Analyser::resolveInheritance(TemplateNode* node) {
     // Prepend inherited children
     node->children.insert(node->children.begin(), std::make_move_iterator(inherited_children.begin()), std::make_move_iterator(inherited_children.end()));
 
-    // Combine properties: inherited first, then local (overwriting)
-    for (auto& prop : node->properties) {
-        inherited_properties.push_back(std::move(prop));
-    }
-    node->properties = std::move(inherited_properties);
+	// Filter out deleted properties from the inherited list
+	if (!node->deleted_properties.empty()) {
+		inherited_properties.erase(std::remove_if(inherited_properties.begin(), inherited_properties.end(),
+			[&](const StyleProperty& prop) {
+				return std::find(node->deleted_properties.begin(), node->deleted_properties.end(), prop.key) != node->deleted_properties.end();
+			}), inherited_properties.end());
+	}
 
+    // Combine properties, giving precedence to the current node's properties.
+    std::vector<StyleProperty> final_properties;
+    std::unordered_set<std::string> defined_keys;
+
+    // First, add all properties from the current node and track their keys.
+    for (auto& prop : node->properties) {
+        defined_keys.insert(prop.key);
+        final_properties.push_back(std::move(prop));
+    }
+    node->properties.clear();
+
+    // Then, add properties from the parent, but only if they haven't been defined in the current node.
+    for (auto it = inherited_properties.rbegin(); it != inherited_properties.rend(); ++it) {
+        if (defined_keys.find(it->key) == defined_keys.end()) {
+            final_properties.insert(final_properties.begin(), std::move(*it));
+        }
+    }
+
+    node->properties = std::move(final_properties);
 
     m_inheritance_stack.erase(node->name);
 }
@@ -214,18 +238,38 @@ void Analyser::resolve(ElementNode* node) {
 }
 
 void Analyser::resolve(StyleNode* node) {
+    std::vector<StyleProperty> new_properties;
     for (const auto& usage : node->template_usages) {
         if (usage->templateType == TemplateType::Style) {
             auto it = m_templates.find(usage->name);
             if (it == m_templates.end()) {
                 throw std::runtime_error("Unknown style template: " + usage->name);
             }
-            const TemplateNode* templateNode = it->second;
+            TemplateNode* templateNode = it->second;
+
             for (const auto& prop : templateNode->properties) {
-                node->properties.push_back({prop.key, prop.value->clone()});
+                if (prop.value) { // Not a placeholder
+                    new_properties.push_back({prop.key, prop.value->clone()});
+                } else { // Placeholder
+                    auto val_it = std::find_if(usage->provided_values.begin(), usage->provided_values.end(),
+                                               [&](const StyleProperty& p) { return p.key == prop.key; });
+                    if (val_it == usage->provided_values.end()) {
+                        throw std::runtime_error("Missing value for placeholder '" + prop.key + "' in custom style '" + usage->name + "'");
+                    }
+                    new_properties.push_back({prop.key, val_it->value->clone()});
+                }
             }
         }
+		// Handle deletions after processing all properties for this usage
+		if (!usage->deleted_properties.empty()) {
+			new_properties.erase(std::remove_if(new_properties.begin(), new_properties.end(),
+				[&](const StyleProperty& prop) {
+					return std::find(usage->deleted_properties.begin(), usage->deleted_properties.end(), prop.key) != usage->deleted_properties.end();
+				}), new_properties.end());
+		}
     }
+     node->properties.insert(node->properties.begin(), std::make_move_iterator(new_properties.begin()), std::make_move_iterator(new_properties.end()));
+
 
     for (auto& prop : node->properties) {
         resolve(prop);
@@ -302,4 +346,4 @@ void Analyser::resolve(StyleProperty& prop) {
     resolve(prop.value);
 }
 
-}
+} // namespace CHTL
