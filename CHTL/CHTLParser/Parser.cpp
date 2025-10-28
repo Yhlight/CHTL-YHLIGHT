@@ -4,6 +4,8 @@
 #include "CHTL/CHTLNode/AttributeNode.h"
 #include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
 #include "CHTL/CHTLNode/StyleBlockNode.h"
+#include "CHTL/CHTLNode/TemplateElementDefinitionNode.h"
+#include "CHTL/CHTLNode/TemplateElementUsageNode.h"
 
 namespace CHTL {
 
@@ -34,9 +36,16 @@ std::shared_ptr<BaseNode> Parser::parse() {
 
 std::shared_ptr<BaseNode> Parser::parseStatement() {
     if (m_currentToken.type == TokenType::TemplateKeyword) {
-        return parseTemplateStyleDefinition();
+        if (m_lexer.peek().value == "@Style") {
+            return parseTemplateStyleDefinition();
+        } else if (m_lexer.peek().value == "@Element") {
+            return parseTemplateElementDefinition();
+        }
     }
     if (m_currentToken.type == TokenType::Identifier) {
+        if (m_currentToken.value == "@Element") {
+            return parseTemplateElementUsage();
+        }
         if (m_currentToken.value == "text") {
             return parseText();
         }
@@ -64,6 +73,32 @@ std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
     auto templateNode = std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
     m_styleTemplates[templateName] = templateNode;
     return templateNode;
+}
+
+std::shared_ptr<BaseNode> Parser::parseTemplateElementDefinition() {
+    eat(TokenType::TemplateKeyword);
+    eat(TokenType::Identifier); // @Element
+    std::string templateName = m_currentToken.value;
+    eat(TokenType::Identifier);
+
+    auto templateNode = std::make_shared<TemplateElementDefinitionNode>(templateName);
+
+    eat(TokenType::OpenBrace);
+    while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        templateNode->addChild(parseStatement());
+    }
+    eat(TokenType::CloseBrace);
+
+    m_elementTemplates[templateName] = templateNode;
+    return templateNode;
+}
+
+std::shared_ptr<BaseNode> Parser::parseTemplateElementUsage() {
+    eat(TokenType::Identifier); // @Element
+    std::string templateName = m_currentToken.value;
+    eat(TokenType::Identifier);
+    eat(TokenType::Semicolon);
+    return std::make_shared<TemplateElementUsageNode>(templateName);
 }
 
 std::shared_ptr<BaseNode> Parser::parseElement() {

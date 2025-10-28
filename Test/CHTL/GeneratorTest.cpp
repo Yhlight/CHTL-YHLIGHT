@@ -6,6 +6,24 @@
 #include "CHTL/Lexer.h"
 #include "CHTL/CHTLParser/Parser.h"
 
+TEST(GeneratorTest, EndToEndElementTemplate) {
+    std::string source = R"(
+        [Template] @Element MyElement { span { text: "hello"; } }
+        div {
+            @Element MyElement;
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates());
+    std::string result = generator.generate();
+
+    std::string expected = "<div><span>hello</span></div>";
+    EXPECT_EQ(result, expected);
+}
+
 TEST(GeneratorTest, EndToEndStyleTemplate) {
     std::string source = R"(
         [Template] @Style MyStyles { color: red; }
@@ -20,7 +38,7 @@ TEST(GeneratorTest, EndToEndStyleTemplate) {
     CHTL::Parser parser(lexer);
     std::shared_ptr<CHTL::BaseNode> root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates());
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates());
     std::string result = generator.generate();
 
     std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
@@ -34,8 +52,9 @@ TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     auto divNode = std::make_shared<CHTL::ElementNode>("div");
     divNode->addAttribute(attribute);
 
-    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyMap;
-    CHTL::Generator generator(divNode, emptyMap);
+    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyStyleMap;
+    std::map<std::string, std::shared_ptr<CHTL::TemplateElementDefinitionNode>> emptyElementMap;
+    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap);
     std::string result = generator.generate();
 
     std::string expected = "<div id=\"box\"></div>";
@@ -50,8 +69,9 @@ TEST(GeneratorTest, GenerateSimpleHTML) {
     auto divNode = std::make_shared<CHTL::ElementNode>("div");
     divNode->addChild(spanNode);
 
-    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyMap;
-    CHTL::Generator generator(divNode, emptyMap);
+    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyStyleMap;
+    std::map<std::string, std::shared_ptr<CHTL::TemplateElementDefinitionNode>> emptyElementMap;
+    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap);
     std::string result = generator.generate();
 
     std::string expected = "<div><span>hello</span></div>";

@@ -5,6 +5,44 @@
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
 #include "CHTL/CHTLNode/TemplateStyleUsageNode.h"
+#include "CHTL/CHTLNode/TemplateElementDefinitionNode.h"
+#include "CHTL/CHTLNode/TemplateElementUsageNode.h"
+
+TEST(ParserTest, ParseTemplateElementDefinition) {
+    std::string source = "[Template] @Element MyElement { span {} }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::TemplateElementDefinition);
+
+    auto templateNode = std::static_pointer_cast<CHTL::TemplateElementDefinitionNode>(root);
+    EXPECT_EQ(templateNode->getName(), "MyElement");
+    ASSERT_EQ(templateNode->getChildren().size(), 1);
+
+    auto child = std::static_pointer_cast<CHTL::ElementNode>(templateNode->getChildren()[0]);
+    EXPECT_EQ(child->getTagName(), "span");
+}
+
+TEST(ParserTest, ParseElementWithTemplateUsage) {
+    std::string source = "div { @Element MyElement; }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
+
+    auto elementNode = std::static_pointer_cast<CHTL::ElementNode>(root);
+    EXPECT_EQ(elementNode->getTagName(), "div");
+    ASSERT_EQ(elementNode->getChildren().size(), 1);
+
+    auto usageNode = std::static_pointer_cast<CHTL::TemplateElementUsageNode>(elementNode->getChildren()[0]);
+    EXPECT_EQ(usageNode->getName(), "MyElement");
+}
 
 TEST(ParserTest, ParseElementWithStyleBlockAndTemplateUsage) {
     std::string source = "div { style { @Style MyStyles; color: blue; } }";

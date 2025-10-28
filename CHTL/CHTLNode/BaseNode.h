@@ -13,6 +13,8 @@ enum class NodeType {
     StyleBlock,
     TemplateStyleDefinition,
     TemplateStyleUsage,
+    TemplateElementDefinition,
+    TemplateElementUsage,
     // ... other node types
 };
 
