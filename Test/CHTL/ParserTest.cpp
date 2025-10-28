@@ -7,13 +7,62 @@
 #include "CHTL/CHTLNode/TemplateStyleUsageNode.h"
 #include "CHTL/CHTLNode/TemplateElementDefinitionNode.h"
 #include "CHTL/CHTLNode/TemplateElementUsageNode.h"
+#include "CHTL/CHTLNode/TemplateVarDefinitionNode.h"
+#include "CHTL/CHTLNode/StylePropertyNode.h"
+
+TEST(ParserTest, ParseTemplateVarDefinition) {
+    std::string source = "[Template] @Var MyVars { color: red; }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::TemplateVarDefinition);
+
+    auto templateNode = std::static_pointer_cast<CHTL::TemplateVarDefinitionNode>(root);
+    EXPECT_EQ(templateNode->getName(), "MyVars");
+    ASSERT_EQ(templateNode->getVariables().size(), 1);
+    EXPECT_EQ(templateNode->getVariables().at("color"), "red");
+}
+
+TEST(ParserTest, ParseStructuredStyleBlock) {
+    std::string source = "div { style { color: MyVars(color); font-size: 16px; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
+
+    auto elementNode = std::static_pointer_cast<CHTL::ElementNode>(root);
+    auto styleBlock = elementNode->getStyleBlock();
+    ASSERT_NE(styleBlock, nullptr);
+
+    ASSERT_EQ(styleBlock->getProperties().size(), 2);
+    EXPECT_EQ(styleBlock->getProperties()[0]->getKey(), "color");
+    EXPECT_EQ(styleBlock->getProperties()[0]->getValue(), "MyVars(color)");
+    EXPECT_EQ(styleBlock->getProperties()[1]->getKey(), "font-size");
+    EXPECT_EQ(styleBlock->getProperties()[1]->getValue(), "16px");
+}
+
 
 TEST(ParserTest, ParseTemplateElementDefinition) {
     std::string source = "[Template] @Element MyElement { span {} }";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::TemplateElementDefinition);
@@ -31,7 +80,10 @@ TEST(ParserTest, ParseElementWithTemplateUsage) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
@@ -49,7 +101,10 @@ TEST(ParserTest, ParseElementWithStyleBlockAndTemplateUsage) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
@@ -62,7 +117,10 @@ TEST(ParserTest, ParseElementWithStyleBlockAndTemplateUsage) {
 
     ASSERT_EQ(styleBlock->getUsedTemplates().size(), 1);
     EXPECT_EQ(styleBlock->getUsedTemplates()[0], "MyStyles");
-    EXPECT_EQ(styleBlock->getRawContent(), "color:blue;");
+
+    ASSERT_EQ(styleBlock->getProperties().size(), 1);
+    EXPECT_EQ(styleBlock->getProperties()[0]->getKey(), "color");
+    EXPECT_EQ(styleBlock->getProperties()[0]->getValue(), "blue");
 }
 
 TEST(ParserTest, ParseTemplateStyleDefinition) {
@@ -70,7 +128,10 @@ TEST(ParserTest, ParseTemplateStyleDefinition) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::TemplateStyleDefinition);
@@ -80,7 +141,10 @@ TEST(ParserTest, ParseTemplateStyleDefinition) {
 
     auto styleBlock = templateNode->getStyleBlock();
     ASSERT_NE(styleBlock, nullptr);
-    EXPECT_EQ(styleBlock->getRawContent(), "color:red;");
+
+    ASSERT_EQ(styleBlock->getProperties().size(), 1);
+    EXPECT_EQ(styleBlock->getProperties()[0]->getKey(), "color");
+    EXPECT_EQ(styleBlock->getProperties()[0]->getValue(), "red");
 }
 
 TEST(ParserTest, ParseElementWithTextAttribute) {
@@ -88,7 +152,10 @@ TEST(ParserTest, ParseElementWithTextAttribute) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
@@ -107,7 +174,10 @@ TEST(ParserTest, ParseElementWithAttribute) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
@@ -126,7 +196,10 @@ TEST(ParserTest, ParseTextNode) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Text);
@@ -140,7 +213,10 @@ TEST(ParserTest, ParseSimpleElement) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
@@ -155,7 +231,10 @@ TEST(ParserTest, ParseNestedElement) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
-    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
 
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->getType(), CHTL::NodeType::Element);

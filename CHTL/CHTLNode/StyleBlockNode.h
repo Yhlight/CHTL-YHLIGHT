@@ -1,26 +1,32 @@
 #pragma once
 
 #include "BaseNode.h"
+#include "StylePropertyNode.h"
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace CHTL {
 
 class StyleBlockNode : public BaseNode {
 public:
-    StyleBlockNode(const std::string& content) : m_rawContent(content) {}
+    StyleBlockNode() = default;
 
     NodeType getType() const override { return NodeType::StyleBlock; }
 
-    const std::string& getRawContent() const { return m_rawContent; }
+    const std::vector<std::shared_ptr<StylePropertyNode>>& getProperties() const { return m_properties; }
     const std::vector<std::string>& getUsedTemplates() const { return m_usedTemplates; }
+
+    void addProperty(std::shared_ptr<StylePropertyNode> prop) {
+        m_properties.push_back(prop);
+    }
 
     void addUsedTemplate(const std::string& templateName) {
         m_usedTemplates.push_back(templateName);
     }
 
 private:
-    std::string m_rawContent;
+    std::vector<std::shared_ptr<StylePropertyNode>> m_properties;
     std::vector<std::string> m_usedTemplates;
 };
 

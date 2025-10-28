@@ -86,7 +86,7 @@ Token Lexer::nextToken() {
 
     if (isalpha(c) || c == '@') {
         std::string value;
-        while (isalnum(currentChar()) || currentChar() == '@') {
+        while (isalnum(currentChar()) || currentChar() == '@' || currentChar() == '-') {
             value += currentChar();
             advance();
         }
