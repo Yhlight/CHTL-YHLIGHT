@@ -7,6 +7,7 @@
 #include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
 #include "CHTL/CHTLNode/TemplateElementUsageNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
 
 namespace CHTL {
 
@@ -71,6 +72,11 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
                     visit(child, output);
                 }
             }
+            break;
+        }
+        case NodeType::Origin: {
+            auto originNode = std::static_pointer_cast<OriginNode>(node);
+            output += originNode->getContent();
             break;
         }
         default:

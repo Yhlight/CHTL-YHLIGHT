@@ -17,6 +17,8 @@ enum class NodeType {
     TemplateElementUsage,
     TemplateVarDefinition,
     StyleProperty,
+    Origin,
+    OriginUsage,
     // ... other node types
 };
 

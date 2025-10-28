@@ -152,6 +152,25 @@ TEST(LexerTest, TemplateStyleDefinition) {
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
 }
 
+TEST(LexerTest, LexRawContent) {
+    std::string source = "[Origin] @Html {<div><span>{nested}</span></div>}";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::OriginKeyword);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "@Html");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::RAW_CONTENT);
+    EXPECT_EQ(token.value, "<div><span>{nested}</span></div>");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
 TEST(LexerTest, Identifier) {
     std::string source = "div";
     CHTL::Lexer lexer(source);

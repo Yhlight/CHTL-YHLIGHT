@@ -8,6 +8,8 @@
 #include "CHTL/CHTLNode/TemplateElementDefinitionNode.h"
 #include "CHTL/CHTLNode/TemplateVarDefinitionNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/OriginUsageNode.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -22,6 +24,7 @@ public:
     const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_styleTemplates; }
     const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return m_elementTemplates; }
     const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return m_varTemplates; }
+    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return m_originTemplates; }
 
 private:
     Lexer& m_lexer;
@@ -29,6 +32,7 @@ private:
     std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>> m_styleTemplates;
     std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>> m_elementTemplates;
     std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>> m_varTemplates;
+    std::map<std::string, std::shared_ptr<OriginNode>> m_originTemplates;
 
     void eat(TokenType type);
     std::shared_ptr<BaseNode> parseStatement();
@@ -40,6 +44,7 @@ private:
     std::shared_ptr<BaseNode> parseTemplateElementUsage();
     std::shared_ptr<StyleBlockNode> parseStyleBlock();
     void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
+    std::shared_ptr<BaseNode> parseOriginBlock();
     void parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock);
 };
 

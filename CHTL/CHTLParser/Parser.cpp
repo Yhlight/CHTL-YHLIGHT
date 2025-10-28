@@ -9,6 +9,7 @@
 #include "CHTL/CHTLNode/TemplateVarDefinitionNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
 
 namespace CHTL {
 
@@ -37,6 +38,10 @@ std::shared_ptr<ProgramNode> Parser::parse() {
 std::shared_ptr<BaseNode> Parser::parseStatement() {
     if (m_currentToken.type == TokenType::InheritKeyword) {
         eat(TokenType::InheritKeyword);
+    }
+
+    if (m_currentToken.type == TokenType::OriginKeyword) {
+        return parseOriginBlock();
     }
 
     if (m_currentToken.type == TokenType::TemplateKeyword) {
@@ -222,6 +227,36 @@ void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) 
             styleBlock->addProperty(std::make_shared<StylePropertyNode>(key, value));
         }
     }
+}
+
+std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
+    eat(TokenType::OriginKeyword);
+
+    OriginType type;
+    if (m_currentToken.value == "@Html") {
+        type = OriginType::Html;
+    } else if (m_currentToken.value == "@Style") {
+        type = OriginType::Style;
+    } else { // Assuming @JavaScript for now
+        type = OriginType::JavaScript;
+    }
+    eat(TokenType::Identifier);
+
+    std::optional<std::string> name;
+    if (m_currentToken.type == TokenType::Identifier) {
+        name = m_currentToken.value;
+        eat(TokenType::Identifier);
+    }
+
+    std::string content = m_currentToken.value;
+    eat(TokenType::RAW_CONTENT);
+
+    auto node = std::make_shared<OriginNode>(type, content);
+    if (name) {
+        node->setName(*name);
+        m_originTemplates[*name] = node;
+    }
+    return node;
 }
 
 } // namespace CHTL

@@ -9,6 +9,43 @@
 #include "CHTL/CHTLNode/TemplateElementUsageNode.h"
 #include "CHTL/CHTLNode/TemplateVarDefinitionNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
+
+TEST(ParserTest, ParseNamedOriginBlock) {
+    std::string source = "[Origin] @Html MyRawHtml {<div></div>}";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+
+    auto definition = programNode->getChildren()[0];
+    ASSERT_NE(definition, nullptr);
+    ASSERT_EQ(definition->getType(), CHTL::NodeType::Origin);
+    auto originNode = std::static_pointer_cast<CHTL::OriginNode>(definition);
+    EXPECT_EQ(originNode->getName().value_or(""), "MyRawHtml");
+    EXPECT_EQ(originNode->getContent(), "<div></div>");
+}
+
+TEST(ParserTest, ParseOriginBlock) {
+    std::string rawContent = "\n    <div class=\"raw-html\">This is not parsed.</div>\n    // Even comments are preserved.\n";
+    std::string source = "[Origin] @Html {" + rawContent + "}";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+    auto root = programNode->getChildren()[0];
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::Origin);
+
+    auto originNode = std::static_pointer_cast<CHTL::OriginNode>(root);
+    EXPECT_EQ(originNode->getOriginType(), CHTL::OriginType::Html);
+    EXPECT_EQ(originNode->getContent(), rawContent);
+}
 
 TEST(ParserTest, ParseTemplateVarDefinition) {
     std::string source = "[Template] @Var MyVars { color: red; }";

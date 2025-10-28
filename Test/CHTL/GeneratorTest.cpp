@@ -159,6 +159,20 @@ TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
     EXPECT_EQ(result, expected);
 }
 
+TEST(GeneratorTest, EndToEndOriginBlock) {
+    std::string rawHtml = "<script>alert('raw html');</script>";
+    std::string source = "[Origin] @Html {" + rawHtml + "}";
+
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto root = parser.parse();
+
+    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    std::string result = generator.generate();
+
+    EXPECT_EQ(result, rawHtml);
+}
+
 
 TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     // Manually construct an AST: div { id: "box" }
