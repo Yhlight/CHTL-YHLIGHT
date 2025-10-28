@@ -75,7 +75,7 @@ TEST(GeneratorTest, EndToEndStyleTemplateInheritance) {
         }
 
         [Template] @Style ChildStyle {
-            @Style BaseStyle;
+            inherit @Style BaseStyle;
             color: blue; // Override
             border: "1px solid black"; // Add new
         }
@@ -140,7 +140,7 @@ TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
         }
 
         [Template] @Element ChildElement {
-            @Element BaseElement;
+            inherit @Element BaseElement;
             span { text: "from child"; }
         }
 

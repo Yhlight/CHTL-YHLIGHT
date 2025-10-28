@@ -65,12 +65,7 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
         }
         case NodeType::TemplateElementUsage: {
             auto usageNode = std::static_pointer_cast<TemplateElementUsageNode>(node);
-            if (m_elementTemplates.count(usageNode->getName())) {
-                auto templateNode = m_elementTemplates.at(usageNode->getName());
-                for (const auto& child : templateNode->getChildren()) {
-                    visit(child, output);
-                }
-            }
+            resolveAndVisitElementTemplate(usageNode->getName(), output);
             break;
         }
         default:
@@ -84,33 +79,82 @@ void Generator::collectStyleProperties(std::shared_ptr<const StyleBlockNode> sty
         return;
     }
 
-    // First, recursively collect properties from inherited templates
     for (const auto& templateName : styleBlock->getUsedTemplates()) {
-        if (m_styleTemplates.count(templateName)) {
-            collectStyleProperties(m_styleTemplates.at(templateName)->getStyleBlock(), properties);
-        }
+        collectInheritedStyleProperties(templateName, properties);
     }
 
     // Then, add/override with properties from the current block
     for (const auto& prop : styleBlock->getProperties()) {
-        std::string value = prop->getValue();
-
-        std::regex varRegex("([a-zA-Z_][a-zA-Z0-9_]*)\\(([^)]+)\\)");
-        std::smatch match;
-
-        if (std::regex_match(value, match, varRegex)) {
-            std::string varTemplateName = match[1];
-            std::string varKey = match[2];
-
-            if (m_varTemplates.count(varTemplateName)) {
-                const auto& varTemplate = m_varTemplates.at(varTemplateName);
-                if (varTemplate->getVariables().count(varKey)) {
-                    value = varTemplate->getVariables().at(varKey);
-                }
-            }
-        }
-        properties[prop->getKey()] = value;
+        properties[prop->getKey()] = resolveVariable(prop->getValue());
     }
+}
+
+void Generator::collectInheritedStyleProperties(const std::string& templateName, std::map<std::string, std::string>& properties) {
+    if (!m_styleTemplates.count(templateName)) {
+        return;
+    }
+
+    auto templateNode = m_styleTemplates.at(templateName);
+
+    // First, handle the parent
+    if (templateNode->getParentName()) {
+        collectInheritedStyleProperties(templateNode->getParentName().value(), properties);
+    }
+
+    // Then, apply current template's styles
+    collectStyleProperties(templateNode->getStyleBlock(), properties);
+}
+
+void Generator::resolveAndVisitElementTemplate(const std::string& templateName, std::string& output) {
+    if (!m_elementTemplates.count(templateName)) {
+        return;
+    }
+
+    auto templateNode = m_elementTemplates.at(templateName);
+
+    // First, resolve the parent
+    if (templateNode->getParentName()) {
+        resolveAndVisitElementTemplate(templateNode->getParentName().value(), output);
+    }
+
+    // Then, visit children of the current template
+    for (const auto& child : templateNode->getChildren()) {
+        visit(child, output);
+    }
+}
+
+std::optional<std::string> Generator::getVariableValue(const std::string& templateName, const std::string& key) {
+    if (!m_varTemplates.count(templateName)) {
+        return std::nullopt;
+    }
+
+    auto templateNode = m_varTemplates.at(templateName);
+    const auto& variables = templateNode->getVariables();
+
+    if (variables.count(key)) {
+        return variables.at(key);
+    }
+
+    if (templateNode->getParentName()) {
+        return getVariableValue(templateNode->getParentName().value(), key);
+    }
+
+    return std::nullopt;
+}
+
+std::string Generator::resolveVariable(const std::string& value) {
+    std::regex varRegex("([a-zA-Z_][a-zA-Z0-9_]*)\\(([^)]+)\\)");
+    std::smatch match;
+
+    if (std::regex_match(value, match, varRegex)) {
+        std::string varTemplateName = match[1];
+        std::string varKey = match[2];
+        if (auto varValue = getVariableValue(varTemplateName, varKey)) {
+            return *varValue;
+        }
+    }
+
+    return value;
 }
 
 std::string Generator::generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock) {

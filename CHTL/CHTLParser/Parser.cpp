@@ -35,10 +35,6 @@ std::shared_ptr<ProgramNode> Parser::parse() {
 }
 
 std::shared_ptr<BaseNode> Parser::parseStatement() {
-    if (m_currentToken.type == TokenType::InheritKeyword) {
-        eat(TokenType::InheritKeyword);
-    }
-
     if (m_currentToken.type == TokenType::TemplateKeyword) {
         if (m_lexer.peek().value == "@Style") {
             return parseTemplateStyleDefinition();
@@ -67,12 +63,41 @@ std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
     eat(TokenType::Identifier);
 
     auto styleBlock = std::make_shared<StyleBlockNode>();
+	auto templateNode = std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
 
     eat(TokenType::OpenBrace);
-    parseStyleBlockContent(styleBlock);
+
+    while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        if (m_currentToken.type == TokenType::InheritKeyword) {
+            eat(TokenType::InheritKeyword);
+            if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Style") {
+                eat(TokenType::Identifier); // Eat "@Style"
+                templateNode->setParentName(m_currentToken.value);
+                eat(TokenType::Identifier); // Eat template name
+                eat(TokenType::Semicolon);
+            } else {
+                throw std::runtime_error("Expected @Style declaration after 'inherit' keyword");
+            }
+        } else {
+
+            // Assume it's a style property
+            std::string key = m_currentToken.value;
+            eat(TokenType::Identifier);
+            eat(TokenType::Colon);
+
+            std::string value;
+            while(m_currentToken.type != TokenType::Semicolon && m_currentToken.type != TokenType::EndOfFile) {
+                value += m_currentToken.value;
+                eat(m_currentToken.type);
+            }
+
+            eat(TokenType::Semicolon);
+            styleBlock->addProperty(std::make_shared<StylePropertyNode>(key, value));
+        }
+    }
+
     eat(TokenType::CloseBrace);
 
-    auto templateNode = std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
     m_styleTemplates[templateName] = templateNode;
     return templateNode;
 }
@@ -87,13 +112,25 @@ std::shared_ptr<BaseNode> Parser::parseTemplateVarDefinition() {
 
     eat(TokenType::OpenBrace);
     while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
-        std::string key = m_currentToken.value;
-        eat(TokenType::Identifier);
-        eat(TokenType::Colon);
-        std::string value = m_currentToken.value;
-        eat(m_currentToken.type); // Can be Identifier or String
-        eat(TokenType::Semicolon);
-        templateNode->addVariable(key, value);
+        if (m_currentToken.type == TokenType::InheritKeyword) {
+            eat(TokenType::InheritKeyword);
+            if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Var") {
+                eat(TokenType::Identifier); // @Var
+                templateNode->setParentName(m_currentToken.value);
+                eat(TokenType::Identifier);
+                eat(TokenType::Semicolon);
+            } else {
+                throw std::runtime_error("Expected @Var declaration after 'inherit' keyword");
+            }
+        } else {
+            std::string key = m_currentToken.value;
+            eat(TokenType::Identifier);
+            eat(TokenType::Colon);
+            std::string value = m_currentToken.value;
+            eat(m_currentToken.type); // Can be Identifier or String
+            eat(TokenType::Semicolon);
+            templateNode->addVariable(key, value);
+        }
     }
     eat(TokenType::CloseBrace);
 
@@ -110,6 +147,17 @@ std::shared_ptr<BaseNode> Parser::parseTemplateElementDefinition() {
     auto templateNode = std::make_shared<TemplateElementDefinitionNode>(templateName);
 
     eat(TokenType::OpenBrace);
+
+    if (m_currentToken.type == TokenType::InheritKeyword) {
+        eat(TokenType::InheritKeyword);
+        if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Element") {
+            eat(TokenType::Identifier); // @Element
+            templateNode->setParentName(m_currentToken.value);
+            eat(TokenType::Identifier);
+            eat(TokenType::Semicolon);
+        }
+    }
+
     while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
         templateNode->addChild(parseStatement());
     }

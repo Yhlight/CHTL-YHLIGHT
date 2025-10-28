@@ -28,6 +28,10 @@ private:
     void visit(std::shared_ptr<BaseNode> node, std::string& output);
     std::string generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock);
     void collectStyleProperties(std::shared_ptr<const StyleBlockNode> styleBlock, std::map<std::string, std::string>& properties);
+    void collectInheritedStyleProperties(const std::string& templateName, std::map<std::string, std::string>& properties);
+    void resolveAndVisitElementTemplate(const std::string& templateName, std::string& output);
+    std::optional<std::string> getVariableValue(const std::string& templateName, const std::string& key);
+    std::string resolveVariable(const std::string& value);
 };
 
 } // namespace CHTL
