@@ -63,11 +63,31 @@ void testParsingOfNestedElements() {
     assert(divNode->tagName == "div");
 }
 
+void testParsingOfStyleBlock() {
+    std::string source = "div { style { width: 100px; } }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.tokenize();
+    Parser parser(tokens);
+    std::unique_ptr<ASTNode> node = parser.parse();
+
+    assert(node != nullptr);
+    ElementNode* elementNode = dynamic_cast<ElementNode*>(node.get());
+    assert(elementNode != nullptr);
+    assert(elementNode->tagName == "div");
+    assert(elementNode->children.size() == 1);
+
+    StyleNode* styleNode = dynamic_cast<StyleNode*>(elementNode->children[0].get());
+    assert(styleNode != nullptr);
+    assert(styleNode->properties.size() == 1);
+    assert(styleNode->properties.at("width").value == "100px");
+}
+
 int main() {
     testParsingOfTextNode();
     testParsingOfElementNode();
     testParsingOfElementWithAttributes();
     testParsingOfNestedElements();
+    testParsingOfStyleBlock();
     std::cout << "All parser tests passed!" << std::endl;
     return 0;
 }

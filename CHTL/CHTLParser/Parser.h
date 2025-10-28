@@ -21,4 +21,5 @@ private:
     std::unique_ptr<ASTNode> parseStatement();
     std::unique_ptr<TextNode> parseTextNode();
     std::unique_ptr<ElementNode> parseElementNode();
+    std::unique_ptr<StyleNode> parseStyleNode();
 };

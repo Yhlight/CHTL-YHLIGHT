@@ -16,6 +16,15 @@ public:
     std::string text;
 };
 
+struct StyleBlockEntry {
+    std::string value;
+};
+
+class StyleNode : public ASTNode {
+public:
+    std::unordered_map<std::string, StyleBlockEntry> properties;
+};
+
 class ElementNode : public ASTNode {
 public:
     ElementNode(const std::string& tagName) : tagName(tagName) {}

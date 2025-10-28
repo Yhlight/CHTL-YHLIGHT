@@ -22,4 +22,5 @@ private:
     void skipWhitespace();
     Token string();
     Token identifier();
+    Token valueLiteral();
 };

@@ -14,6 +14,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     if (peek().type == TokenType::Identifier) {
         return parseElementNode();
     }
+    if (peek().type == TokenType::Style) {
+        return parseStyleNode();
+    }
     return nullptr;
 }
 
@@ -48,9 +51,7 @@ std::unique_ptr<ElementNode> Parser::parseElementNode() {
     advance(); // Consume '{'
 
     while (peek().type != TokenType::RBrace && !isAtEnd()) {
-        // This is a simplified approach. A real implementation would distinguish
-        // between attributes and child nodes more robustly.
-        if (peek().type == TokenType::Identifier && (tokens[current+1].type == TokenType::Colon || tokens[current+1].type == TokenType::Equal)) {
+        if (peek().type == TokenType::Identifier && (current + 1 < tokens.size() && (tokens[current+1].type == TokenType::Colon || tokens[current+1].type == TokenType::Equal))) {
              std::string attrName = advance().value;
 
             if (peek().type != TokenType::Colon && peek().type != TokenType::Equal) {
@@ -81,6 +82,48 @@ std::unique_ptr<ElementNode> Parser::parseElementNode() {
 
     return node;
 }
+
+std::unique_ptr<StyleNode> Parser::parseStyleNode() {
+    advance(); // Consume 'style' token
+    auto node = std::make_unique<StyleNode>();
+
+    if (peek().type != TokenType::LBrace) {
+        throw std::runtime_error("Expected '{' after 'style'");
+    }
+    advance(); // Consume '{'
+
+    while (peek().type != TokenType::RBrace && !isAtEnd()) {
+        if (peek().type != TokenType::Identifier) {
+            throw std::runtime_error("Expected style property name");
+        }
+        std::string propName = advance().value;
+
+        if (peek().type != TokenType::Colon) {
+            throw std::runtime_error("Expected ':' after style property name");
+        }
+        advance(); // consume ':'
+
+        if (peek().type != TokenType::Value && peek().type != TokenType::String) {
+            throw std::runtime_error("Expected style property value");
+        }
+        std::string propValue = advance().value;
+
+        node->properties[propName] = {propValue};
+
+        if (peek().type != TokenType::Semicolon) {
+            throw std::runtime_error("Expected ';' after style property value");
+        }
+        advance(); // consume ';'
+    }
+
+    if (peek().type != TokenType::RBrace) {
+        throw std::runtime_error("Expected '}' after style block");
+    }
+    advance(); // Consume '}'
+
+    return node;
+}
+
 
 Token Parser::peek() {
     return tokens[current];

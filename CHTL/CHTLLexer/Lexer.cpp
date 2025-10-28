@@ -4,6 +4,7 @@
 
 static const std::unordered_map<std::string, TokenType> keywords = {
     {"text", TokenType::Text},
+    {"style", TokenType::Style},
 };
 
 Lexer::Lexer(const std::string& source) : source(source) {}
@@ -29,6 +30,7 @@ Token Lexer::nextToken() {
 
     char c = advance();
 
+    if (isdigit(c)) return valueLiteral();
     if (isalpha(c)) return identifier();
     if (c == '"') return string();
 
@@ -122,4 +124,9 @@ Token Lexer::identifier() {
     }
 
     return {TokenType::Identifier, text};
+}
+
+Token Lexer::valueLiteral() {
+    while (isalnum(peek()) || peek() == '.') advance();
+    return {TokenType::Value, source.substr(start, current - start)};
 }

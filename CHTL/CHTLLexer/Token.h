@@ -5,11 +5,13 @@
 enum class TokenType {
     // Keywords
     Text,
+    Style,
 
     // Literals
     String,
     Comment,
     Identifier,
+    Value,
 
     // Punctuation
     LBrace,

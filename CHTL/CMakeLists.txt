@@ -4,7 +4,7 @@ project(CHTL)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(chtl_compiler Main.cpp)
+add_executable(chtl_compiler Main.cpp CHTLLexer/Lexer.cpp CHTLParser/Parser.cpp CHTLGenerator/Generator.cpp)
 
 # Enable testing
 enable_testing()

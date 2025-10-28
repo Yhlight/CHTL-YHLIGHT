@@ -2,7 +2,7 @@
 
 This document outlines the development and refactoring route for the CHTL project. The project will be developed in phases, with a focus on Test-Driven Development (TDD) to ensure stability and correctness.
 
-## Phase 1: Core Compiler Infrastructure (In Progress)
+## Phase 1: Core Compiler Infrastructure (Completed)
 
 - [x] **Project Setup**
     - [x] Create `RoadMap.md`
@@ -13,16 +13,16 @@ This document outlines the development and refactoring route for the CHTL projec
 - [x] **CHTL Lexer**
     - [x] Implement tokenization for basic CHTL syntax (comments, text nodes, elements, attributes)
     - [x] Write comprehensive tests for the lexer
-- [ ] **CHTL Parser**
-    - [ ] Implement a parser to build an Abstract Syntax Tree (AST) from the lexer's tokens
+- [x] **CHTL Parser**
+    - [x] Implement a parser to build an Abstract Syntax Tree (AST) from the lexer's tokens
     - [x] Define node types for the AST
     - [x] Write tests for the parser
 
-## Phase 2: CHTL Language Features
+## Phase 2: CHTL Language Features (In Progress)
 
-- [ ] **Element and Attribute Handling**
-    - [ ] Implement generation of HTML from the AST
-    - [ ] Support for all standard HTML elements
+- [x] **Element and Attribute Handling**
+    - [x] Implement generation of HTML from the AST
+    - [x] Support for all standard HTML elements
 - [ ] **Local Style Blocks**
     - [ ] Implement parsing of local `style` blocks
     - [ ] Handle inline styles
