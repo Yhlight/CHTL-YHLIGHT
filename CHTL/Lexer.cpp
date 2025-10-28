@@ -71,4 +71,9 @@ Token Lexer::nextToken() {
     return makeToken(TokenType::Unexpected, unexpected_char);
 }
 
+Token Lexer::peek() {
+    Lexer tempLexer = *this;
+    return tempLexer.nextToken();
+}
+
 } // namespace CHTL

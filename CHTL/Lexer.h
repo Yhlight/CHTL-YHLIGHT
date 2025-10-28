@@ -10,6 +10,7 @@ public:
     Lexer(const std::string& source);
 
     Token nextToken();
+    Token peek();
 
 private:
     std::string m_source;

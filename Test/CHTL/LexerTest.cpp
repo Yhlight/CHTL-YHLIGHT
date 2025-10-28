@@ -29,6 +29,28 @@ TEST(LexerTest, SimpleTokens) {
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
 }
 
+TEST(LexerTest, UnquotedLiteralInAttribute) {
+    std::string source = "id: box;";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "id");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Colon);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "box");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Semicolon);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
 TEST(LexerTest, StringLiteral) {
     std::string source = "\"hello world\"";
     CHTL::Lexer lexer(source);

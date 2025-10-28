@@ -2,6 +2,7 @@
 
 #include "CHTL/Lexer.h"
 #include "CHTL/CHTLNode/BaseNode.h"
+#include "CHTL/CHTLNode/AttributeNode.h"
 #include <memory>
 #include <vector>
 
@@ -21,6 +22,7 @@ private:
     std::shared_ptr<BaseNode> parseStatement();
     std::shared_ptr<BaseNode> parseElement();
     std::shared_ptr<BaseNode> parseText();
+    std::shared_ptr<AttributeNode> parseAttribute();
 };
 
 } // namespace CHTL

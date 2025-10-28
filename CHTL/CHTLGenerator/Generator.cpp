@@ -18,7 +18,11 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
     switch (node->getType()) {
         case NodeType::Element: {
             auto elementNode = std::static_pointer_cast<ElementNode>(node);
-            output += "<" + elementNode->getTagName() + ">";
+            output += "<" + elementNode->getTagName();
+            for (const auto& attr : elementNode->getAttributes()) {
+                output += " " + attr->getKey() + "=\"" + attr->getValue() + "\"";
+            }
+            output += ">";
             for (const auto& child : elementNode->getChildren()) {
                 visit(child, output);
             }

@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
+#include "CHTL/CHTLNode/AttributeNode.h"
 
 namespace CHTL {
 
@@ -41,7 +42,11 @@ std::shared_ptr<BaseNode> Parser::parseElement() {
     eat(TokenType::OpenBrace);
 
     while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
-        element->addChild(parseStatement());
+        if (m_currentToken.type == TokenType::Identifier && m_lexer.peek().type == TokenType::Colon) {
+            element->addAttribute(parseAttribute());
+        } else {
+            element->addChild(parseStatement());
+        }
     }
 
     eat(TokenType::CloseBrace);
@@ -56,6 +61,20 @@ std::shared_ptr<BaseNode> Parser::parseText() {
     eat(TokenType::String);
     eat(TokenType::CloseBrace);
     return std::make_shared<TextNode>(textValue);
+}
+
+std::shared_ptr<AttributeNode> Parser::parseAttribute() {
+    std::string key = m_currentToken.value;
+    eat(TokenType::Identifier);
+    eat(TokenType::Colon);
+    std::string value = m_currentToken.value;
+    if (m_currentToken.type == TokenType::Identifier || m_currentToken.type == TokenType::String) {
+        eat(m_currentToken.type);
+    } else {
+        // Handle error: unexpected token for attribute value
+    }
+    eat(TokenType::Semicolon);
+    return std::make_shared<AttributeNode>(key, value);
 }
 
 } // namespace CHTL
