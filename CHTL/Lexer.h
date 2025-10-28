@@ -12,6 +12,9 @@ public:
     Token nextToken();
     Token peek();
 
+    const std::string& getSource() const { return m_source; }
+    void setPosition(size_t pos) { m_position = pos; }
+
 private:
     std::string m_source;
     size_t m_position;

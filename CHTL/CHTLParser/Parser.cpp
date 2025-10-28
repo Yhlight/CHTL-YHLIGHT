@@ -9,6 +9,7 @@
 #include "CHTL/CHTLNode/TemplateVarDefinitionNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
 
 namespace CHTL {
 
@@ -35,6 +36,9 @@ std::shared_ptr<ProgramNode> Parser::parse() {
 }
 
 std::shared_ptr<BaseNode> Parser::parseStatement() {
+    if (m_currentToken.type == TokenType::OriginKeyword) {
+        return parseOrigin();
+    }
     if (m_currentToken.type == TokenType::TemplateKeyword) {
         if (m_lexer.peek().value == "@Style") {
             return parseTemplateStyleDefinition();
@@ -173,6 +177,42 @@ std::shared_ptr<BaseNode> Parser::parseTemplateElementUsage() {
     eat(TokenType::Identifier);
     eat(TokenType::Semicolon);
     return std::make_shared<TemplateElementUsageNode>(templateName);
+}
+
+std::shared_ptr<BaseNode> Parser::parseOrigin() {
+    eat(TokenType::OriginKeyword);
+    std::string type = m_currentToken.value;
+    eat(TokenType::Identifier); // e.g. @Html
+
+    std::string name = "";
+    if (m_currentToken.type != TokenType::OpenBrace) {
+        name = m_currentToken.value;
+        eat(TokenType::Identifier);
+    }
+
+    int startPos = m_currentToken.pos;
+    eat(TokenType::OpenBrace);
+    const std::string& source = m_lexer.getSource();
+
+    int braceCount = 1;
+    int currentPos = startPos;
+    while (braceCount > 0 && currentPos < source.length()) {
+        if (source[currentPos] == '{') {
+            braceCount++;
+        } else if (source[currentPos] == '}') {
+            braceCount--;
+        }
+        currentPos++;
+    }
+
+    std::string content = source.substr(startPos, currentPos - startPos - 1);
+    m_lexer.setPosition(currentPos);
+    m_currentToken = m_lexer.nextToken();
+
+    if (name.empty()) {
+        return std::make_shared<OriginNode>(type, content);
+    }
+    return std::make_shared<OriginNode>(type, name, content);
 }
 
 std::shared_ptr<BaseNode> Parser::parseElement() {

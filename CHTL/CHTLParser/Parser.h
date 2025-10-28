@@ -22,6 +22,7 @@ public:
     const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_styleTemplates; }
     const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return m_elementTemplates; }
     const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return m_varTemplates; }
+    const std::string& getSource() const { return m_lexer.getSource(); }
 
 private:
     Lexer& m_lexer;
@@ -38,6 +39,7 @@ private:
     std::shared_ptr<BaseNode> parseTemplateElementDefinition();
     std::shared_ptr<BaseNode> parseTemplateVarDefinition();
     std::shared_ptr<BaseNode> parseTemplateElementUsage();
+    std::shared_ptr<BaseNode> parseOrigin();
     std::shared_ptr<StyleBlockNode> parseStyleBlock();
     void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
     void parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock);

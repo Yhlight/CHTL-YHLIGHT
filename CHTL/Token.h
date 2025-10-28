@@ -40,6 +40,7 @@ enum class TokenType {
     Style,
     Script,
     TemplateKeyword, // [Template]
+    OriginKeyword, // [Origin]
     InheritKeyword,
 
     // Comments
@@ -53,6 +54,7 @@ struct Token {
     std::string value;
     int line;
     int column;
+    int pos;
 };
 
 } // namespace CHTL

@@ -32,7 +32,7 @@ void Lexer::advance(int count) {
 }
 
 Token Lexer::makeToken(TokenType type, const std::string& value) {
-    return Token{type, value, m_line, m_column};
+    return Token{type, value, m_line, m_column, (int)m_position};
 }
 
 Token Lexer::nextToken() {
@@ -81,6 +81,10 @@ Token Lexer::nextToken() {
         if (m_source.substr(m_position, 10) == "[Template]") {
             advance(10);
             return makeToken(TokenType::TemplateKeyword, "[Template]");
+        }
+        if (m_source.substr(m_position, 8) == "[Origin]") {
+            advance(8);
+            return makeToken(TokenType::OriginKeyword, "[Origin]");
         }
     }
 
