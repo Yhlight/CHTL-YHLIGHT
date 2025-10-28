@@ -164,9 +164,28 @@ std::unique_ptr<ASTNode> Parser::parseExpression(int precedence) {
 }
 
 std::unique_ptr<ASTNode> Parser::parsePrefix() {
-    if (check(TokenType::DOT) || check(TokenType::HASH)) {
-        std::string selector = advance().lexeme;
-        selector += consume(TokenType::IDENTIFIER, "Expect selector name.").lexeme;
+    // Property Access: .class.prop, #id.prop, tag.prop
+    bool isPropAccess = false;
+    if (m_current + 1 < m_tokens.size()) {
+        if (check(TokenType::IDENTIFIER) && m_tokens[m_current + 1].type == TokenType::DOT) {
+            isPropAccess = true;
+        } else if ((check(TokenType::DOT) || check(TokenType::HASH)) &&
+                   m_current + 2 < m_tokens.size() &&
+                   m_tokens[m_current + 1].type == TokenType::IDENTIFIER &&
+                   m_tokens[m_current + 2].type == TokenType::DOT) {
+            isPropAccess = true;
+        }
+    }
+
+    if (isPropAccess) {
+        std::string selector;
+        if (check(TokenType::DOT) || check(TokenType::HASH)) {
+            selector += advance().lexeme; // Consume '.' or '#'
+            selector += consume(TokenType::IDENTIFIER, "Expect selector name.").lexeme;
+        } else {
+            selector += consume(TokenType::IDENTIFIER, "Expect selector name.").lexeme; // Consume tag/id/class
+        }
+
         consume(TokenType::DOT, "Expect '.' after selector.");
         std::string prop = consume(TokenType::IDENTIFIER, "Expect property name.").lexeme;
 
@@ -175,6 +194,7 @@ std::unique_ptr<ASTNode> Parser::parsePrefix() {
         node->property = prop;
         return node;
     }
+
     if (match({TokenType::NUMBER})) {
         auto node = std::make_unique<NumberLiteralNode>();
         try {

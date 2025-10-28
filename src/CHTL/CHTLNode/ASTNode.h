@@ -46,6 +46,7 @@ enum class NodeType {
 struct ASTNode {
     virtual ~ASTNode() = default;
     virtual NodeType getType() const = 0;
+    virtual std::unique_ptr<ASTNode> clone() const = 0;
     // A virtual method for debugging is very useful
     virtual void print(int indent = 0) const = 0;
 };
@@ -69,6 +70,15 @@ struct SelectorBlockNode : public ASTNode {
 
     NodeType getType() const override { return NodeType::SelectorBlock; }
 
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<SelectorBlockNode>();
+        node->selector = selector;
+        for (const auto& prop : properties) {
+            node->properties.push_back({prop.key, prop.value->clone()});
+        }
+        return node;
+    }
+
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << selector << " {" << std::endl;
@@ -88,6 +98,12 @@ struct NumberLiteralNode : public ASTNode {
     std::string unit;
 
     NodeType getType() const override { return NodeType::NumberLiteral; }
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<NumberLiteralNode>();
+        node->value = value;
+        node->unit = unit;
+        return node;
+    }
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "Number(" << value << unit << ")" << std::endl;
@@ -98,6 +114,11 @@ struct StringLiteralNode : public ASTNode {
     std::string value;
 
     NodeType getType() const override { return NodeType::StringLiteral; }
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<StringLiteralNode>();
+        node->value = value;
+        return node;
+    }
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "String(\"" << value << "\")" << std::endl;
@@ -108,6 +129,11 @@ struct IdentifierNode : public ASTNode {
     std::string name;
 
     NodeType getType() const override { return NodeType::Identifier; }
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<IdentifierNode>();
+        node->name = name;
+        return node;
+    }
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "Identifier(" << name << ")" << std::endl;
@@ -120,6 +146,13 @@ struct BinaryOpNode : public ASTNode {
     std::unique_ptr<ASTNode> right;
 
     NodeType getType() const override { return NodeType::BinaryOp; }
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<BinaryOpNode>();
+        node->left = left->clone();
+        node->op = op;
+        node->right = right->clone();
+        return node;
+    }
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "BinaryOp(" << op.lexeme << "):" << std::endl;
@@ -133,6 +166,12 @@ struct PropertyAccessNode : public ASTNode {
     std::string property;
 
     NodeType getType() const override { return NodeType::PropertyAccess; }
+     std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<PropertyAccessNode>();
+        node->selector = selector;
+        node->property = property;
+        return node;
+    }
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "PropertyAccess(" << selector << "." << property << ")" << std::endl;
@@ -145,6 +184,17 @@ struct StyleNode : public ASTNode {
     std::vector<std::unique_ptr<SelectorBlockNode>> selector_blocks;
 
     NodeType getType() const override { return NodeType::Style; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<StyleNode>();
+        for (const auto& prop : properties) {
+            node->properties.push_back({prop.key, prop.value->clone()});
+        }
+        for (const auto& block : selector_blocks) {
+            node->selector_blocks.push_back(std::unique_ptr<SelectorBlockNode>(static_cast<SelectorBlockNode*>(block->clone().release())));
+        }
+        return node;
+    }
 
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
@@ -170,6 +220,21 @@ struct ElementNode : public ASTNode {
     std::vector<std::unique_ptr<ASTNode>> children;
 
     NodeType getType() const override { return NodeType::Element; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<ElementNode>();
+        node->tagName = tagName;
+        node->attributes = attributes;
+        node->auto_classes = auto_classes;
+        node->auto_ids = auto_ids;
+        if (style) {
+            node->style = std::unique_ptr<StyleNode>(static_cast<StyleNode*>(style->clone().release()));
+        }
+        for (const auto& child : children) {
+            node->children.push_back(child->clone());
+        }
+        return node;
+    }
 
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
@@ -206,6 +271,12 @@ struct TextNode : public ASTNode {
 
     NodeType getType() const override { return NodeType::Text; }
 
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<TextNode>();
+        node->content = content;
+        return node;
+    }
+
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "Text(\"" << content << "\")" << std::endl;
@@ -217,6 +288,14 @@ struct ProgramNode : public ASTNode {
     std::vector<std::unique_ptr<ASTNode>> children;
 
     NodeType getType() const override { return NodeType::Program; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<ProgramNode>();
+        for (const auto& child : children) {
+            node->children.push_back(child->clone());
+        }
+        return node;
+    }
 
     void print(int indent = 0) const override {
         std::cout << "Program:" << std::endl;

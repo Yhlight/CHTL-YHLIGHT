@@ -1,5 +1,6 @@
 #include "Analyser.h"
 #include <stdexcept>
+#include <sstream>
 
 namespace CHTL {
 
@@ -33,29 +34,47 @@ void Analyser::visit(ProgramNode* node) {
 }
 
 void Analyser::visit(ElementNode* node) {
-    std::string selector;
-    if (!node->auto_ids.empty()) {
-        selector = "#" + node->auto_ids[0];
-    } else if (!node->auto_classes.empty()) {
-        selector = "." + node->auto_classes[0];
-    } else {
-        for (const auto& attr : node->attributes) {
-            if (attr.key == "id") {
-                selector = "#" + attr.value;
-                break;
-            }
-            if (attr.key == "class") {
-                selector = "." + attr.value;
-                break;
+    std::vector<std::string> selectors;
+
+    // 1. Tag selector
+    selectors.push_back(node->tagName);
+
+    // 2. ID selector
+    std::string id_selector;
+    for (const auto& attr : node->attributes) {
+        if (attr.key == "id") {
+            id_selector = "#" + attr.value;
+            break;
+        }
+    }
+    if (id_selector.empty() && !node->auto_ids.empty()) {
+        id_selector = "#" + node->auto_ids[0];
+    }
+    if (!id_selector.empty()) {
+        selectors.push_back(id_selector);
+    }
+
+    // 3. Class selectors
+    for (const auto& attr : node->attributes) {
+        if (attr.key == "class") {
+            std::istringstream iss(attr.value);
+            std::string className;
+            while (iss >> className) {
+                selectors.push_back("." + className);
             }
         }
     }
+    for (const auto& className : node->auto_classes) {
+        selectors.push_back("." + className);
+    }
 
-    if (!selector.empty()) {
-        m_symbol_table.insert(selector, node);
-        if (node->style) {
-            for (const auto& prop : node->style->properties) {
-                m_symbol_table.addProperty(selector, prop.key, prop.value.get());
+    if (node->style) {
+        for (const auto& selector : selectors) {
+            if (m_symbol_table.find(selector) == nullptr) {
+                m_symbol_table.insert(selector, node);
+                for (const auto& prop : node->style->properties) {
+                    m_symbol_table.addProperty(selector, prop.key, prop.value.get());
+                }
             }
         }
     }
@@ -65,6 +84,7 @@ void Analyser::visit(ElementNode* node) {
         visit(child.get());
     }
 }
+
 
 void Analyser::resolve(ASTNode* node) {
     if (!node) return;
@@ -132,28 +152,8 @@ void Analyser::resolve(std::unique_ptr<ASTNode>& node) {
             throw std::runtime_error("Unknown property in property access: " + access_node->property);
         }
 
-        auto* referenced_value = it->second;
-        if (referenced_value->getType() == NodeType::NumberLiteral) {
-            auto* num_node = static_cast<const NumberLiteralNode*>(referenced_value);
-            auto new_node = std::make_unique<NumberLiteralNode>();
-            new_node->value = num_node->value;
-            new_node->unit = num_node->unit;
-            node = std::move(new_node);
-        } else if (referenced_value->getType() == NodeType::StringLiteral) {
-            auto* str_node = static_cast<const StringLiteralNode*>(referenced_value);
-            auto new_node = std::make_unique<StringLiteralNode>();
-            new_node->value = str_node->value;
-            node = std::move(new_node);
-        } else if (referenced_value->getType() == NodeType::Identifier) {
-            auto* ident_node = static_cast<const IdentifierNode*>(referenced_value);
-            auto new_node = std::make_unique<IdentifierNode>();
-            new_node->name = ident_node->name;
-            node = std::move(new_node);
-        }
-    } else if (node->getType() == NodeType::BinaryOp) {
-        auto* bin_op_node = static_cast<BinaryOpNode*>(node.get());
-        resolve(bin_op_node->left);
-        resolve(bin_op_node->right);
+        // Clone the entire referenced expression tree
+        node = it->second->clone();
     }
 }
 
