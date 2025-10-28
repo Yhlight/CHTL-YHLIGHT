@@ -22,7 +22,7 @@ private:
     std::shared_ptr<BaseNode> parseStatement();
     std::shared_ptr<BaseNode> parseElement();
     std::shared_ptr<BaseNode> parseText();
-    std::shared_ptr<AttributeNode> parseAttribute();
+    void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
 };
 
 } // namespace CHTL

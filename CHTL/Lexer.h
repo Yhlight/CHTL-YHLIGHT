@@ -19,6 +19,7 @@ private:
     int m_column;
 
     char currentChar();
+    char peekChar();
     void advance();
     Token makeToken(TokenType type, const std::string& value);
 };

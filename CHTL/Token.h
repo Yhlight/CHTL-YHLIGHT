@@ -23,7 +23,6 @@ enum class TokenType {
     CloseBracket,   // ]
     Semicolon,      // ;
     Colon,          // :
-    Equals,         // =
     Comma,          // ,
     Dot,            // .
     At,             // @

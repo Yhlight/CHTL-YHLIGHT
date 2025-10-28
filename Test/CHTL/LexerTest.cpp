@@ -22,8 +22,30 @@ TEST(LexerTest, SimpleTokens) {
     EXPECT_EQ(token.value, ":");
 
     token = lexer.nextToken();
-    EXPECT_EQ(token.type, CHTL::TokenType::Equals);
+    EXPECT_EQ(token.type, CHTL::TokenType::Colon);
     EXPECT_EQ(token.value, "=");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
+TEST(LexerTest, UnquotedLiteralInAttributeWithEquals) {
+    std::string source = "id = box;";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "id");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Colon);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "box");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Semicolon);
 
     token = lexer.nextToken();
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
@@ -51,6 +73,18 @@ TEST(LexerTest, UnquotedLiteralInAttribute) {
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
 }
 
+TEST(LexerTest, SingleQuotedStringLiteral) {
+    std::string source = "'hello world'";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::String);
+    EXPECT_EQ(token.value, "hello world");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
 TEST(LexerTest, StringLiteral) {
     std::string source = "\"hello world\"";
     CHTL::Lexer lexer(source);
@@ -58,6 +92,36 @@ TEST(LexerTest, StringLiteral) {
     CHTL::Token token = lexer.nextToken();
     EXPECT_EQ(token.type, CHTL::TokenType::String);
     EXPECT_EQ(token.value, "hello world");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
+TEST(LexerTest, Comments) {
+    std::string source = R"(
+        // This is a line comment.
+        div {
+            /**
+             * This is a block comment.
+             */
+            # This is a generator comment.
+        }
+    )";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.value, "div");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::OpenBrace);
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::GeneratorComment);
+    EXPECT_EQ(token.value, "# This is a generator comment.");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::CloseBrace);
 
     token = lexer.nextToken();
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);

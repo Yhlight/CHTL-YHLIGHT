@@ -4,6 +4,25 @@
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 
+TEST(ParserTest, ParseElementWithTextAttribute) {
+    std::string source = "div { text: \"hello\"; }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->getType(), CHTL::NodeType::Element);
+
+    auto elementNode = std::static_pointer_cast<CHTL::ElementNode>(root);
+    EXPECT_EQ(elementNode->getTagName(), "div");
+    EXPECT_TRUE(elementNode->getAttributes().empty());
+    ASSERT_EQ(elementNode->getChildren().size(), 1);
+
+    auto textNode = std::static_pointer_cast<CHTL::TextNode>(elementNode->getChildren()[0]);
+    EXPECT_EQ(textNode->getText(), "hello");
+}
+
 TEST(ParserTest, ParseElementWithAttribute) {
     std::string source = "div { id: box; }";
     CHTL::Lexer lexer(source);

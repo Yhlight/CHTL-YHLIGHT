@@ -40,19 +40,42 @@ std::shared_ptr<BaseNode> Parser::parseElement() {
     auto element = std::make_shared<ElementNode>(tagName);
 
     eat(TokenType::OpenBrace);
-
-    while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
-        if (m_currentToken.type == TokenType::Identifier && m_lexer.peek().type == TokenType::Colon) {
-            element->addAttribute(parseAttribute());
-        } else {
-            element->addChild(parseStatement());
-        }
-    }
-
+    parseAttributesAndChildren(element);
     eat(TokenType::CloseBrace);
 
     return element;
 }
+
+void Parser::parseAttributesAndChildren(std::shared_ptr<ElementNode> element) {
+    while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        if (m_currentToken.type == TokenType::Identifier) {
+            if (m_lexer.peek().type == TokenType::Colon) {
+                // It's an attribute
+                std::string key = m_currentToken.value;
+                eat(TokenType::Identifier);
+                eat(TokenType::Colon);
+
+                if (key == "text") {
+                    std::string textValue = m_currentToken.value;
+                    eat(TokenType::String);
+                    element->addChild(std::make_shared<TextNode>(textValue));
+                } else {
+                    std::string value = m_currentToken.value;
+                    eat(m_currentToken.type);
+                    element->addAttribute(std::make_shared<AttributeNode>(key, value));
+                }
+                eat(TokenType::Semicolon);
+            } else {
+                // It's a child element
+                element->addChild(parseStatement());
+            }
+        } else {
+            // It's something else (e.g., another element), so parse it as a statement
+            element->addChild(parseStatement());
+        }
+    }
+}
+
 
 std::shared_ptr<BaseNode> Parser::parseText() {
     eat(TokenType::Identifier); // Eat "text"
@@ -61,20 +84,6 @@ std::shared_ptr<BaseNode> Parser::parseText() {
     eat(TokenType::String);
     eat(TokenType::CloseBrace);
     return std::make_shared<TextNode>(textValue);
-}
-
-std::shared_ptr<AttributeNode> Parser::parseAttribute() {
-    std::string key = m_currentToken.value;
-    eat(TokenType::Identifier);
-    eat(TokenType::Colon);
-    std::string value = m_currentToken.value;
-    if (m_currentToken.type == TokenType::Identifier || m_currentToken.type == TokenType::String) {
-        eat(m_currentToken.type);
-    } else {
-        // Handle error: unexpected token for attribute value
-    }
-    eat(TokenType::Semicolon);
-    return std::make_shared<AttributeNode>(key, value);
 }
 
 } // namespace CHTL

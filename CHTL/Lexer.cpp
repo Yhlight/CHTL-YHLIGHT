@@ -12,6 +12,13 @@ char Lexer::currentChar() {
     return m_source[m_position];
 }
 
+char Lexer::peekChar() {
+    if (m_position + 1 >= m_source.length()) {
+        return '\0';
+    }
+    return m_source[m_position + 1];
+}
+
 void Lexer::advance() {
     if (currentChar() == '\n') {
         m_line++;
@@ -27,8 +34,39 @@ Token Lexer::makeToken(TokenType type, const std::string& value) {
 }
 
 Token Lexer::nextToken() {
-    while (isspace(currentChar())) {
-        advance();
+    while (true) {
+        while (isspace(currentChar())) {
+            advance();
+        }
+
+        if (currentChar() == '/' && peekChar() == '/') {
+            while (currentChar() != '\n' && currentChar() != '\0') {
+                advance();
+            }
+            continue; // Restart the loop to skip whitespace and find next token
+        }
+
+        if (currentChar() == '/' && peekChar() == '*') {
+            advance(); // Skip '/'
+            advance(); // Skip '*'
+            while (currentChar() != '\0' && (currentChar() != '*' || peekChar() != '/')) {
+                advance();
+            }
+            advance(); // Skip '*'
+            advance(); // Skip '/'
+            continue; // Restart the loop
+        }
+
+        if (currentChar() == '#') {
+            std::string value;
+            while (currentChar() != '\n' && currentChar() != '\0') {
+                value += currentChar();
+                advance();
+            }
+            return makeToken(TokenType::GeneratorComment, value);
+        }
+
+        break; // No more whitespace or comments, exit the loop
     }
 
     char c = currentChar();
@@ -46,10 +84,11 @@ Token Lexer::nextToken() {
         return makeToken(TokenType::Identifier, value);
     }
 
-    if (c == '"') {
+    if (c == '"' || c == '\'') {
+        char quote_type = c;
         std::string value;
         advance(); // Skip the opening quote
-        while (currentChar() != '"' && currentChar() != '\0') {
+        while (currentChar() != quote_type && currentChar() != '\0') {
             value += currentChar();
             advance();
         }
@@ -62,7 +101,7 @@ Token Lexer::nextToken() {
         case '}': advance(); return makeToken(TokenType::CloseBrace, "}");
         case ';': advance(); return makeToken(TokenType::Semicolon, ";");
         case ':': advance(); return makeToken(TokenType::Colon, ":");
-        case '=': advance(); return makeToken(TokenType::Equals, "=");
+        case '=': advance(); return makeToken(TokenType::Colon, "="); // CE Equivalence
     }
 
     std::string unexpected_char;
