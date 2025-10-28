@@ -1,1 +1,40 @@
-third-party/
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Build output
+[Bb]uild/
+[Bb]in/
+[Ll]ib/
+*.so
+*.a
+*.dll
+*.exe
+*.out
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# C++ IDE specific files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+
+# Other
+*.log
