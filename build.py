@@ -25,7 +25,7 @@ def build():
 def run():
     """Runs the main executable."""
     print("--- Running CHTL executable ---")
-    executable_path = os.path.join("build", "src", "chtl")
+    executable_path = os.path.join("build", "chtl")
     if not os.path.exists(executable_path):
         # Handle Windows executable extension
         if sys.platform == "win32" and os.path.exists(executable_path + ".exe"):
