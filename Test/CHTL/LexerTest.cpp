@@ -29,6 +29,18 @@ TEST(LexerTest, SimpleTokens) {
     EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
 }
 
+TEST(LexerTest, StringLiteral) {
+    std::string source = "\"hello world\"";
+    CHTL::Lexer lexer(source);
+
+    CHTL::Token token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::String);
+    EXPECT_EQ(token.value, "hello world");
+
+    token = lexer.nextToken();
+    EXPECT_EQ(token.type, CHTL::TokenType::EndOfFile);
+}
+
 TEST(LexerTest, Identifier) {
     std::string source = "div";
     CHTL::Lexer lexer(source);

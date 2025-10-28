@@ -46,6 +46,17 @@ Token Lexer::nextToken() {
         return makeToken(TokenType::Identifier, value);
     }
 
+    if (c == '"') {
+        std::string value;
+        advance(); // Skip the opening quote
+        while (currentChar() != '"' && currentChar() != '\0') {
+            value += currentChar();
+            advance();
+        }
+        advance(); // Skip the closing quote
+        return makeToken(TokenType::String, value);
+    }
+
     switch (c) {
         case '{': advance(); return makeToken(TokenType::OpenBrace, "{");
         case '}': advance(); return makeToken(TokenType::CloseBrace, "}");
