@@ -3,6 +3,30 @@
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/AttributeNode.h"
+#include "CHTL/Lexer.h"
+#include "CHTL/CHTLParser/Parser.h"
+
+TEST(GeneratorTest, EndToEndStyleTemplate) {
+    std::string source = R"(
+        [Template] @Style MyStyles { color: red; }
+        div {
+            style {
+                @Style MyStyles;
+                font-size: 16px;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    std::shared_ptr<CHTL::BaseNode> root = parser.parse();
+
+    CHTL::Generator generator(root, parser.getStyleTemplates());
+    std::string result = generator.generate();
+
+    std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
+    EXPECT_EQ(result, expected);
+}
+
 
 TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     // Manually construct an AST: div { id: "box" }
@@ -10,7 +34,8 @@ TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     auto divNode = std::make_shared<CHTL::ElementNode>("div");
     divNode->addAttribute(attribute);
 
-    CHTL::Generator generator(divNode);
+    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyMap;
+    CHTL::Generator generator(divNode, emptyMap);
     std::string result = generator.generate();
 
     std::string expected = "<div id=\"box\"></div>";
@@ -25,7 +50,8 @@ TEST(GeneratorTest, GenerateSimpleHTML) {
     auto divNode = std::make_shared<CHTL::ElementNode>("div");
     divNode->addChild(spanNode);
 
-    CHTL::Generator generator(divNode);
+    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyMap;
+    CHTL::Generator generator(divNode, emptyMap);
     std::string result = generator.generate();
 
     std::string expected = "<div><span>hello</span></div>";

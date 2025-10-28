@@ -22,7 +22,14 @@ void Parser::eat(TokenType type) {
 }
 
 std::shared_ptr<BaseNode> Parser::parse() {
-    return parseStatement();
+    // For now, let's assume a program is a collection of statements,
+    // and we'll just return the last one for simplicity in testing.
+    // A more robust implementation would return a ProgramNode.
+    std::shared_ptr<BaseNode> lastNode = nullptr;
+    while(m_currentToken.type != TokenType::EndOfFile) {
+        lastNode = parseStatement();
+    }
+    return lastNode;
 }
 
 std::shared_ptr<BaseNode> Parser::parseStatement() {
@@ -54,7 +61,9 @@ std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
     eat(TokenType::CloseBrace);
 
     auto styleBlock = std::make_shared<StyleBlockNode>(styleContent);
-    return std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
+    auto templateNode = std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
+    m_styleTemplates[templateName] = templateNode;
+    return templateNode;
 }
 
 std::shared_ptr<BaseNode> Parser::parseElement() {
@@ -118,16 +127,28 @@ std::shared_ptr<StyleBlockNode> Parser::parseStyleBlock() {
     eat(TokenType::Identifier); // Eat "style"
     eat(TokenType::OpenBrace);
 
-    std::string content;
+    std::string rawContent;
+    std::vector<std::string> usedTemplates;
+
     while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
-        // This is a naive implementation that just captures the raw content.
-        // In the future, we will parse this into a more structured representation.
-        content += m_currentToken.value;
-        eat(m_currentToken.type);
+        if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Style") {
+            eat(TokenType::Identifier); // Eat "@Style"
+            usedTemplates.push_back(m_currentToken.value);
+            eat(TokenType::Identifier); // Eat template name
+            eat(TokenType::Semicolon);
+        } else {
+            rawContent += m_currentToken.value;
+            eat(m_currentToken.type);
+        }
     }
 
     eat(TokenType::CloseBrace);
-    return std::make_shared<StyleBlockNode>(content);
+
+    auto styleBlock = std::make_shared<StyleBlockNode>(rawContent);
+    for(const auto& t : usedTemplates) {
+        styleBlock->addUsedTemplate(t);
+    }
+    return styleBlock;
 }
 
 } // namespace CHTL

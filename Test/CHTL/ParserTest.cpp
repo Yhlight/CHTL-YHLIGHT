@@ -7,7 +7,7 @@
 #include "CHTL/CHTLNode/TemplateStyleUsageNode.h"
 
 TEST(ParserTest, ParseElementWithStyleBlockAndTemplateUsage) {
-    std::string source = "div { style { @Style MyStyles; } }";
+    std::string source = "div { style { @Style MyStyles; color: blue; } }";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 
@@ -22,8 +22,9 @@ TEST(ParserTest, ParseElementWithStyleBlockAndTemplateUsage) {
     auto styleBlock = elementNode->getStyleBlock();
     ASSERT_NE(styleBlock, nullptr);
 
-    // This is a placeholder for a more complex assertion later
-    // For now, we're just checking that the style block is not null.
+    ASSERT_EQ(styleBlock->getUsedTemplates().size(), 1);
+    EXPECT_EQ(styleBlock->getUsedTemplates()[0], "MyStyles");
+    EXPECT_EQ(styleBlock->getRawContent(), "color:blue;");
 }
 
 TEST(ParserTest, ParseTemplateStyleDefinition) {
@@ -41,7 +42,7 @@ TEST(ParserTest, ParseTemplateStyleDefinition) {
 
     auto styleBlock = templateNode->getStyleBlock();
     ASSERT_NE(styleBlock, nullptr);
-    EXPECT_EQ(styleBlock->getContent(), "color:red;");
+    EXPECT_EQ(styleBlock->getRawContent(), "color:red;");
 }
 
 TEST(ParserTest, ParseElementWithTextAttribute) {

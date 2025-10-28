@@ -4,8 +4,10 @@
 #include "CHTL/CHTLNode/BaseNode.h"
 #include "CHTL/CHTLNode/AttributeNode.h"
 #include "CHTL/CHTLNode/StyleBlockNode.h"
+#include "CHTL/CHTLNode/TemplateStyleDefinitionNode.h"
 #include <memory>
 #include <vector>
+#include <map>
 
 namespace CHTL {
 
@@ -14,10 +16,12 @@ public:
     Parser(Lexer& lexer);
 
     std::shared_ptr<BaseNode> parse();
+    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_styleTemplates; }
 
 private:
     Lexer& m_lexer;
     Token m_currentToken;
+    std::map<std::string, std::shared_ptr<class TemplateStyleDefinitionNode>> m_styleTemplates;
 
     void eat(TokenType type);
     std::shared_ptr<BaseNode> parseStatement();
