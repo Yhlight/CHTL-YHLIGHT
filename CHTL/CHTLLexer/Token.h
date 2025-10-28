@@ -8,10 +8,15 @@ enum class TokenType {
 
     // Literals
     String,
+    Comment,
+    Identifier,
 
     // Punctuation
     LBrace,
     RBrace,
+    Colon,
+    Equal,
+    Semicolon,
 
     // Other
     EndOfFile,

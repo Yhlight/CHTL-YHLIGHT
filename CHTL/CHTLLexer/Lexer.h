@@ -18,6 +18,7 @@ private:
     bool isAtEnd();
     char advance();
     char peek();
+    char peekNext();
     void skipWhitespace();
     Token string();
     Token identifier();

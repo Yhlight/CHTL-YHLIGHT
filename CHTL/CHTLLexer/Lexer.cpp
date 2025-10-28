@@ -35,6 +35,28 @@ Token Lexer::nextToken() {
     switch (c) {
         case '{': return {TokenType::LBrace, "{"};
         case '}': return {TokenType::RBrace, "}"};
+        case ':': return {TokenType::Colon, ":"};
+        case '=': return {TokenType::Equal, "="};
+        case ';': return {TokenType::Semicolon, ";"};
+        case '/':
+            if (peek() == '/') {
+                while (peek() != '\n' && !isAtEnd()) advance();
+                return {TokenType::Unknown, ""}; // Ignored comment
+            } else if (peek() == '*') {
+                advance();
+                while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
+                    advance();
+                }
+                if (!isAtEnd()) {
+                    advance();
+                    advance();
+                }
+                return {TokenType::Unknown, ""}; // Ignored comment
+            }
+            break;
+        case '#':
+            while (peek() != '\n' && !isAtEnd()) advance();
+            return {TokenType::Comment, source.substr(start + 1, current - start - 1)};
     }
 
     return {TokenType::Unknown, std::string(1, c)};
@@ -51,6 +73,11 @@ char Lexer::advance() {
 char Lexer::peek() {
     if (isAtEnd()) return '\0';
     return source[current];
+}
+
+char Lexer::peekNext() {
+    if (current + 1 >= source.length()) return '\0';
+    return source[current + 1];
 }
 
 void Lexer::skipWhitespace() {
@@ -90,9 +117,9 @@ Token Lexer::identifier() {
 
     std::string text = source.substr(start, current - start);
     auto it = keywords.find(text);
-    if (it == keywords.end()) {
-        return {TokenType::Unknown, text};
+    if (it != keywords.end()) {
+        return {it->second, text};
     }
 
-    return {it->second, text};
+    return {TokenType::Identifier, text};
 }

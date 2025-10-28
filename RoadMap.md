@@ -4,12 +4,12 @@ This document outlines the development and refactoring route for the CHTL projec
 
 ## Phase 1: Core Compiler Infrastructure (In Progress)
 
-- [ ] **Project Setup**
+- [x] **Project Setup**
     - [x] Create `RoadMap.md`
     - [x] Create `.gitignore`
-    - [ ] Set up the recommended project directory structure
-    - [ ] Configure CMake for the C++ project
-    - [ ] Create a Python build script
+    - [x] Set up the recommended project directory structure
+    - [x] Configure CMake for the C++ project
+    - [x] Create a Python build script
 - [ ] **CHTL Lexer**
     - [ ] Implement tokenization for basic CHTL syntax (comments, text nodes, elements, attributes)
     - [ ] Write comprehensive tests for the lexer
