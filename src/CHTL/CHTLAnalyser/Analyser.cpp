@@ -102,10 +102,20 @@ void Analyser::visit(ElementNode* node) {
 }
 
 void Analyser::visit(TemplateNode* node) {
-    if (m_templates.count(node->name)) {
-        throw std::runtime_error("Template with name '" + node->name + "' already defined.");
+    std::string current_ns = m_symbol_table.getCurrentNamespace();
+    std::string qualified_name = current_ns.empty() ? node->name : current_ns + "::" + node->name;
+
+    if (m_templates.count(qualified_name)) {
+        throw std::runtime_error("Template with name '" + qualified_name + "' already defined.");
     }
-    m_templates[node->name] = node;
+    m_templates[qualified_name] = node;
+
+    // Also register without namespace if not in a namespace for easier access
+    if (!current_ns.empty()) {
+        if (m_templates.count(node->name) == 0) {
+            m_templates[node->name] = node;
+        }
+    }
 }
 
 void Analyser::visit(NamespaceNode* node) {
@@ -160,10 +170,34 @@ void Analyser::visit(ImportNode* node) {
 		auto imported_ast = m_importer.importFile(node->filePath, m_filePath);
 		auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
 
+		// Automatically wrap the imported file in a namespace if it doesn't have one.
+		bool has_top_level_namespace = !imported_program->children.empty() &&
+									   imported_program->children.size() == 1 &&
+									   imported_program->children[0]->getType() == NodeType::Namespace;
+
+		if (!has_top_level_namespace) {
+			auto namespaceNode = std::make_unique<NamespaceNode>();
+			if (!node->alias.empty()) {
+				namespaceNode->name = node->alias;
+			}
+			else {
+				namespaceNode->name = std::filesystem::path(node->filePath).stem().string();
+			}
+			namespaceNode->children = std::move(imported_program->children);
+			imported_program->children.push_back(std::move(namespaceNode));
+		}
+
 		// Create a new analyser for the imported file and run it.
 		Analyser imported_analyser(*imported_program, canonical_path_str);
 		imported_analyser.m_import_stack = this->m_import_stack; // Share the import stack
 		imported_analyser.analyse();
+
+        // Merge templates from the imported analyser
+        for (const auto& [name, node_ptr] : imported_analyser.getTemplates()) {
+            if (m_templates.find(name) == m_templates.end()) {
+                m_templates[name] = node_ptr;
+            }
+        }
 
 		// Find the import node in the main program and replace it
 		auto& children = m_program.children;
@@ -193,11 +227,10 @@ void Analyser::resolveInheritance(TemplateNode* node) {
     std::vector<StyleProperty> inherited_properties;
 
     for (const auto& inheritance : node->inheritances) {
-        auto it = m_templates.find(inheritance->name);
-        if (it == m_templates.end()) {
+        TemplateNode* parent = findTemplate(inheritance->name, inheritance->namespace_name);
+        if (!parent) {
             throw std::runtime_error("Unknown template in inheritance: " + inheritance->name);
         }
-        TemplateNode* parent = it->second;
         resolveInheritance(parent); // Recurse
 
         if (node->templateType == TemplateType::Element) {
@@ -265,6 +298,9 @@ void Analyser::resolve(ASTNode* node) {
         case NodeType::TemplateUsage:
             resolve(static_cast<TemplateUsageNode*>(node));
             break;
+        case NodeType::Namespace:
+            resolve(static_cast<NamespaceNode*>(node));
+            break;
         default:
             break;
     }
@@ -276,11 +312,10 @@ void Analyser::resolve(ProgramNode* node) {
         if (child->getType() == NodeType::TemplateUsage) {
             auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
             if (usage_node->templateType == TemplateType::Element) {
-                auto it = m_templates.find(usage_node->name);
-                if (it == m_templates.end()) {
+                TemplateNode* templateNode = findTemplate(usage_node->name, usage_node->namespace_name);
+                if (!templateNode) {
                     throw std::runtime_error("Unknown template: " + usage_node->name);
                 }
-                const TemplateNode* templateNode = it->second;
 				std::vector<std::unique_ptr<ASTNode>> expanded_children;
                 for (const auto& template_child : templateNode->children) {
                     expanded_children.push_back(template_child->clone());
@@ -295,11 +330,9 @@ void Analyser::resolve(ProgramNode* node) {
         } else if (child->getType() == NodeType::Namespace) {
             auto* ns_node = static_cast<NamespaceNode*>(child.get());
             m_symbol_table.pushNamespace(ns_node->name);
-            for (auto& ns_child : ns_node->children) {
-                resolve(ns_child.get());
-                new_children.push_back(std::move(ns_child));
-            }
+            resolve(ns_node);
             m_symbol_table.popNamespace();
+            new_children.push_back(std::move(child));
         } else {
             resolve(child.get());
             new_children.push_back(std::move(child));
@@ -318,11 +351,10 @@ void Analyser::resolve(ElementNode* node) {
         if (child->getType() == NodeType::TemplateUsage) {
             auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
             if (usage_node->templateType == TemplateType::Element) {
-                auto it = m_templates.find(usage_node->name);
-                if (it == m_templates.end()) {
+                TemplateNode* templateNode = findTemplate(usage_node->name, usage_node->namespace_name);
+                if (!templateNode) {
                     throw std::runtime_error("Unknown template: " + usage_node->name);
                 }
-                const TemplateNode* templateNode = it->second;
                 std::vector<std::unique_ptr<ASTNode>> expanded_children;
                 for (const auto& template_child : templateNode->children) {
                     expanded_children.push_back(template_child->clone());
@@ -346,11 +378,10 @@ void Analyser::resolve(StyleNode* node) {
     std::vector<StyleProperty> new_properties;
     for (const auto& usage : node->template_usages) {
         if (usage->templateType == TemplateType::Style) {
-            auto it = m_templates.find(usage->name);
-            if (it == m_templates.end()) {
+            TemplateNode* templateNode = findTemplate(usage->name, usage->namespace_name);
+            if (!templateNode) {
                 throw std::runtime_error("Unknown style template: " + usage->name);
             }
-            TemplateNode* templateNode = it->second;
 
             for (const auto& prop : templateNode->properties) {
                 if (prop.value) { // Not a placeholder
@@ -437,18 +468,50 @@ void Analyser::resolve(std::unique_ptr<ASTNode>& node) {
 }
 
 void Analyser::resolve(TemplateUsageNode* node) {
-    auto it = m_templates.find(node->name);
-    if (it == m_templates.end()) {
+    TemplateNode* templateNode = findTemplate(node->name, node->namespace_name);
+    if (!templateNode) {
         throw std::runtime_error("Unknown template: " + node->name);
     }
-    const TemplateNode* templateNode = it->second;
 
     // This is a placeholder. In a real implementation, you would
     // expand the template here. For now, we'll just check for its existence.
 }
 
+void Analyser::resolve(NamespaceNode* node) {
+    for (auto& child : node->children) {
+        resolve(child.get());
+    }
+}
+
 void Analyser::resolve(StyleProperty& prop) {
     resolve(prop.value);
+}
+
+TemplateNode* Analyser::findTemplate(const std::string& name, const std::string& ns) {
+    std::string full_name = ns.empty() ? name : ns + "::" + name;
+    auto it = m_templates.find(full_name);
+    if (it != m_templates.end()) {
+        return it->second;
+    }
+
+    if (ns.empty()) {
+        std::string current_ns = m_symbol_table.getCurrentNamespace();
+        if (!current_ns.empty()) {
+            full_name = current_ns + "::" + name;
+            it = m_templates.find(full_name);
+            if (it != m_templates.end()) {
+                return it->second;
+            }
+        }
+    }
+
+    // Fallback to global
+    it = m_templates.find(name);
+    if (it != m_templates.end()) {
+        return it->second;
+    }
+
+    return nullptr;
 }
 
 void Analyser::applySpecializations(std::vector<std::unique_ptr<ASTNode>>& elements, const TemplateUsageNode* usage_node) {

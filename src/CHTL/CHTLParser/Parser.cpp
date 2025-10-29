@@ -57,6 +57,10 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsage() {
     }
     node->name = consume(TokenType::IDENTIFIER, "Expect template name.").lexeme;
 
+    if (match({TokenType::FROM})) {
+        node->namespace_name = consume(TokenType::IDENTIFIER, "Expect namespace name.").lexeme;
+    }
+
     if (match({TokenType::LEFT_BRACE})) {
         while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
             if (match({TokenType::DELETE})) {

@@ -278,6 +278,7 @@ struct ElementInsertionNode : public ASTNode {
 struct TemplateUsageNode : public ASTNode {
     TemplateType templateType;
     std::string name;
+    std::string namespace_name;
     std::vector<StyleProperty> provided_values;
     std::vector<std::string> deleted_properties;
     std::vector<std::unique_ptr<ElementSpecializationNode>> specializations;

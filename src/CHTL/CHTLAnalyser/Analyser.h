@@ -12,6 +12,7 @@ class Analyser {
 public:
     explicit Analyser(ProgramNode& program, std::string filePath);
     void analyse();
+    const std::unordered_map<std::string, TemplateNode*>& getTemplates() const { return m_templates; }
 
 private:
     void visit(ASTNode* node);
@@ -30,8 +31,10 @@ private:
     void resolve(StyleProperty& prop);
     void resolve(std::unique_ptr<ASTNode>& node);
     void resolve(TemplateUsageNode* node);
+    void resolve(NamespaceNode* node);
 
     void applySpecializations(std::vector<std::unique_ptr<ASTNode>>& elements, const TemplateUsageNode* usage_node);
+	TemplateNode* findTemplate(const std::string& name, const std::string& ns = "");
 
     ProgramNode& m_program;
     SymbolTable m_symbol_table;

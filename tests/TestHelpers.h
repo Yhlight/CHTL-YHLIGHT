@@ -6,6 +6,7 @@
 #include "CHTL/CHTLAnalyser/Analyser.h"
 #include <string>
 #include <algorithm>
+#include <fstream>
 
 using namespace CHTL;
 
@@ -34,4 +35,10 @@ inline void expect_compile_error(const std::string& source, const std::string& e
     } catch (const std::runtime_error& e) {
         EXPECT_STREQ(e.what(), expected_error.c_str());
     }
+}
+
+inline void createFile(const std::string& filename, const std::string& content) {
+    std::ofstream file(filename);
+    file << content;
+    file.close();
 }

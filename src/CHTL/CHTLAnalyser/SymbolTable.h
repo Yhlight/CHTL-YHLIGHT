@@ -24,6 +24,7 @@ public:
     void insert(const std::string& selector, const ElementNode* node);
     const Symbol* find(const std::string& selector) const;
     void addProperty(const std::string& selector, const std::string& key, const ASTNode* value);
+	std::string getCurrentNamespace() const;
 
 private:
     std::string getNamespacedSelector(const std::string& selector) const;

@@ -1,4 +1,5 @@
 #include "SymbolTable.h"
+#include "CHTL/Util/StringUtil.h"
 #include <sstream>
 
 namespace CHTL {
@@ -43,6 +44,10 @@ std::string SymbolTable::getNamespacedSelector(const std::string& selector) cons
     }
     ss << selector;
     return ss.str();
+}
+
+std::string SymbolTable::getCurrentNamespace() const {
+    return join(m_namespaceStack, "::");
 }
 
 } // namespace CHTL

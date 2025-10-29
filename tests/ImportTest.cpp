@@ -5,15 +5,18 @@
 #include <filesystem>
 
 TEST(ImportTest, SimpleImport) {
-    std::ofstream outfile("import_target.chtl");
-    outfile << "div { style { width: 100px; } }";
-    outfile.close();
+    createFile("import_target.chtl", R"(
+        [Template] @Element MyTemplate {
+            div { style { width: 100px; } }
+        }
+    )");
 
-    std::string source = "[Import] @Chtl from \"import_target.chtl\";";
+    std::string source = R"(
+        [Import] @Chtl from "import_target.chtl";
+        @Element MyTemplate;
+    )";
     std::string expected = "<div style=\"width: 100px;\"></div>";
     EXPECT_EQ(removeWhitespace(compile(source, "main.chtl")), removeWhitespace(expected));
-
-    std::remove("import_target.chtl");
 }
 
 TEST(ImportTest, CircularImport) {
