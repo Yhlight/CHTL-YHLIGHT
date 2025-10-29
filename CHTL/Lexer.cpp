@@ -64,7 +64,7 @@ Token Lexer::nextToken() {
             continue;
         }
 
-        if (currentChar() == '#') {
+        if (currentChar() == '#' && peekChar() == ' ') {
             std::string value;
             while (currentChar() != '\n' && currentChar() != '\0') {
                 value += currentChar();
