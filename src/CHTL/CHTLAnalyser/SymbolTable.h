@@ -5,12 +5,13 @@
 #include <unordered_map>
 #include <memory>
 #include <vector>
+#include <variant>
 
 namespace CHTL {
 
 // Represents a symbol in the table, which is an element and its properties.
 struct Symbol {
-    const ElementNode* node;
+    std::variant<const ElementNode*, const OriginNode*> node;
     std::unordered_map<std::string, const ASTNode*> properties;
 };
 
@@ -22,6 +23,7 @@ public:
     void popNamespace();
 
     void insert(const std::string& selector, const ElementNode* node);
+    void insert(const std::string& alias, const OriginNode* node);
     const Symbol* find(const std::string& selector) const;
     void addProperty(const std::string& selector, const std::string& key, const ASTNode* value);
 

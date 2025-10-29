@@ -42,11 +42,10 @@ html {
     }
 }
 )";
-    std::string expected = R"(
-<html>
+    std::string expected = R"(<html>
 <body>
-<div>
-<span>Raw Content</span></div>
+  <div>
+<span>Raw Content</span>  </div>
 </body>
 </html>
 )";

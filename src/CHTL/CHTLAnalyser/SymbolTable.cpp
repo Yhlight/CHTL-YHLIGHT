@@ -17,6 +17,10 @@ void SymbolTable::insert(const std::string& selector, const ElementNode* node) {
     m_symbols[getNamespacedSelector(selector)] = {node, {}};
 }
 
+void SymbolTable::insert(const std::string& alias, const OriginNode* node) {
+    m_symbols[getNamespacedSelector(alias)] = {node, {}};
+}
+
 const Symbol* SymbolTable::find(const std::string& selector) const {
     auto it = m_symbols.find(getNamespacedSelector(selector));
     if (it != m_symbols.end()) {

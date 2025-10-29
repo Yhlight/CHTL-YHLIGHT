@@ -48,9 +48,11 @@ void Analyser::visit(ASTNode* node) {
 void Analyser::visit(ProgramNode* node) {
     for (size_t i = 0; i < node->children.size();) {
         visit(node->children[i].get());
-        // After visiting, if the node was an import, it might have been replaced.
-        // Re-evaluate the size and current position.
-        if (node->children[i]->getType() != NodeType::Import) {
+        if (i < node->children.size() && node->children[i]->getType() != NodeType::Import) {
+            i++;
+        }
+         else if (i < node->children.size() && node->children[i]->getType() == NodeType::Import) {
+            // If the import node was not removed (because it had an alias), we still need to advance
             i++;
         }
     }
@@ -117,7 +119,7 @@ void Analyser::visit(NamespaceNode* node) {
 }
 
 void Analyser::visit(ImportNode* node) {
-    std::filesystem::path canonical_path = std::filesystem::canonical(std::filesystem::path(m_filePath).parent_path() / node->filePath);
+    std::filesystem::path canonical_path = std::filesystem::weakly_canonical(std::filesystem::path(m_filePath).parent_path() / node->filePath);
     std::string canonical_path_str = canonical_path.string();
 
     if (m_import_stack.count(canonical_path_str)) {
@@ -126,14 +128,7 @@ void Analyser::visit(ImportNode* node) {
     m_import_stack.insert(canonical_path_str);
 
     auto imported_ast = m_importer.importFile(node->filePath, m_filePath);
-    auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
 
-    // Create a new analyser for the imported file and run it.
-    Analyser imported_analyser(*imported_program, canonical_path_str);
-    imported_analyser.m_import_stack = this->m_import_stack; // Share the import stack
-    imported_analyser.analyse();
-
-    // Find the import node in the main program and replace it
     auto& children = m_program.children;
     auto it = std::find_if(children.begin(), children.end(),
                            [node](const std::unique_ptr<ASTNode>& child) {
@@ -141,10 +136,26 @@ void Analyser::visit(ImportNode* node) {
                            });
 
     if (it != children.end()) {
-        it = children.erase(it);
-        children.insert(it,
-                        std::make_move_iterator(imported_program->children.begin()),
-                        std::make_move_iterator(imported_program->children.end()));
+        if (!node->alias.empty()) {
+            if (imported_ast->getType() == NodeType::Origin) {
+                 m_symbol_table.insert(node->alias, static_cast<OriginNode*>(imported_ast.release()));
+            }
+            it = children.erase(it);
+
+        } else if (imported_ast->getType() == NodeType::Origin) {
+             *it = std::move(imported_ast);
+        } else {
+            auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+
+            Analyser imported_analyser(*imported_program, canonical_path_str);
+            imported_analyser.m_import_stack = this->m_import_stack;
+            imported_analyser.analyse();
+
+            it = children.erase(it);
+            children.insert(it,
+                            std::make_move_iterator(imported_program->children.begin()),
+                            std::make_move_iterator(imported_program->children.end()));
+        }
     }
 
     m_import_stack.erase(canonical_path_str);
