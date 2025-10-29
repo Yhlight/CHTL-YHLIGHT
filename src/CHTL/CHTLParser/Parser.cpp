@@ -43,8 +43,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
 
 std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsage() {
     consume(TokenType::AT, "Expect '@' before template type.");
-    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect template type.");
+    const auto& typeToken = advance(); // More flexible token consumption
     auto node = std::make_unique<TemplateUsageNode>();
+
     if (typeToken.lexeme == "Style") {
         node->templateType = TemplateType::Style;
     } else if (typeToken.lexeme == "Element") {
@@ -99,7 +100,7 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     auto node = std::make_unique<TemplateNode>();
 
     consume(TokenType::AT, "Expect '@' after '[Template]'.");
-    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect template type.");
+    const auto& typeToken = advance(); // More flexible token consumption
     if (typeToken.lexeme == "Style") {
         node->templateType = TemplateType::Style;
     } else if (typeToken.lexeme == "Element") {
@@ -139,7 +140,7 @@ std::unique_ptr<TemplateNode> Parser::parseCustomNode() {
     node->isCustom = true;
 
     consume(TokenType::AT, "Expect '@' after '[Custom]'.");
-    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect custom type.");
+    const auto& typeToken = advance(); // More flexible token consumption
     if (typeToken.lexeme == "Style") {
         node->templateType = TemplateType::Style;
     } else if (typeToken.lexeme == "Element") {
@@ -196,53 +197,54 @@ std::unique_ptr<ImportNode> Parser::parseImportNode() {
 
     auto node = std::make_unique<ImportNode>();
 
-    if (match({ TokenType::LEFT_BRACKET })) {
-        if (match({ TokenType::CUSTOM })) {
-            node->isCustom = true;
-        }
-        else if (match({ TokenType::TEMPLATE })) {
-            node->isTemplate = true;
-        }
-        else if (match({ TokenType::IDENTIFIER }) && previous().lexeme == "Origin") {
-            node->isOrigin = true;
-        }
-        consume(TokenType::RIGHT_BRACKET, "Expect ']' after import type.");
+    // CHTL-specific import syntax parsing
+    if (match({TokenType::LEFT_BRACKET})) {
+        if (match({TokenType::CUSTOM})) node->isCustom = true;
+        else if (match({TokenType::TEMPLATE})) node->isTemplate = true;
+        else if (match({TokenType::ORIGIN})) node->isOrigin = true;
+        else throw std::runtime_error("Invalid import specifier.");
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after import specifier.");
     }
 
     consume(TokenType::AT, "Expect '@' after '[Import]'.");
-    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect import type.");
-    if (typeToken.lexeme == "Html") {
-        node->importType = ImportType::Html;
-    }
-    else if (typeToken.lexeme == "Style") {
-        node->importType = ImportType::Style;
-    }
-    else if (typeToken.lexeme == "JavaScript") {
-        node->importType = ImportType::JavaScript;
-    }
-    else if (typeToken.lexeme == "Chtl") {
-        node->importType = ImportType::Chtl;
-    }
-    else if (typeToken.lexeme == "CJmod") {
-        node->importType = ImportType::CJmod;
-    }
-    else {
-        throw std::runtime_error("Unknown import type: " + typeToken.lexeme);
-    }
 
-    if (peek().type == TokenType::IDENTIFIER) {
-        node->specificName = consume(TokenType::IDENTIFIER, "Expect specific name for import.").lexeme;
-    }
-
-    consume(TokenType::FROM, "Expect 'from' after import type.");
-    node->filePath = consume(TokenType::STRING, "Expect file path.").lexeme;
-
-    if (match({ TokenType::AS })) {
+    // Determine the import type (HTML, CSS, JS, or CHTL)
+    if (match({TokenType::HTML})) {
+        node->type = ImportType::Html;
+        consume(TokenType::FROM, "Expect 'from' after import type.");
+        node->filePath = consume(TokenType::STRING, "Expect file path.").lexeme;
+        consume(TokenType::AS, "Expect 'as' for non-CHTL import.");
         node->alias = consume(TokenType::IDENTIFIER, "Expect alias name.").lexeme;
+    } else if (match({TokenType::CSS})) {
+        node->type = ImportType::Css;
+        consume(TokenType::FROM, "Expect 'from' after import type.");
+        node->filePath = consume(TokenType::STRING, "Expect file path.").lexeme;
+        consume(TokenType::AS, "Expect 'as' for non-CHTL import.");
+        node->alias = consume(TokenType::IDENTIFIER, "Expect alias name.").lexeme;
+    } else if (match({TokenType::JAVASCRIPT})) {
+        node->type = ImportType::JavaScript;
+        consume(TokenType::FROM, "Expect 'from' after import type.");
+        node->filePath = consume(TokenType::STRING, "Expect file path.").lexeme;
+        consume(TokenType::AS, "Expect 'as' for non-CHTL import.");
+        node->alias = consume(TokenType::IDENTIFIER, "Expect alias name.").lexeme;
+    } else { // It must be a CHTL import
+        node->type = ImportType::Chtl;
+        // The rest of the CHTL import syntax (e.g., @Element Box from "...")
+        // For now, we'll just parse the file path.
+        // This part needs to be expanded based on the full CHTL import spec.
+        if (peek().type == TokenType::IDENTIFIER) { // Optional element/style/var name
+             node->specificName = advance().lexeme;
+        }
+
+        consume(TokenType::FROM, "Expect 'from' after import type.");
+        node->filePath = consume(TokenType::STRING, "Expect file path.").lexeme;
+
+        if (match({TokenType::AS})) {
+            node->alias = consume(TokenType::IDENTIFIER, "Expect alias name.").lexeme;
+        }
     }
 
     consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
-
     return node;
 }
 

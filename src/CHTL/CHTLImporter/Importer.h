@@ -10,6 +10,7 @@ class Importer {
 public:
     Importer();
     std::unique_ptr<ASTNode> importFile(const std::string& filePath, const std::string& currentPath);
+    std::string importRawFile(const std::string& filePath, const std::string& currentPath);
 };
 
 }

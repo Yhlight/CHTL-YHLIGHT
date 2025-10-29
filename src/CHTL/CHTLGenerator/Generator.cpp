@@ -29,6 +29,20 @@ void Generator::visit(const ASTNode* node) {
         case NodeType::Style:
              // Style nodes are handled within element nodes, so we don't visit them directly.
             break;
+        case NodeType::Origin:
+            visit(static_cast<const OriginNode*>(node));
+            break;
+    }
+}
+
+void Generator::visit(const OriginNode* node) {
+    indent();
+    if (node->type == ImportType::Css) {
+        m_output << "<style>\n" << node->content << "\n</style>\n";
+    } else if (node->type == ImportType::JavaScript) {
+        m_output << "<script>\n" << node->content << "\n</script>\n";
+    } else if (node->type == ImportType::Html) {
+        m_output << node->content << "\n";
     }
 }
 

@@ -4,6 +4,9 @@
 namespace CHTL {
 
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
+    {"Html", TokenType::HTML},
+    {"Style", TokenType::CSS}, // Note: "Style" is used for CSS imports, "style" is for blocks
+    {"JavaScript", TokenType::JAVASCRIPT},
     {"text", TokenType::TEXT},
     {"style", TokenType::STYLE},
     {"script", TokenType::SCRIPT},

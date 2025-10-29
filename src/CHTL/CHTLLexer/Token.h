@@ -33,6 +33,7 @@ enum class TokenType {
     UNQUOTED_LITERAL,
 
     // Keywords
+    HTML, CSS, JAVASCRIPT, // For import types
     TEXT, STYLE, SCRIPT, ELEMENT, VAR,
     IF, ELSE, ELSE_IF,
     DELETE, INSERT, AFTER, BEFORE, REPLACE,
@@ -99,6 +100,9 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::STRING: return "STRING";
         case TokenType::NUMBER: return "NUMBER";
         case TokenType::UNQUOTED_LITERAL: return "UNQUOTED_LITERAL";
+        case TokenType::HTML: return "HTML";
+        case TokenType::CSS: return "CSS";
+        case TokenType::JAVASCRIPT: return "JAVASCRIPT";
         case TokenType::TEXT: return "TEXT";
         case TokenType::STYLE: return "STYLE";
         case TokenType::SCRIPT: return "SCRIPT";

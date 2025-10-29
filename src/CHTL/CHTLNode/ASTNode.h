@@ -27,6 +27,7 @@ struct TemplateUsageNode;
 struct ElementSpecializationNode;
 struct ImportNode;
 struct NamespaceNode;
+struct OriginNode;
 
 
 // Enum to identify the type of an AST node
@@ -40,8 +41,9 @@ enum class NodeType {
     TemplateUsage,
     ElementSpecialization,
     ElementInsertion,
-	Import,
+    Import,
     Namespace,
+    Origin,
 
     // Expression Nodes
     BinaryOp,
@@ -473,48 +475,66 @@ struct ProgramNode : public ASTNode {
 };
 
 enum class ImportType {
-    Html,
-    Style,
-    JavaScript,
     Chtl,
-    CJmod,
-};
-
-enum class ImportTemplateType {
-    Element,
-    Style,
-    Var,
-    Config,
+    Html,
+    Css,
+    JavaScript,
 };
 
 
 struct ImportNode : public ASTNode {
-    ImportType importType;
-    ImportTemplateType templateType;
+    ImportType type;
+    std::string filePath;
+    std::string alias; // Used for non-Chtl imports
+
+    // Fields below are for Chtl imports
     bool isCustom = false;
     bool isTemplate = false;
     bool isOrigin = false;
     std::string specificName;
-    std::string filePath;
-    std::string alias;
+
 
     NodeType getType() const override { return NodeType::Import; }
 
     std::unique_ptr<ASTNode> clone() const override {
         auto node = std::make_unique<ImportNode>();
-        node->importType = importType;
-        node->templateType = templateType;
+        node->type = type;
+        node->filePath = filePath;
+        node->alias = alias;
         node->isCustom = isCustom;
         node->isTemplate = isTemplate;
         node->isOrigin = isOrigin;
-        node->filePath = filePath;
-        node->alias = alias;
+        node->specificName = specificName;
         return node;
     }
 
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "Import(file=\"" << filePath << "\", as=\"" << alias << "\")" << std::endl;
+    }
+};
+
+struct OriginNode : public ASTNode {
+    ImportType type;
+    std::string name; // Optional name for named [Origin] blocks
+    std::string content;
+
+    OriginNode() = default;
+    OriginNode(std::string content, ImportType type) : type(type), content(std::move(content)) {}
+
+    NodeType getType() const override { return NodeType::Origin; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<OriginNode>();
+        node->type = type;
+        node->name = name;
+        node->content = content;
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Origin(" << name << "): " << content.substr(0, 20) << "..." << std::endl;
     }
 };
 

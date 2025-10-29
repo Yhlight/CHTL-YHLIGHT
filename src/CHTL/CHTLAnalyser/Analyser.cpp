@@ -1,10 +1,10 @@
 #include "Analyser.h"
 #include <stdexcept>
 #include <vector>
-#include <filesystem>
 #include <iterator>
 #include <algorithm>
 #include <sstream>
+#include <filesystem>
 
 
 namespace CHTL {
@@ -46,11 +46,18 @@ void Analyser::visit(ASTNode* node) {
 }
 
 void Analyser::visit(ProgramNode* node) {
-    for (size_t i = 0; i < node->children.size();) {
-        visit(node->children[i].get());
-        // After visiting, if the node was an import, it might have been replaced.
-        // Re-evaluate the size and current position.
-        if (node->children[i]->getType() != NodeType::Import) {
+    size_t i = 0;
+    while (i < node->children.size()) {
+        auto& child = node->children[i];
+        if (child->getType() == NodeType::Namespace) {
+            auto ns_node = std::move(child);
+            node->children.erase(node->children.begin() + i);
+            auto* ns = static_cast<NamespaceNode*>(ns_node.get());
+            node->children.insert(node->children.begin() + i,
+                                  std::make_move_iterator(ns->children.begin()),
+                                  std::make_move_iterator(ns->children.end()));
+        } else {
+            visit(child.get());
             i++;
         }
     }
@@ -96,8 +103,20 @@ void Analyser::visit(ElementNode* node) {
         }
     }
 
-    for (auto& child : node->children) {
-        visit(child.get());
+    size_t i = 0;
+    while (i < node->children.size()) {
+        auto& child = node->children[i];
+        if (child->getType() == NodeType::Namespace) {
+            auto ns_node = std::move(child);
+            node->children.erase(node->children.begin() + i);
+            auto* ns = static_cast<NamespaceNode*>(ns_node.get());
+            node->children.insert(node->children.begin() + i,
+                                  std::make_move_iterator(ns->children.begin()),
+                                  std::make_move_iterator(ns->children.end()));
+        } else {
+            visit(child.get());
+            i++;
+        }
     }
 }
 
@@ -109,45 +128,12 @@ void Analyser::visit(TemplateNode* node) {
 }
 
 void Analyser::visit(NamespaceNode* node) {
-    m_symbol_table.pushNamespace(node->name);
-    for (auto& child : node->children) {
-        visit(child.get());
-    }
-    m_symbol_table.popNamespace();
+    // This is now handled by the flattening logic in visit(ProgramNode*) and visit(ElementNode*).
+    // This function should not be called.
 }
 
 void Analyser::visit(ImportNode* node) {
-    std::filesystem::path canonical_path = std::filesystem::canonical(std::filesystem::path(m_filePath).parent_path() / node->filePath);
-    std::string canonical_path_str = canonical_path.string();
-
-    if (m_import_stack.count(canonical_path_str)) {
-        throw std::runtime_error("Circular import detected: " + node->filePath);
-    }
-    m_import_stack.insert(canonical_path_str);
-
-    auto imported_ast = m_importer.importFile(node->filePath, m_filePath);
-    auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
-
-    // Create a new analyser for the imported file and run it.
-    Analyser imported_analyser(*imported_program, canonical_path_str);
-    imported_analyser.m_import_stack = this->m_import_stack; // Share the import stack
-    imported_analyser.analyse();
-
-    // Find the import node in the main program and replace it
-    auto& children = m_program.children;
-    auto it = std::find_if(children.begin(), children.end(),
-                           [node](const std::unique_ptr<ASTNode>& child) {
-                               return child.get() == node;
-                           });
-
-    if (it != children.end()) {
-        it = children.erase(it);
-        children.insert(it,
-                        std::make_move_iterator(imported_program->children.begin()),
-                        std::make_move_iterator(imported_program->children.end()));
-    }
-
-    m_import_stack.erase(canonical_path_str);
+    // This is now handled in visit(ProgramNode*)
 }
 
 void Analyser::resolveInheritance(TemplateNode* node) {
@@ -238,51 +224,43 @@ void Analyser::resolve(ASTNode* node) {
 }
 
 void Analyser::resolve(ProgramNode* node) {
-    std::vector<std::unique_ptr<ASTNode>> new_children;
-    for (auto& child : node->children) {
-        if (child->getType() == NodeType::TemplateUsage) {
-            auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
-            if (usage_node->templateType == TemplateType::Element) {
-                auto it = m_templates.find(usage_node->name);
-                if (it == m_templates.end()) {
-                    throw std::runtime_error("Unknown template: " + usage_node->name);
-                }
-                const TemplateNode* templateNode = it->second;
-				std::vector<std::unique_ptr<ASTNode>> expanded_children;
-                for (const auto& template_child : templateNode->children) {
-                    expanded_children.push_back(template_child->clone());
-                }
-				applySpecializations(expanded_children, usage_node);
-                for (auto& expanded_child : expanded_children) {
-                    new_children.push_back(std::move(expanded_child));
-                }
+    size_t i = 0;
+    while (i < node->children.size()) {
+        auto& child = node->children[i];
+        bool node_was_replaced = false;
+
+        if (child->getType() == NodeType::Import) {
+            auto* import_node = static_cast<ImportNode*>(child.get());
+            std::string canonical_path = std::filesystem::weakly_canonical(std::filesystem::path(m_filePath).parent_path() / import_node->filePath).string();
+
+            if (m_import_stack.count(canonical_path)) {
+                throw std::runtime_error("Circular import detected: " + canonical_path);
+            }
+            m_import_stack.insert(canonical_path);
+
+            if (import_node->type == ImportType::Chtl) {
+                auto imported_ast = m_importer.importFile(import_node->filePath, m_filePath);
+                Analyser imported_analyser(*static_cast<ProgramNode*>(imported_ast.get()), canonical_path);
+                imported_analyser.m_import_stack = m_import_stack;
+                imported_analyser.analyse();
+
+                auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+
+                node->children.erase(node->children.begin() + i);
+                node->children.insert(node->children.begin() + i,
+                                      std::make_move_iterator(imported_program->children.begin()),
+                                      std::make_move_iterator(imported_program->children.end()));
+                i += imported_program->children.size();
+                node_was_replaced = true;
             } else {
-                new_children.push_back(std::move(child));
+                std::string content = m_importer.importRawFile(import_node->filePath, m_filePath);
+                auto origin_node = std::make_unique<OriginNode>(content, import_node->type);
+                node->children[i] = std::move(origin_node);
             }
-        } else if (child->getType() == NodeType::Namespace) {
-            auto* ns_node = static_cast<NamespaceNode*>(child.get());
-            m_symbol_table.pushNamespace(ns_node->name);
-            for (auto& ns_child : ns_node->children) {
-                resolve(ns_child.get());
-                new_children.push_back(std::move(ns_child));
-            }
-            m_symbol_table.popNamespace();
-        } else {
-            resolve(child.get());
-            new_children.push_back(std::move(child));
+
+            m_import_stack.erase(canonical_path);
         }
-    }
-    node->children = std::move(new_children);
-}
-
-void Analyser::resolve(ElementNode* node) {
-    if (node->style) {
-        resolve(node->style.get());
-    }
-
-    std::vector<std::unique_ptr<ASTNode>> new_children;
-    for (auto& child : node->children) {
-        if (child->getType() == NodeType::TemplateUsage) {
+        else if (child->getType() == NodeType::TemplateUsage) {
             auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
             if (usage_node->templateType == TemplateType::Element) {
                 auto it = m_templates.find(usage_node->name);
@@ -295,18 +273,96 @@ void Analyser::resolve(ElementNode* node) {
                     expanded_children.push_back(template_child->clone());
                 }
                 applySpecializations(expanded_children, usage_node);
-                for (auto& expanded_child : expanded_children) {
-                    new_children.push_back(std::move(expanded_child));
-                }
-            } else {
-                 new_children.push_back(std::move(child));
+
+                node->children.erase(node->children.begin() + i);
+                node->children.insert(node->children.begin() + i,
+                                      std::make_move_iterator(expanded_children.begin()),
+                                      std::make_move_iterator(expanded_children.end()));
+                i += expanded_children.size();
+                node_was_replaced = true;
             }
-        } else {
+        }
+        else {
             resolve(child.get());
-            new_children.push_back(std::move(child));
+        }
+
+        if (!node_was_replaced) {
+            i++;
         }
     }
-    node->children = std::move(new_children);
+}
+
+void Analyser::resolve(ElementNode* node) {
+    if (node->style) {
+        resolve(node->style.get());
+    }
+
+    size_t i = 0;
+    while (i < node->children.size()) {
+        auto& child = node->children[i];
+        bool node_was_replaced = false;
+
+        if (child->getType() == NodeType::Import) {
+            auto* import_node = static_cast<ImportNode*>(child.get());
+            std::string canonical_path = std::filesystem::weakly_canonical(std::filesystem::path(m_filePath).parent_path() / import_node->filePath).string();
+
+            if (m_import_stack.count(canonical_path)) {
+                throw std::runtime_error("Circular import detected: " + canonical_path);
+            }
+            m_import_stack.insert(canonical_path);
+
+            if (import_node->type == ImportType::Chtl) {
+                auto imported_ast = m_importer.importFile(import_node->filePath, m_filePath);
+                Analyser imported_analyser(*static_cast<ProgramNode*>(imported_ast.get()), canonical_path);
+                imported_analyser.m_import_stack = m_import_stack;
+                imported_analyser.analyse();
+
+                auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+
+                node->children.erase(node->children.begin() + i);
+                node->children.insert(node->children.begin() + i,
+                                      std::make_move_iterator(imported_program->children.begin()),
+                                      std::make_move_iterator(imported_program->children.end()));
+                i += imported_program->children.size();
+                node_was_replaced = true;
+            } else {
+                std::string content = m_importer.importRawFile(import_node->filePath, m_filePath);
+                auto origin_node = std::make_unique<OriginNode>(content, import_node->type);
+                node->children[i] = std::move(origin_node);
+            }
+
+            m_import_stack.erase(canonical_path);
+        }
+        else if (child->getType() == NodeType::TemplateUsage) {
+            auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
+            if (usage_node->templateType == TemplateType::Element) {
+                auto it = m_templates.find(usage_node->name);
+                if (it == m_templates.end()) {
+                    throw std::runtime_error("Unknown template: " + usage_node->name);
+                }
+                const TemplateNode* templateNode = it->second;
+                std::vector<std::unique_ptr<ASTNode>> expanded_children;
+                for (const auto& template_child : templateNode->children) {
+                    expanded_children.push_back(template_child->clone());
+                }
+                applySpecializations(expanded_children, usage_node);
+
+                node->children.erase(node->children.begin() + i);
+                node->children.insert(node->children.begin() + i,
+                                      std::make_move_iterator(expanded_children.begin()),
+                                      std::make_move_iterator(expanded_children.end()));
+                i += expanded_children.size();
+                node_was_replaced = true;
+            }
+        }
+        else {
+            resolve(child.get());
+        }
+
+        if (!node_was_replaced) {
+            i++;
+        }
+    }
 }
 
 void Analyser::resolve(StyleNode* node) {
