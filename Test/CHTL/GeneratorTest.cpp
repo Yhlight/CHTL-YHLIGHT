@@ -17,7 +17,7 @@ TEST(GeneratorTest, EndToEndElementTemplate) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     std::string expected = "<div><span>hello</span></div>";
@@ -38,7 +38,7 @@ TEST(GeneratorTest, EndToEndStyleTemplate) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
@@ -60,7 +60,7 @@ TEST(GeneratorTest, EndToEndVarTemplate) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     std::string expected = "<div style=\"color:#ff6347;\"></div>";
@@ -90,7 +90,7 @@ TEST(GeneratorTest, EndToEndStyleTemplateInheritance) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     // A more robust test checks for the presence of correct properties, ignoring order.
@@ -123,7 +123,7 @@ TEST(GeneratorTest, EndToEndStyleTemplateExplicitInheritance) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     // Assertions are the same as the implicit inheritance test
@@ -152,7 +152,7 @@ TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     std::string expected = "<div><p>from base</p><span>from child</span></div>";
@@ -167,7 +167,7 @@ TEST(GeneratorTest, EndToEndOriginBlock) {
     CHTL::Parser parser(lexer);
     auto root = parser.parse();
 
-    CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
+    CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
     EXPECT_EQ(result, rawHtml);
@@ -180,10 +180,8 @@ TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     auto divNode = std::make_shared<CHTL::ElementNode>("div");
     divNode->addAttribute(attribute);
 
-    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyStyleMap;
-    std::map<std::string, std::shared_ptr<CHTL::TemplateElementDefinitionNode>> emptyElementMap;
-    std::map<std::string, std::shared_ptr<CHTL::TemplateVarDefinitionNode>> emptyVarMap;
-    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap);
+    auto symbolTable = std::make_shared<CHTL::SymbolTable>();
+    CHTL::Generator generator(divNode, symbolTable);
     std::string result = generator.generate();
 
     std::string expected = "<div id=\"box\"></div>";
@@ -198,10 +196,8 @@ TEST(GeneratorTest, GenerateSimpleHTML) {
     auto divNode = std::make_shared<CHTL::ElementNode>("div");
     divNode->addChild(spanNode);
 
-    std::map<std::string, std::shared_ptr<CHTL::TemplateStyleDefinitionNode>> emptyStyleMap;
-    std::map<std::string, std::shared_ptr<CHTL::TemplateElementDefinitionNode>> emptyElementMap;
-    std::map<std::string, std::shared_ptr<CHTL::TemplateVarDefinitionNode>> emptyVarMap;
-    CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap);
+    auto symbolTable = std::make_shared<CHTL::SymbolTable>();
+    CHTL::Generator generator(divNode, symbolTable);
     std::string result = generator.generate();
 
     std::string expected = "<div><span>hello</span></div>";

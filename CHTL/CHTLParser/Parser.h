@@ -10,6 +10,7 @@
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
 #include "CHTL/CHTLNode/OriginUsageNode.h"
+#include "SymbolTable.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -19,20 +20,20 @@ namespace CHTL {
 class Parser {
 public:
     Parser(Lexer& lexer);
+    Parser(Lexer& lexer, std::shared_ptr<SymbolTable> symbolTable);
 
     std::shared_ptr<ProgramNode> parse();
-    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_styleTemplates; }
-    const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return m_elementTemplates; }
-    const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return m_varTemplates; }
-    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return m_originTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_symbolTable->styleTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return m_symbolTable->elementTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return m_symbolTable->varTemplates; }
+    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return m_symbolTable->originTemplates; }
+    std::shared_ptr<SymbolTable> getSymbolTable() { return m_symbolTable; }
+
 
 private:
     Lexer& m_lexer;
     Token m_currentToken;
-    std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>> m_styleTemplates;
-    std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>> m_elementTemplates;
-    std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>> m_varTemplates;
-    std::map<std::string, std::shared_ptr<OriginNode>> m_originTemplates;
+    std::shared_ptr<SymbolTable> m_symbolTable;
 
     void eat(TokenType type);
     std::shared_ptr<BaseNode> parseStatement();

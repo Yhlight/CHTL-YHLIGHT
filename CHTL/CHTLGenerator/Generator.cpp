@@ -12,10 +12,8 @@
 namespace CHTL {
 
 Generator::Generator(std::shared_ptr<BaseNode> root,
-                     const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& styleTemplates,
-                     const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& elementTemplates,
-                     const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& varTemplates)
-    : m_root(root), m_styleTemplates(styleTemplates), m_elementTemplates(elementTemplates), m_varTemplates(varTemplates) {}
+                     std::shared_ptr<SymbolTable> symbolTable)
+    : m_root(root), m_symbolTable(symbolTable) {}
 
 std::string Generator::generate() {
     std::string output;
@@ -66,8 +64,8 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
         }
         case NodeType::TemplateElementUsage: {
             auto usageNode = std::static_pointer_cast<TemplateElementUsageNode>(node);
-            if (m_elementTemplates.count(usageNode->getName())) {
-                auto templateNode = m_elementTemplates.at(usageNode->getName());
+            if (m_symbolTable->elementTemplates.count(usageNode->getName())) {
+                auto templateNode = m_symbolTable->elementTemplates.at(usageNode->getName());
                 for (const auto& child : templateNode->getChildren()) {
                     visit(child, output);
                 }
@@ -92,8 +90,8 @@ void Generator::collectStyleProperties(std::shared_ptr<const StyleBlockNode> sty
 
     // First, recursively collect properties from inherited templates
     for (const auto& templateName : styleBlock->getUsedTemplates()) {
-        if (m_styleTemplates.count(templateName)) {
-            collectStyleProperties(m_styleTemplates.at(templateName)->getStyleBlock(), properties);
+        if (m_symbolTable->styleTemplates.count(templateName)) {
+            collectStyleProperties(m_symbolTable->styleTemplates.at(templateName)->getStyleBlock(), properties);
         }
     }
 
@@ -108,8 +106,8 @@ void Generator::collectStyleProperties(std::shared_ptr<const StyleBlockNode> sty
             std::string varTemplateName = match[1];
             std::string varKey = match[2];
 
-            if (m_varTemplates.count(varTemplateName)) {
-                const auto& varTemplate = m_varTemplates.at(varTemplateName);
+            if (m_symbolTable->varTemplates.count(varTemplateName)) {
+                const auto& varTemplate = m_symbolTable->varTemplates.at(varTemplateName);
                 if (varTemplate->getVariables().count(varKey)) {
                     value = varTemplate->getVariables().at(varKey);
                 }

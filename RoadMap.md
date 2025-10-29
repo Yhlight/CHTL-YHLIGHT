@@ -54,8 +54,9 @@
 - [x] **原始嵌入 (`[Origin]`)**
     - [x] 支持 `@Html`, `@Style`, `@JavaScript` 的原始代码嵌入
     - [x] 支持带名原始嵌入
-- [ ] **导入系统 (`[Import]`)**
+- [x] **导入系统 (`[Import]`)**
     - [x] 实现对 HTML, CSS, JS 文件的基础导入功能
+    - [x] 实现对 CHTL 文件的导入(递归解析)
 
 ## 第三阶段：CHTL CSS 特性
 

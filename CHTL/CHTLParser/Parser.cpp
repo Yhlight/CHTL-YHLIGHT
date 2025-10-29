@@ -14,7 +14,11 @@
 
 namespace CHTL {
 
-Parser::Parser(Lexer& lexer) : m_lexer(lexer) {
+Parser::Parser(Lexer& lexer) : m_lexer(lexer), m_symbolTable(std::make_shared<SymbolTable>()) {
+    m_currentToken = m_lexer.nextToken();
+}
+
+Parser::Parser(Lexer& lexer, std::shared_ptr<SymbolTable> symbolTable) : m_lexer(lexer), m_symbolTable(symbolTable) {
     m_currentToken = m_lexer.nextToken();
 }
 
@@ -87,7 +91,7 @@ std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
     eat(TokenType::CloseBrace);
 
     auto templateNode = std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
-    m_styleTemplates[templateName] = templateNode;
+    m_symbolTable->styleTemplates[templateName] = templateNode;
     return templateNode;
 }
 
@@ -111,7 +115,7 @@ std::shared_ptr<BaseNode> Parser::parseTemplateVarDefinition() {
     }
     eat(TokenType::CloseBrace);
 
-    m_varTemplates[templateName] = templateNode;
+    m_symbolTable->varTemplates[templateName] = templateNode;
     return templateNode;
 }
 
@@ -129,7 +133,7 @@ std::shared_ptr<BaseNode> Parser::parseTemplateElementDefinition() {
     }
     eat(TokenType::CloseBrace);
 
-    m_elementTemplates[templateName] = templateNode;
+    m_symbolTable->elementTemplates[templateName] = templateNode;
     return templateNode;
 }
 
@@ -263,7 +267,7 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
     auto node = std::make_shared<OriginNode>(type, content);
     if (name) {
         node->setName(*name);
-        m_originTemplates[*name] = node;
+        m_symbolTable->originTemplates[*name] = node;
     }
     return node;
 }
@@ -273,6 +277,22 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
 void Parser::parseImportStatement() {
     eat(TokenType::ImportKeyword);
 
+    if (m_currentToken.value == "@Chtl") {
+        eat(TokenType::Identifier); // @Chtl
+        eat(TokenType::FromKeyword);
+        std::string path = m_currentToken.value;
+        eat(TokenType::String);
+        eat(TokenType::Semicolon);
+
+        auto content = Util::FileUtil::readFileContents(path);
+        if (content) {
+            Lexer importedLexer(*content);
+            Parser importedParser(importedLexer, m_symbolTable);
+            importedParser.parse();
+        }
+        return;
+    }
+
     OriginType originType;
     if (m_currentToken.value == "@Html") {
         originType = OriginType::Html;
@@ -280,9 +300,6 @@ void Parser::parseImportStatement() {
         originType = OriginType::Style;
     } else if (m_currentToken.value == "@JavaScript") {
         originType = OriginType::JavaScript;
-    } else if (m_currentToken.value == "@Chtl") {
-        // CHTL file import requires recursive parsing, which is not yet implemented.
-        throw std::runtime_error("CHTL file import is not yet supported.");
     } else {
         throw std::runtime_error("Unsupported import type: " + m_currentToken.value);
     }
@@ -304,7 +321,7 @@ void Parser::parseImportStatement() {
     if (content) {
         auto originNode = std::make_shared<OriginNode>(originType, *content);
         originNode->setName(alias);
-        m_originTemplates[alias] = originNode;
+        m_symbolTable->originTemplates[alias] = originNode;
     }
 }
 

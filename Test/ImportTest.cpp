@@ -71,11 +71,29 @@ TEST_F(ImportTest, ParseBasicJavaScriptImport) {
     EXPECT_EQ(it->second->getOriginType(), CHTL::OriginType::JavaScript);
 }
 
-TEST_F(ImportTest, ThrowsOnChtlImport) {
-    std::string source = "[Import] @Chtl from \"test.chtl\" as myChtl;";
+TEST_F(ImportTest, ParseChtlFileImport) {
+    // Create the imported file
+    std::ofstream imported_file("imported.chtl");
+    imported_file << "[Template] @Element MyBox { div { text: \"hello\"; } }";
+    imported_file.close();
+
+    // Create the main file that imports the other file
+    std::string source = R"(
+        [Import] @Chtl from "imported.chtl";
+        @Element MyBox;
+    )";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
-    EXPECT_THROW(parser.parse(), std::runtime_error);
+    auto program = parser.parse();
+
+    // Check that the template from the imported file is now in the symbol table
+    const auto& elementTemplates = parser.getElementTemplates();
+    ASSERT_EQ(elementTemplates.size(), 1);
+    auto it = elementTemplates.find("MyBox");
+    ASSERT_NE(it, elementTemplates.end());
+
+    // Clean up the imported file
+    std::remove("imported.chtl");
 }
 
 TEST_F(ImportTest, ThrowsOnUnsupportedImportType) {
