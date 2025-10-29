@@ -1,4 +1,5 @@
 #include "Parser.h"
+#include "Util/FileUtil.h"
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/AttributeNode.h"
@@ -30,7 +31,10 @@ void Parser::eat(TokenType type) {
 std::shared_ptr<ProgramNode> Parser::parse() {
     auto programNode = std::make_shared<ProgramNode>();
     while(m_currentToken.type != TokenType::EndOfFile) {
-        programNode->addChild(parseStatement());
+        auto statement = parseStatement();
+        if (statement) {
+            programNode->addChild(statement);
+        }
     }
     return programNode;
 }
@@ -38,6 +42,11 @@ std::shared_ptr<ProgramNode> Parser::parse() {
 std::shared_ptr<BaseNode> Parser::parseStatement() {
     if (m_currentToken.type == TokenType::InheritKeyword) {
         eat(TokenType::InheritKeyword);
+    }
+
+    if (m_currentToken.type == TokenType::ImportKeyword) {
+        parseImportStatement();
+        return nullptr;
     }
 
     if (m_currentToken.type == TokenType::OriginKeyword) {
@@ -257,6 +266,46 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
         m_originTemplates[*name] = node;
     }
     return node;
+}
+
+#include <stdexcept>
+
+void Parser::parseImportStatement() {
+    eat(TokenType::ImportKeyword);
+
+    OriginType originType;
+    if (m_currentToken.value == "@Html") {
+        originType = OriginType::Html;
+    } else if (m_currentToken.value == "@Style") {
+        originType = OriginType::Style;
+    } else if (m_currentToken.value == "@JavaScript") {
+        originType = OriginType::JavaScript;
+    } else if (m_currentToken.value == "@Chtl") {
+        // CHTL file import requires recursive parsing, which is not yet implemented.
+        throw std::runtime_error("CHTL file import is not yet supported.");
+    } else {
+        throw std::runtime_error("Unsupported import type: " + m_currentToken.value);
+    }
+    eat(TokenType::Identifier);
+
+    eat(TokenType::FromKeyword);
+
+    std::string path = m_currentToken.value;
+    eat(TokenType::String);
+
+    eat(TokenType::AsKeyword);
+
+    std::string alias = m_currentToken.value;
+    eat(TokenType::Identifier);
+
+    eat(TokenType::Semicolon);
+
+    auto content = Util::FileUtil::readFileContents(path);
+    if (content) {
+        auto originNode = std::make_shared<OriginNode>(originType, *content);
+        originNode->setName(alias);
+        m_originTemplates[alias] = originNode;
+    }
 }
 
 } // namespace CHTL
