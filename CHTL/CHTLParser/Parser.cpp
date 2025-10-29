@@ -27,9 +27,7 @@ void Parser::eat(TokenType type) {
     if (m_currentToken.type == type) {
         m_currentToken = m_lexer.nextToken();
     } else {
-        // In a real implementation, you would throw an error here.
-        // For now, we'll just advance to keep it simple for the test.
-        m_currentToken = m_lexer.nextToken();
+        throw std::runtime_error("Unexpected token type. Expected " + std::to_string((int)type) + " but got " + std::to_string((int)m_currentToken.type) + " with value " + m_currentToken.value);
     }
 }
 
@@ -72,7 +70,12 @@ std::shared_ptr<BaseNode> Parser::parseStatement() {
         }
         return parseElement();
     }
-    return nullptr; // Return null for now
+
+    // Fallback for unrecognized tokens to prevent infinite loops
+    if (m_currentToken.type != TokenType::EndOfFile) {
+        eat(m_currentToken.type);
+    }
+    return nullptr;
 }
 
 std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
@@ -272,29 +275,77 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
 std::shared_ptr<BaseNode> Parser::parseImportStatement() {
     eat(TokenType::ImportKeyword);
 
-    ImportType importType;
+    ImportType importType = ImportType::Chtl;
     OriginType originType;
-    bool isChtlImport = false;
+    bool isChtlImport = true;
 
-    if (m_currentToken.value == "@Html") {
-        importType = ImportType::Html;
-        originType = OriginType::Html;
-    } else if (m_currentToken.value == "@Style") {
-        importType = ImportType::Style;
-        originType = OriginType::Style;
-    } else if (m_currentToken.value == "@JavaScript") {
-        importType = ImportType::JavaScript;
-        originType = OriginType::JavaScript;
-    } else {
-        importType = ImportType::Chtl;
-        isChtlImport = true;
+    std::optional<ImportCategory> category;
+    std::optional<ImportedSymbolType> symbolType;
+    std::optional<std::string> symbolName;
+
+    // Parse category: [Custom], [Template], [Origin]
+    if (m_currentToken.type == TokenType::TemplateKeyword) {
+        category = ImportCategory::Template;
+        eat(TokenType::TemplateKeyword);
+    } else if (m_currentToken.type == TokenType::Identifier && (m_currentToken.value == "[Custom]" || m_currentToken.value == "[Origin]")) {
+        if (m_currentToken.value == "[Custom]") {
+            category = ImportCategory::Custom;
+        } else {
+            category = ImportCategory::Origin;
+        }
+        eat(TokenType::Identifier);
     }
-    eat(TokenType::Identifier);
+
+    bool hasCategory = category.has_value();
+
+    // Parse symbol type: @Element, @Style, @Var, etc.
+    if (m_currentToken.type == TokenType::Identifier) {
+        const auto& value = m_currentToken.value;
+        if (value == "@Element") {
+            symbolType = ImportedSymbolType::Element;
+            eat(TokenType::Identifier);
+        } else if (value == "@Style") {
+            if (hasCategory) {
+                symbolType = ImportedSymbolType::Style;
+            } else {
+                isChtlImport = false;
+                importType = ImportType::Style;
+                originType = OriginType::Style;
+            }
+            eat(TokenType::Identifier);
+        } else if (value == "@Var") {
+            symbolType = ImportedSymbolType::Var;
+            eat(TokenType::Identifier);
+        } else if (value == "@Html") {
+            isChtlImport = false;
+            importType = ImportType::Html;
+            originType = OriginType::Html;
+            eat(TokenType::Identifier);
+        } else if (value == "@JavaScript") {
+            isChtlImport = false;
+            importType = ImportType::JavaScript;
+            originType = OriginType::JavaScript;
+            eat(TokenType::Identifier);
+        } else if (value == "@Chtl") {
+            symbolType = ImportedSymbolType::Any;
+            eat(TokenType::Identifier);
+        }
+    }
+
+    // Parse symbol name if it exists
+    if (m_currentToken.type == TokenType::Identifier && m_lexer.peek().value == "from") {
+        symbolName = m_currentToken.value;
+        eat(TokenType::Identifier);
+    }
 
     eat(TokenType::Identifier); // "from"
 
     std::string filePath = m_currentToken.value;
-    eat(m_currentToken.type);
+    if (m_currentToken.type == TokenType::String) {
+        eat(TokenType::String);
+    } else {
+        eat(TokenType::Identifier);
+    }
 
     std::optional<std::string> asName;
     if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "as") {
@@ -323,11 +374,44 @@ std::shared_ptr<BaseNode> Parser::parseImportStatement() {
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
         Lexer importedLexer(content);
-        Parser importedParser(importedLexer, m_symbolTable);
-        importedParser.parse();
+        if (symbolName || (category && !symbolName)) {
+            auto tempSymbolTable = std::make_shared<SymbolTable>();
+            Parser importedParser(importedLexer, tempSymbolTable);
+            importedParser.parse();
+
+            if (symbolName) {
+                // Specific symbol import
+                if (symbolType == ImportedSymbolType::Element) {
+                    auto it = tempSymbolTable->elementTemplates.find(*symbolName);
+                    if (it != tempSymbolTable->elementTemplates.end()) {
+                        m_symbolTable->elementTemplates[*symbolName] = it->second;
+                    }
+                } else if (symbolType == ImportedSymbolType::Style) {
+                    auto it = tempSymbolTable->styleTemplates.find(*symbolName);
+                    if (it != tempSymbolTable->styleTemplates.end()) {
+                        m_symbolTable->styleTemplates[*symbolName] = it->second;
+                    }
+                } else if (symbolType == ImportedSymbolType::Var) {
+                    auto it = tempSymbolTable->varTemplates.find(*symbolName);
+                    if (it != tempSymbolTable->varTemplates.end()) {
+                        m_symbolTable->varTemplates[*symbolName] = it->second;
+                    }
+                }
+            } else if (category) {
+                // Category-based import
+                if (*category == ImportCategory::Template) {
+                    m_symbolTable->elementTemplates.insert(tempSymbolTable->elementTemplates.begin(), tempSymbolTable->elementTemplates.end());
+                    m_symbolTable->styleTemplates.insert(tempSymbolTable->styleTemplates.begin(), tempSymbolTable->styleTemplates.end());
+                    m_symbolTable->varTemplates.insert(tempSymbolTable->varTemplates.begin(), tempSymbolTable->varTemplates.end());
+                }
+            }
+        } else {
+            Parser importedParser(importedLexer, m_symbolTable);
+            importedParser.parse();
+        }
     }
 
-    return std::make_shared<ImportNode>(importType, filePath, asName);
+    return std::make_shared<ImportNode>(importType, filePath, asName, category, symbolType, symbolName);
 }
 
 } // namespace CHTL
