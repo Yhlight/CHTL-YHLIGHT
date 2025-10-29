@@ -117,37 +117,70 @@ void Analyser::visit(NamespaceNode* node) {
 }
 
 void Analyser::visit(ImportNode* node) {
-    std::filesystem::path canonical_path = std::filesystem::canonical(std::filesystem::path(m_filePath).parent_path() / node->filePath);
-    std::string canonical_path_str = canonical_path.string();
+    if (node->importType != ImportType::Chtl) {
+        std::string content = m_importer.importRawFile(node->filePath, m_filePath);
+        auto originNode = std::make_unique<OriginNode>();
+        originNode->content = std::move(content);
 
-    if (m_import_stack.count(canonical_path_str)) {
-        throw std::runtime_error("Circular import detected: " + node->filePath);
-    }
-    m_import_stack.insert(canonical_path_str);
+        switch (node->importType) {
+            case ImportType::Html:
+                originNode->type = "Html";
+                break;
+            case ImportType::Style:
+                originNode->type = "Style";
+                break;
+            case ImportType::JavaScript:
+                originNode->type = "JavaScript";
+                break;
+            default:
+                // Should not happen due to parser validation
+                break;
+        }
 
-    auto imported_ast = m_importer.importFile(node->filePath, m_filePath);
-    auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+        // Find the import node in the main program and replace it
+        auto& children = m_program.children;
+        auto it = std::find_if(children.begin(), children.end(),
+                               [node](const std::unique_ptr<ASTNode>& child) {
+                                   return child.get() == node;
+                               });
 
-    // Create a new analyser for the imported file and run it.
-    Analyser imported_analyser(*imported_program, canonical_path_str);
-    imported_analyser.m_import_stack = this->m_import_stack; // Share the import stack
-    imported_analyser.analyse();
+        if (it != children.end()) {
+            *it = std::move(originNode);
+        }
 
-    // Find the import node in the main program and replace it
-    auto& children = m_program.children;
-    auto it = std::find_if(children.begin(), children.end(),
-                           [node](const std::unique_ptr<ASTNode>& child) {
-                               return child.get() == node;
-                           });
+    } else {
+		std::filesystem::path canonical_path = std::filesystem::weakly_canonical(std::filesystem::path(m_filePath).parent_path() / node->filePath);
+		std::string canonical_path_str = canonical_path.string();
 
-    if (it != children.end()) {
-        it = children.erase(it);
-        children.insert(it,
-                        std::make_move_iterator(imported_program->children.begin()),
-                        std::make_move_iterator(imported_program->children.end()));
-    }
+		if (m_import_stack.count(canonical_path_str)) {
+			throw std::runtime_error("Circular import detected: " + node->filePath);
+		}
+		m_import_stack.insert(canonical_path_str);
 
-    m_import_stack.erase(canonical_path_str);
+		auto imported_ast = m_importer.importFile(node->filePath, m_filePath);
+		auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+
+		// Create a new analyser for the imported file and run it.
+		Analyser imported_analyser(*imported_program, canonical_path_str);
+		imported_analyser.m_import_stack = this->m_import_stack; // Share the import stack
+		imported_analyser.analyse();
+
+		// Find the import node in the main program and replace it
+		auto& children = m_program.children;
+		auto it = std::find_if(children.begin(), children.end(),
+			[node](const std::unique_ptr<ASTNode>& child) {
+				return child.get() == node;
+			});
+
+		if (it != children.end()) {
+			it = children.erase(it);
+			children.insert(it,
+				std::make_move_iterator(imported_program->children.begin()),
+				std::make_move_iterator(imported_program->children.end()));
+		}
+
+		m_import_stack.erase(canonical_path_str);
+	}
 }
 
 void Analyser::resolveInheritance(TemplateNode* node) {
