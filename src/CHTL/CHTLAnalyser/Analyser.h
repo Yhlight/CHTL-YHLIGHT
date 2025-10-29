@@ -19,6 +19,7 @@ private:
     void visit(ProgramNode* node);
     void visit(TemplateNode* node);
     void visit(ImportNode* node);
+    void visit(NamespaceNode* node);
 
     void resolveInheritance(TemplateNode* node);
 

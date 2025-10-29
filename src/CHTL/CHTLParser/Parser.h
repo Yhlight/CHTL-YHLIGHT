@@ -20,6 +20,7 @@ private:
     std::unique_ptr<TemplateNode> parseTemplateNode();
     std::unique_ptr<TemplateNode> parseCustomNode();
     std::unique_ptr<ImportNode> parseImportNode();
+    std::unique_ptr<NamespaceNode> parseNamespaceNode();
     std::unique_ptr<TemplateUsageNode> parseTemplateUsage();
     std::unique_ptr<ElementSpecializationNode> parseElementSpecialization();
     std::unique_ptr<ElementInsertionNode> parseElementInsertion();

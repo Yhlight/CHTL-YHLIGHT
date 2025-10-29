@@ -26,6 +26,7 @@ struct TemplateNode;
 struct TemplateUsageNode;
 struct ElementSpecializationNode;
 struct ImportNode;
+struct NamespaceNode;
 
 
 // Enum to identify the type of an AST node
@@ -40,6 +41,7 @@ enum class NodeType {
     ElementSpecialization,
     ElementInsertion,
 	Import,
+    Namespace,
 
     // Expression Nodes
     BinaryOp,
@@ -513,6 +515,30 @@ struct ImportNode : public ASTNode {
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
         std::cout << "Import(file=\"" << filePath << "\", as=\"" << alias << "\")" << std::endl;
+    }
+};
+
+struct NamespaceNode : public ASTNode {
+    std::string name;
+    std::vector<std::unique_ptr<ASTNode>> children;
+
+    NodeType getType() const override { return NodeType::Namespace; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<NamespaceNode>();
+        node->name = name;
+        for (const auto& child : children) {
+            node->children.push_back(child->clone());
+        }
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Namespace(" << name << ")" << std::endl;
+        for (const auto& child : children) {
+            child->print(indent + 1);
+        }
     }
 };
 

@@ -36,6 +36,9 @@ void Analyser::visit(ASTNode* node) {
         case NodeType::Import:
             visit(static_cast<ImportNode*>(node));
             break;
+        case NodeType::Namespace:
+            visit(static_cast<NamespaceNode*>(node));
+            break;
         default:
             break;
     }
@@ -124,6 +127,14 @@ void Analyser::visit(TemplateNode* node) {
         throw std::runtime_error("Template with name '" + node->name + "' already defined.");
     }
     m_templates[node->name] = node;
+}
+
+void Analyser::visit(NamespaceNode* node) {
+    m_symbol_table.pushNamespace(node->name);
+    for (auto& child : node->children) {
+        visit(child.get());
+    }
+    m_symbol_table.popNamespace();
 }
 
 void Analyser::visit(ImportNode* node) {
@@ -239,6 +250,14 @@ void Analyser::resolve(ProgramNode* node) {
             } else {
                 new_children.push_back(std::move(child));
             }
+        } else if (child->getType() == NodeType::Namespace) {
+            auto* ns_node = static_cast<NamespaceNode*>(child.get());
+            m_symbol_table.pushNamespace(ns_node->name);
+            for (auto& ns_child : ns_node->children) {
+                resolve(ns_child.get());
+                new_children.push_back(std::move(ns_child));
+            }
+            m_symbol_table.popNamespace();
         } else {
             resolve(child.get());
             new_children.push_back(std::move(child));

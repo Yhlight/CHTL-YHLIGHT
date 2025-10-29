@@ -25,6 +25,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::IMPORT) {
             return parseImportNode();
         }
+        if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::NAMESPACE) {
+            return parseNamespaceNode();
+        }
     }
     if (peek().type == TokenType::AT) {
         return parseTemplateUsage();
@@ -239,6 +242,24 @@ std::unique_ptr<ImportNode> Parser::parseImportNode() {
     }
 
     consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
+
+    return node;
+}
+
+std::unique_ptr<NamespaceNode> Parser::parseNamespaceNode() {
+    consume(TokenType::LEFT_BRACKET, "Expect '[' before 'Namespace'.");
+    consume(TokenType::NAMESPACE, "Expect 'Namespace' keyword.");
+    consume(TokenType::RIGHT_BRACKET, "Expect ']' after 'Namespace'.");
+
+    auto node = std::make_unique<NamespaceNode>();
+    node->name = consume(TokenType::IDENTIFIER, "Expect namespace name.").lexeme;
+
+    if (match({TokenType::LEFT_BRACE})) {
+        while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+            node->children.push_back(parseStatement());
+        }
+        consume(TokenType::RIGHT_BRACE, "Expect '}' after namespace block.");
+    }
 
     return node;
 }

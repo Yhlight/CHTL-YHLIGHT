@@ -17,6 +17,7 @@ add_executable(
   TemplateTest.cpp
   CustomTest.cpp
   ImportTest.cpp
+  NamespaceTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp

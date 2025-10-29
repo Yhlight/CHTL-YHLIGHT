@@ -38,7 +38,7 @@ enum class TokenType {
     DELETE, INSERT, AFTER, BEFORE, REPLACE,
     TOP, BOTTOM,
     FROM, AS, EXCEPT, USE, HTML5, INHERIT,
-    TEMPLATE, CUSTOM, IMPORT, ORIGIN,
+    TEMPLATE, CUSTOM, IMPORT, ORIGIN, NAMESPACE,
 
     // Special Keywords / Phrases that might need special handling
     // e.g., "at top", "at bottom"
