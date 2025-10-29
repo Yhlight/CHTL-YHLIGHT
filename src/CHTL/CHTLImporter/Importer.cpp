@@ -25,7 +25,7 @@ std::unique_ptr<ASTNode> Importer::importFile(const std::string& filePath, const
     Lexer lexer(source);
     auto tokens = lexer.tokenize();
 
-    Parser parser(tokens);
+    Parser parser(tokens, source);
     return parser.parse();
 }
 

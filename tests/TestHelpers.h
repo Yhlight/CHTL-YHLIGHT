@@ -19,7 +19,7 @@ inline std::string removeWhitespace(std::string str) {
 
 inline std::string compile(const std::string& source, const std::string& filePath = "") {
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Analyser analyser(*program, filePath);
     analyser.analyse();

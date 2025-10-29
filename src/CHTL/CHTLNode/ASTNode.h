@@ -27,6 +27,7 @@ struct TemplateUsageNode;
 struct ElementSpecializationNode;
 struct ImportNode;
 struct NamespaceNode;
+struct OriginNode;
 
 
 // Enum to identify the type of an AST node
@@ -42,6 +43,7 @@ enum class NodeType {
     ElementInsertion,
 	Import,
     Namespace,
+    Origin,
 
     // Expression Nodes
     BinaryOp,
@@ -559,5 +561,24 @@ inline void ElementSpecializationNode::print(int indent) const {
         style->print(indent + 1);
     }
 }
+
+struct OriginNode : public ASTNode {
+    std::string type;
+    std::string content;
+
+    NodeType getType() const override { return NodeType::Origin; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<OriginNode>();
+        node->type = type;
+        node->content = content;
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Origin(" << type << "): \"" << content << "\"" << std::endl;
+    }
+};
 
 } // namespace CHTL

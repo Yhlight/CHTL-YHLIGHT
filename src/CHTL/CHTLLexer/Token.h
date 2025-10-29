@@ -134,6 +134,7 @@ struct Token {
     std::string lexeme;
     int line = 0;
     int column = 0;
+    size_t start_pos = 0;
 
     // Overload the << operator for easy printing of tokens
     friend std::ostream& operator<<(std::ostream& os, const Token& token) {

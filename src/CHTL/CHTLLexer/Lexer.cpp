@@ -179,11 +179,11 @@ bool Lexer::isAtEnd() const {
 
 void Lexer::addToken(TokenType type) {
     std::string text(m_source.substr(m_start, m_current - m_start));
-    m_tokens.push_back({type, text, m_line, m_column});
+    m_tokens.push_back({type, text, m_line, m_column, m_start});
 }
 
 void Lexer::addToken(TokenType type, const std::string& literal) {
-    m_tokens.push_back({type, literal, m_line, m_column});
+    m_tokens.push_back({type, literal, m_line, m_column, m_start});
 }
 
 void Lexer::stringLiteral() {

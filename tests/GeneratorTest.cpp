@@ -30,7 +30,7 @@ TEST(GeneratorTest, GeneratesHtmlFromAst) {
         }
     )";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();

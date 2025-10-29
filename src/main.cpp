@@ -64,7 +64,7 @@ int main() {
         std::vector<Token> tokens = lexer.tokenize();
 
         // 2. Parser: Build the Abstract Syntax Tree (AST)
-        Parser parser(tokens);
+        Parser parser(tokens, source);
         std::unique_ptr<ProgramNode> ast = parser.parse();
 
         // 3. Analyser: Perform semantic analysis and resolve references

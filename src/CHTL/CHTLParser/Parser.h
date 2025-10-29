@@ -9,7 +9,7 @@ namespace CHTL {
 
 class Parser {
 public:
-    explicit Parser(std::vector<Token> tokens);
+    explicit Parser(std::vector<Token> tokens, std::string_view source);
     std::unique_ptr<ProgramNode> parse();
 
 private:
@@ -21,6 +21,7 @@ private:
     std::unique_ptr<TemplateNode> parseCustomNode();
     std::unique_ptr<ImportNode> parseImportNode();
     std::unique_ptr<NamespaceNode> parseNamespaceNode();
+    std::unique_ptr<OriginNode> parseOriginNode();
     std::unique_ptr<TemplateUsageNode> parseTemplateUsage();
     std::unique_ptr<ElementSpecializationNode> parseElementSpecialization();
     std::unique_ptr<ElementInsertionNode> parseElementInsertion();
@@ -41,6 +42,7 @@ private:
     const Token& consume(TokenType type, const std::string& message);
 
     std::vector<Token> m_tokens;
+    std::string_view m_source;
     size_t m_current = 0;
 };
 

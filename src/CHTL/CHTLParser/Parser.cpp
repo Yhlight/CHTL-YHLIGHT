@@ -4,7 +4,7 @@
 
 namespace CHTL {
 
-Parser::Parser(std::vector<Token> tokens) : m_tokens(std::move(tokens)) {}
+Parser::Parser(std::vector<Token> tokens, std::string_view source) : m_tokens(std::move(tokens)), m_source(source) {}
 
 std::unique_ptr<ProgramNode> Parser::parse() {
     auto program = std::make_unique<ProgramNode>();
@@ -25,6 +25,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::IMPORT) {
             return parseImportNode();
         }
+		if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::ORIGIN) {
+			return parseOriginNode();
+		}
         if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::NAMESPACE) {
             return parseNamespaceNode();
         }
@@ -259,6 +262,46 @@ std::unique_ptr<NamespaceNode> Parser::parseNamespaceNode() {
             node->children.push_back(parseStatement());
         }
         consume(TokenType::RIGHT_BRACE, "Expect '}' after namespace block.");
+    }
+
+    return node;
+}
+
+std::unique_ptr<OriginNode> Parser::parseOriginNode() {
+    consume(TokenType::LEFT_BRACKET, "Expect '[' before 'Origin'.");
+    consume(TokenType::ORIGIN, "Expect 'Origin' keyword.");
+    consume(TokenType::RIGHT_BRACKET, "Expect ']' after 'Origin'.");
+
+    auto node = std::make_unique<OriginNode>();
+
+    consume(TokenType::AT, "Expect '@' after '[Origin]'.");
+    node->type = consume(TokenType::IDENTIFIER, "Expect origin type.").lexeme;
+
+    const auto& left_brace = consume(TokenType::LEFT_BRACE, "Expect '{' after origin type.");
+
+    // Manually scan the source string for the raw content
+    size_t search_start = previous().start_pos + previous().lexeme.length();
+    int brace_level = 1;
+    size_t search_current = search_start;
+    while (brace_level > 0 && search_current < m_source.length()) {
+        if (m_source[search_current] == '{') {
+            brace_level++;
+        } else if (m_source[search_current] == '}') {
+            brace_level--;
+        }
+        search_current++;
+    }
+
+    if (brace_level > 0) {
+        throw std::runtime_error("Unterminated origin block.");
+    }
+
+    size_t content_end = search_current - 1;
+    node->content = m_source.substr(search_start, content_end - search_start);
+
+    // Fast-forward the token stream to after the origin block
+    while (!isAtEnd() && peek().start_pos < search_current) {
+        advance();
     }
 
     return node;

@@ -16,6 +16,7 @@ private:
     void visit(const ASTNode* node);
     void visit(const ElementNode* node);
     void visit(const TextNode* node);
+	void visit(const OriginNode* node);
     void visit(const ProgramNode* node);
     void visit(const StyleNode* node);
 

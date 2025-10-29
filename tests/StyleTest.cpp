@@ -27,7 +27,7 @@ TEST(StyleTest, ParsesAndGeneratesInlineStyles) {
         }
     )";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
 
     // Test Parser
@@ -62,7 +62,7 @@ TEST(StyleTest, ParsesAndGeneratesInlineStyles) {
 TEST(StyleTest, HandlesEmptyStyleBlock) {
     std::string source = "div { style {} }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
 
     // Test Parser
@@ -90,7 +90,7 @@ TEST(StyleTest, CombinesAttributesAndStyles) {
         }
     )";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -102,7 +102,7 @@ TEST(StyleTest, CombinesAttributesAndStyles) {
 TEST(StyleTest, GeneratesAutoClass) {
     std::string source = "div { style { .box {} } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -113,7 +113,7 @@ TEST(StyleTest, GeneratesAutoClass) {
 TEST(StyleTest, GeneratesAutoId) {
     std::string source = "div { style { #main {} } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -124,7 +124,7 @@ TEST(StyleTest, GeneratesAutoId) {
 TEST(StyleTest, DoesNotOverrideExistingClass) {
     std::string source = R"(div { class: "manual"; style { .auto {} } })";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -135,7 +135,7 @@ TEST(StyleTest, DoesNotOverrideExistingClass) {
 TEST(StyleTest, UsesFirstAutoSelector) {
     std::string source = "div { style { .first {} #second {} } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -159,7 +159,7 @@ TEST(StyleTest, GeneratesGlobalStyleForPseudoClass) {
         }
     )";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -195,7 +195,7 @@ TEST(StyleTest, GeneratesGlobalStyleForPseudoElement) {
         }
     )";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();

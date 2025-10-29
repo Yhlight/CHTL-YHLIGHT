@@ -19,7 +19,7 @@ static std::string removeWhitespace(std::string str) {
 TEST(ArithmeticTest, SimpleAddition) {
     std::string source = "div { style { width: 100 + 50; } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -30,7 +30,7 @@ TEST(ArithmeticTest, SimpleAddition) {
 TEST(ArithmeticTest, AdditionWithUnits) {
     std::string source = "div { style { width: 100px + 50px; } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -41,7 +41,7 @@ TEST(ArithmeticTest, AdditionWithUnits) {
 TEST(ArithmeticTest, OperatorPrecedence) {
     std::string source = "div { style { width: 10 + 20 * 2; } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();
@@ -52,7 +52,7 @@ TEST(ArithmeticTest, OperatorPrecedence) {
 TEST(ArithmeticTest, PowerOperator) {
     std::string source = "div { style { width: 2 ** 3; } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
     Generator generator(*program);
     std::string result = generator.generate();

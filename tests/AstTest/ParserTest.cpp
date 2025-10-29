@@ -8,7 +8,7 @@ using namespace CHTL;
 TEST(ParserTest, ParsesBasicElement) {
     std::string source = "div {}";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
 
     ASSERT_NE(program, nullptr);
@@ -24,7 +24,7 @@ TEST(ParserTest, ParsesBasicElement) {
 TEST(ParserTest, ParsesNestedElements) {
     std::string source = "html { body { div {} } }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
 
     ASSERT_EQ(program->children.size(), 1);
@@ -46,7 +46,7 @@ TEST(ParserTest, ParsesNestedElements) {
 TEST(ParserTest, ParsesElementWithAttributes) {
     std::string source = "div { id: box; class: container; }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
 
     ASSERT_EQ(program->children.size(), 1);
@@ -67,7 +67,7 @@ TEST(ParserTest, ParsesTextNode) {
         }
     )";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
     auto program = parser.parse();
 
     ASSERT_EQ(program->children.size(), 1);
@@ -83,7 +83,7 @@ TEST(ParserTest, ParsesTextNode) {
 TEST(ParserTest, ThrowsOnUnterminatedBlock) {
     std::string source = "div {";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
 
     EXPECT_THROW(parser.parse(), std::runtime_error);
 }
@@ -91,7 +91,7 @@ TEST(ParserTest, ThrowsOnUnterminatedBlock) {
 TEST(ParserTest, ThrowsOnMissingSemicolon) {
     std::string source = "div { id: box }";
     Lexer lexer(source);
-    Parser parser(lexer.tokenize());
+    Parser parser(lexer.tokenize(), source);
 
     EXPECT_THROW(parser.parse(), std::runtime_error);
 }

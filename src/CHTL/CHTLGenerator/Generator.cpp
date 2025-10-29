@@ -26,6 +26,9 @@ void Generator::visit(const ASTNode* node) {
         case NodeType::Text:
             visit(static_cast<const TextNode*>(node));
             break;
+        case NodeType::Origin:
+            visit(static_cast<const OriginNode*>(node));
+            break;
         case NodeType::Style:
              // Style nodes are handled within element nodes, so we don't visit them directly.
             break;
@@ -168,6 +171,11 @@ void Generator::visit(const ElementNode* node) {
 }
 
 void Generator::visit(const TextNode* node) {
+    indent();
+    m_output << node->content << "\n";
+}
+
+void Generator::visit(const OriginNode* node) {
     indent();
     m_output << node->content << "\n";
 }
