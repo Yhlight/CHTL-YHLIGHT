@@ -93,31 +93,32 @@ Token Lexer::nextToken() {
             m_state = LexerState::IN_RAW_BLOCK;
             return makeToken(TokenType::OriginKeyword, "[Origin]", start_pos);
         }
+        if (m_source.substr(m_position, 8) == "[Import]") {
+            advance(8);
+            return makeToken(TokenType::ImportKeyword, "[Import]", start_pos);
+        }
     }
 
-    if (m_state == LexerState::IN_RAW_BLOCK) {
-        // The next token could be the type (e.g., @Html), a name, or the raw content
-        if (currentChar() == '@' || isalpha(currentChar())) {
-            std::string value;
-            while (isalnum(currentChar()) || currentChar() == '@' || currentChar() == '-' || currentChar() == '_') {
-                value += currentChar();
-                advance();
-            }
-            return makeToken(TokenType::Identifier, value, start_pos);
-        }
-        return scanRawContent();
-    }
+	if (m_state == LexerState::IN_RAW_BLOCK && c == '{') {
+		return scanRawContent();
+	}
 
     if (isalpha(c) || c == '@') {
         std::string value;
-        while (isalnum(currentChar()) || currentChar() == '@' || currentChar() == '-') {
+        while (isalnum(currentChar()) || currentChar() == '@' || currentChar() == '-' || currentChar() == '_') {
             value += currentChar();
             advance();
         }
 
-        if (value == "inherit") {
-            return makeToken(TokenType::InheritKeyword, value, start_pos);
-        }
+        if (value == "inherit") return makeToken(TokenType::InheritKeyword, value, start_pos);
+        if (value == "text") return makeToken(TokenType::Text, value, start_pos);
+        if (value == "style") return makeToken(TokenType::Style, value, start_pos);
+        if (value == "script") return makeToken(TokenType::Script, value, start_pos);
+        if (value == "@Html") return makeToken(TokenType::Html, value, start_pos);
+        if (value == "@Style") return makeToken(TokenType::Css, value, start_pos);
+        if (value == "@JavaScript") return makeToken(TokenType::Js, value, start_pos);
+		if (value == "from") return makeToken(TokenType::FromKeyword, "from", start_pos);
+		if (value == "as") return makeToken(TokenType::AsKeyword, "as", start_pos);
 
         return makeToken(TokenType::Identifier, value, start_pos);
     }

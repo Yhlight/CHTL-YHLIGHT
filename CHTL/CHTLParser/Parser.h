@@ -10,6 +10,7 @@
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
 #include "CHTL/CHTLNode/OriginUsageNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -45,6 +46,7 @@ private:
     std::shared_ptr<StyleBlockNode> parseStyleBlock();
     void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
     std::shared_ptr<BaseNode> parseOriginBlock();
+    std::shared_ptr<BaseNode> parseImportStatement();
     void parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock);
 };
 

@@ -10,6 +10,9 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
+#include <fstream>
+#include <sstream>
 
 namespace CHTL {
 
@@ -42,6 +45,10 @@ std::shared_ptr<BaseNode> Parser::parseStatement() {
 
     if (m_currentToken.type == TokenType::OriginKeyword) {
         return parseOriginBlock();
+    }
+
+    if (m_currentToken.type == TokenType::ImportKeyword) {
+        return parseImportStatement();
     }
 
     if (m_currentToken.type == TokenType::TemplateKeyword) {
@@ -230,33 +237,75 @@ void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) 
 }
 
 std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
-    eat(TokenType::OriginKeyword);
+	eat(TokenType::OriginKeyword);
+
+	OriginType type = OriginType::Html;
+	if (m_currentToken.type == TokenType::Html) {
+		type = OriginType::Html;
+		eat(TokenType::Html);
+	}
+	else if (m_currentToken.type == TokenType::Css) {
+		type = OriginType::Style;
+		eat(TokenType::Css);
+	}
+	else if (m_currentToken.type == TokenType::Js) {
+		type = OriginType::JavaScript;
+		eat(TokenType::Js);
+	}
+
+	std::optional<std::string> name;
+	if (m_currentToken.type == TokenType::Identifier) {
+		name = m_currentToken.value;
+		eat(TokenType::Identifier);
+	}
+
+	std::string content = m_currentToken.value;
+	eat(TokenType::RAW_CONTENT);
+
+	auto node = std::make_shared<OriginNode>(type, content, name);
+	if (name) {
+		m_originTemplates[*name] = node;
+	}
+	return node;
+}
+
+std::shared_ptr<BaseNode> Parser::parseImportStatement() {
+    eat(TokenType::ImportKeyword);
 
     OriginType type;
-    if (m_currentToken.value == "@Html") {
+    if (m_currentToken.type == TokenType::Html) {
         type = OriginType::Html;
-    } else if (m_currentToken.value == "@Style") {
+        eat(TokenType::Html);
+    } else if (m_currentToken.type == TokenType::Css) {
         type = OriginType::Style;
-    } else { // Assuming @JavaScript for now
+        eat(TokenType::Css);
+    } else {
         type = OriginType::JavaScript;
+        eat(TokenType::Js);
     }
+
+    eat(TokenType::FromKeyword);
+    std::string filePath = m_currentToken.value;
+    eat(TokenType::String);
+
+    eat(TokenType::AsKeyword);
+    std::string name = m_currentToken.value;
     eat(TokenType::Identifier);
 
-    std::optional<std::string> name;
-    if (m_currentToken.type == TokenType::Identifier) {
-        name = m_currentToken.value;
-        eat(TokenType::Identifier);
-    }
+    eat(TokenType::Semicolon);
 
-    std::string content = m_currentToken.value;
-    eat(TokenType::RAW_CONTENT);
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+		throw std::runtime_error("Could not open file: " + filePath);
+	}
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
 
-    auto node = std::make_shared<OriginNode>(type, content);
-    if (name) {
-        node->setName(*name);
-        m_originTemplates[*name] = node;
-    }
-    return node;
+    auto originNode = std::make_shared<OriginNode>(type, content, name);
+    m_originTemplates[name] = originNode;
+
+    return std::make_shared<ImportNode>(type, filePath, name);
 }
 
 } // namespace CHTL
