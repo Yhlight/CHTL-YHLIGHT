@@ -214,7 +214,7 @@ std::shared_ptr<StyleBlockNode> Parser::parseStyleBlock() {
 }
 
 void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) {
-    while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+    while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
         if (m_currentToken.type == TokenType::InheritKeyword) {
             eat(TokenType::InheritKeyword);
         }
@@ -224,14 +224,35 @@ void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) 
             styleBlock->addUsedTemplate(m_currentToken.value);
             eat(TokenType::Identifier); // Eat template name
             eat(TokenType::Semicolon);
+        } else if (m_currentToken.type == TokenType::Identifier && (m_currentToken.value[0] == '.' || m_currentToken.value[0] == '#')) {
+            // This is a CSS rule
+            std::string selector = m_currentToken.value;
+            eat(TokenType::Identifier);
+
+            auto ruleNode = std::make_shared<CssRuleNode>(selector);
+            eat(TokenType::OpenBrace);
+            while (m_currentToken.type != TokenType::CloseBrace) {
+                std::string key = m_currentToken.value;
+                eat(TokenType::Identifier);
+                eat(TokenType::Colon);
+                std::string value;
+                while (m_currentToken.type != TokenType::Semicolon) {
+                    value += m_currentToken.value;
+                    eat(m_currentToken.type);
+                }
+                eat(TokenType::Semicolon);
+                ruleNode->addProperty(std::make_shared<StylePropertyNode>(key, value));
+            }
+            eat(TokenType::CloseBrace);
+            styleBlock->addRule(ruleNode);
         } else {
-            // Assume it's a style property
+            // This is a regular style property
             std::string key = m_currentToken.value;
             eat(TokenType::Identifier);
             eat(TokenType::Colon);
 
             std::string value;
-            while(m_currentToken.type != TokenType::Semicolon && m_currentToken.type != TokenType::EndOfFile) {
+            while (m_currentToken.type != TokenType::Semicolon && m_currentToken.type != TokenType::EndOfFile) {
                 value += m_currentToken.value;
                 eat(m_currentToken.type);
             }

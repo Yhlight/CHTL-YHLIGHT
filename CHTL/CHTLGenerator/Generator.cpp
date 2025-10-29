@@ -16,9 +16,15 @@ Generator::Generator(std::shared_ptr<BaseNode> root,
     : m_root(root), m_symbolTable(symbolTable) {}
 
 std::string Generator::generate() {
-    std::string output;
-    visit(m_root, output);
-    return output;
+    std::string body_output;
+    visit(m_root, body_output);
+
+    std::string final_output = "<html><head>";
+    if (!m_globalCss.empty()) {
+        final_output += "<style>" + m_globalCss + "</style>";
+    }
+    final_output += "</head><body>" + body_output + "</body></html>";
+    return final_output;
 }
 
 void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
@@ -34,6 +40,24 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
         }
         case NodeType::Element: {
             auto elementNode = std::static_pointer_cast<ElementNode>(node);
+
+            if (elementNode->getStyleBlock()) {
+                for (const auto& rule : elementNode->getStyleBlock()->getRules()) {
+                    std::string selector = rule->getSelector();
+                    if (selector[0] == '.') {
+                        elementNode->addAttribute(std::make_shared<AttributeNode>("class", selector.substr(1)));
+                    } else if (selector[0] == '#') {
+                        elementNode->addAttribute(std::make_shared<AttributeNode>("id", selector.substr(1)));
+                    }
+
+                    m_globalCss += selector + "{";
+                    for (const auto& prop : rule->getProperties()) {
+                        m_globalCss += prop->getKey() + ":" + prop->getValue() + ";";
+                    }
+                    m_globalCss += "}";
+                }
+            }
+
             output += "<" + elementNode->getTagName();
             for (const auto& attr : elementNode->getAttributes()) {
                 output += " " + attr->getKey() + "=\"" + attr->getValue() + "\"";
@@ -42,10 +66,6 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
             if (elementNode->getStyleBlock()) {
                 std::string styleContent = generateStyleContent(elementNode->getStyleBlock());
                 if (!styleContent.empty()) {
-                    // Trim trailing space before closing quote
-                    if (styleContent.back() == ' ') {
-                        styleContent.pop_back();
-                    }
                     output += " style=\"" + styleContent + "\"";
                 }
             }
@@ -124,6 +144,9 @@ std::string Generator::generateStyleContent(std::shared_ptr<const StyleBlockNode
     std::string content;
     for (const auto& pair : properties) {
         content += pair.first + ":" + pair.second + ";";
+    }
+    if (!content.empty()) {
+        content.pop_back();
     }
     return content;
 }

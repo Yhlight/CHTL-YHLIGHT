@@ -21,6 +21,7 @@ public:
 private:
     std::shared_ptr<BaseNode> m_root;
     std::shared_ptr<SymbolTable> m_symbolTable;
+    std::string m_globalCss;
 
     void visit(std::shared_ptr<BaseNode> node, std::string& output);
     std::string generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock);

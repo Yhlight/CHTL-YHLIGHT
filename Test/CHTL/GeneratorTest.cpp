@@ -20,7 +20,28 @@ TEST(GeneratorTest, EndToEndElementTemplate) {
     CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
-    std::string expected = "<div><span>hello</span></div>";
+    std::string expected = "<html><head></head><body><div><span>hello</span></div></body></html>";
+    EXPECT_EQ(result, expected);
+}
+
+TEST(GeneratorTest, AutoAddsClassFromLocalStyleBlock) {
+    std::string source = R"(
+        div {
+            style {
+                .box {
+                    color: red;
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto root = parser.parse();
+
+    CHTL::Generator generator(root, parser.getSymbolTable());
+    std::string result = generator.generate();
+
+    std::string expected = R"(<html><head><style>.box{color:red;}</style></head><body><div class="box"></div></body></html>)";
     EXPECT_EQ(result, expected);
 }
 
@@ -41,7 +62,7 @@ TEST(GeneratorTest, EndToEndStyleTemplate) {
     CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
-    std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
+    std::string expected = "<html><head></head><body><div style=\"color:red;font-size:16px\"></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -63,7 +84,7 @@ TEST(GeneratorTest, EndToEndVarTemplate) {
     CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
-    std::string expected = "<div style=\"color:#ff6347;\"></div>";
+    std::string expected = "<html><head></head><body><div style=\"color:#ff6347\"></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -94,10 +115,10 @@ TEST(GeneratorTest, EndToEndStyleTemplateInheritance) {
     std::string result = generator.generate();
 
     // A more robust test checks for the presence of correct properties, ignoring order.
-    EXPECT_NE(result.find("border:1px solid black;"), std::string::npos);
-    EXPECT_NE(result.find("color:blue;"), std::string::npos);
-    EXPECT_NE(result.find("font-size:16px;"), std::string::npos);
-    EXPECT_EQ(result.find("color:red;"), std::string::npos); // Ensure override happened
+    EXPECT_NE(result.find("border:1px solid black"), std::string::npos);
+    EXPECT_NE(result.find("color:blue"), std::string::npos);
+    EXPECT_NE(result.find("font-size:16px"), std::string::npos);
+    EXPECT_EQ(result.find("color:red"), std::string::npos); // Ensure override happened
 }
 
 TEST(GeneratorTest, EndToEndStyleTemplateExplicitInheritance) {
@@ -127,10 +148,10 @@ TEST(GeneratorTest, EndToEndStyleTemplateExplicitInheritance) {
     std::string result = generator.generate();
 
     // Assertions are the same as the implicit inheritance test
-    EXPECT_NE(result.find("border:1px solid black;"), std::string::npos);
-    EXPECT_NE(result.find("color:blue;"), std::string::npos);
-    EXPECT_NE(result.find("font-size:16px;"), std::string::npos);
-    EXPECT_EQ(result.find("color:red;"), std::string::npos);
+    EXPECT_NE(result.find("border:1px solid black"), std::string::npos);
+    EXPECT_NE(result.find("color:blue"), std::string::npos);
+    EXPECT_NE(result.find("font-size:16px"), std::string::npos);
+    EXPECT_EQ(result.find("color:red"), std::string::npos);
 }
 
 TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
@@ -155,7 +176,7 @@ TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
     CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
-    std::string expected = "<div><p>from base</p><span>from child</span></div>";
+    std::string expected = "<html><head></head><body><div><p>from base</p><span>from child</span></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -170,7 +191,8 @@ TEST(GeneratorTest, EndToEndOriginBlock) {
     CHTL::Generator generator(root, parser.getSymbolTable());
     std::string result = generator.generate();
 
-    EXPECT_EQ(result, rawHtml);
+    std::string expected = "<html><head></head><body>" + rawHtml + "</body></html>";
+    EXPECT_EQ(result, expected);
 }
 
 
@@ -184,7 +206,7 @@ TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     CHTL::Generator generator(divNode, symbolTable);
     std::string result = generator.generate();
 
-    std::string expected = "<div id=\"box\"></div>";
+    std::string expected = "<html><head></head><body><div id=\"box\"></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -200,6 +222,6 @@ TEST(GeneratorTest, GenerateSimpleHTML) {
     CHTL::Generator generator(divNode, symbolTable);
     std::string result = generator.generate();
 
-    std::string expected = "<div><span>hello</span></div>";
+    std::string expected = "<html><head></head><body><div><span>hello</span></div></body></html>";
     EXPECT_EQ(result, expected);
 }

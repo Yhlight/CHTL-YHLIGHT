@@ -19,6 +19,7 @@ enum class NodeType {
     StyleProperty,
     Origin,
     OriginUsage,
+    CssRule,
     // ... other node types
 };
 

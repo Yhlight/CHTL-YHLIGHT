@@ -112,9 +112,9 @@ Token Lexer::nextToken() {
         return scanRawContent();
     }
 
-    if (isalpha(c) || c == '@') {
+    if (isalpha(c) || c == '@' || c == '.' || c == '#') {
         std::string value;
-        while (isalnum(currentChar()) || currentChar() == '@' || currentChar() == '-') {
+        while (isalnum(currentChar()) || currentChar() == '@' || currentChar() == '-' || currentChar() == '.' || currentChar() == '#') {
             value += currentChar();
             advance();
         }
