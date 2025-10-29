@@ -51,15 +51,30 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsage() {
     if (match({TokenType::LEFT_BRACE})) {
         while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
             if (match({TokenType::DELETE})) {
-                do {
-                    node->deleted_properties.push_back(consume(TokenType::IDENTIFIER, "Expect property name to delete.").lexeme);
-                } while (match({TokenType::COMMA}));
+                // This could be a style property deletion or an element deletion
+                if (node->templateType == TemplateType::Style) {
+                    do {
+                        node->deleted_properties.push_back(consume(TokenType::IDENTIFIER, "Expect property name to delete.").lexeme);
+                    } while (match({TokenType::COMMA}));
+                } else { // Element deletion
+                    ElementDeletionSpec spec;
+                    spec.tagName = consume(TokenType::IDENTIFIER, "Expect tag name for deletion.").lexeme;
+                    if (match({TokenType::LEFT_BRACKET})) {
+                        spec.index = std::stoi(consume(TokenType::NUMBER, "Expect index for deletion.").lexeme);
+                        consume(TokenType::RIGHT_BRACKET, "Expect ']' after index.");
+                    }
+                    node->deleted_elements.push_back(spec);
+                }
                 consume(TokenType::SEMICOLON, "Expect ';' after delete statement.");
-            } else {
+            } else if (match({TokenType::INSERT})) {
+                node->insertions.push_back(parseElementInsertion());
+            } else if (node->templateType == TemplateType::Style) {
                 std::string key = consume(TokenType::IDENTIFIER, "Expect property key.").lexeme;
                 consume(TokenType::COLON, "Expect ':' after property key.");
                 node->provided_values.push_back({key, parseConditionalExpression()});
                 consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+            } else if (node->templateType == TemplateType::Element) {
+                node->specializations.push_back(parseElementSpecialization());
             }
         }
         consume(TokenType::RIGHT_BRACE, "Expect '}' after provided values.");
@@ -121,6 +136,8 @@ std::unique_ptr<TemplateNode> Parser::parseCustomNode() {
     const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect custom type.");
     if (typeToken.lexeme == "Style") {
         node->templateType = TemplateType::Style;
+    } else if (typeToken.lexeme == "Element") {
+        node->templateType = TemplateType::Element;
     } else {
         throw std::runtime_error("Unknown or unsupported custom type: " + typeToken.lexeme);
     }
@@ -136,20 +153,26 @@ std::unique_ptr<TemplateNode> Parser::parseCustomNode() {
                 node->deleted_properties.push_back(consume(TokenType::IDENTIFIER, "Expect property name to delete.").lexeme);
             } while (match({TokenType::COMMA}));
             consume(TokenType::SEMICOLON, "Expect ';' after delete statement.");
-        } else if (peek().type == TokenType::IDENTIFIER) {
-            if (m_current + 1 < m_tokens.size() && m_tokens[m_current + 1].type == TokenType::COLON) {
-                // Full property with value
-                std::string key = consume(TokenType::IDENTIFIER, "Expect property key.").lexeme;
-                consume(TokenType::COLON, "Expect ':' after property key.");
-                node->properties.push_back({key, parseConditionalExpression()});
-                consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+        } else if (node->templateType == TemplateType::Element) {
+            node->children.push_back(parseStatement());
+        } else if (node->templateType == TemplateType::Style) {
+            if (peek().type == TokenType::IDENTIFIER) {
+                if (m_current + 1 < m_tokens.size() && m_tokens[m_current + 1].type == TokenType::COLON) {
+                    // Full property with value
+                    std::string key = consume(TokenType::IDENTIFIER, "Expect property key.").lexeme;
+                    consume(TokenType::COLON, "Expect ':' after property key.");
+                    node->properties.push_back({key, parseConditionalExpression()});
+                    consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+                } else {
+                    // Placeholder(s)
+                    do {
+                        std::string key = consume(TokenType::IDENTIFIER, "Expect placeholder key.").lexeme;
+                        node->properties.push_back({key, nullptr});
+                    } while (match({TokenType::COMMA}));
+                    consume(TokenType::SEMICOLON, "Expect ';' after placeholder(s).");
+                }
             } else {
-                // Placeholder(s)
-                do {
-                    std::string key = consume(TokenType::IDENTIFIER, "Expect placeholder key.").lexeme;
-                    node->properties.push_back({key, nullptr});
-                } while (match({TokenType::COMMA}));
-                consume(TokenType::SEMICOLON, "Expect ';' after placeholder(s).");
+                 throw std::runtime_error("Unexpected token in custom style template body: " + peek().lexeme);
             }
         } else {
             throw std::runtime_error("Unexpected token in custom template body: " + peek().lexeme);
@@ -157,6 +180,68 @@ std::unique_ptr<TemplateNode> Parser::parseCustomNode() {
     }
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after custom block.");
+    return node;
+}
+
+std::unique_ptr<ElementSpecializationNode> Parser::parseElementSpecialization() {
+    auto node = std::make_unique<ElementSpecializationNode>();
+    node->tagName = consume(TokenType::IDENTIFIER, "Expect tag name for specialization.").lexeme;
+
+    if (match({TokenType::LEFT_BRACKET})) {
+        node->index = std::stoi(consume(TokenType::NUMBER, "Expect index in specialization.").lexeme);
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after index.");
+    }
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' for specialization block.");
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        if (peek().type == TokenType::STYLE) {
+            node->style = parseStyleNode(nullptr); // Pass nullptr since we're not in a real ElementNode
+        } else {
+            // Future: Handle other specializations like adding attributes or children
+            throw std::runtime_error("Only 'style' blocks are currently supported in element specializations.");
+        }
+    }
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after specialization block.");
+
+    return node;
+}
+
+std::unique_ptr<ElementInsertionNode> Parser::parseElementInsertion() {
+    auto node = std::make_unique<ElementInsertionNode>();
+
+    if (match({TokenType::AFTER})) {
+        node->position = InsertionPosition::After;
+    } else if (match({TokenType::BEFORE})) {
+        node->position = InsertionPosition::Before;
+    } else if (match({TokenType::REPLACE})) {
+        node->position = InsertionPosition::Replace;
+    } else if (peek().type == TokenType::IDENTIFIER && peek().lexeme == "at") {
+        advance(); // consume 'at'
+        if (match({TokenType::TOP})) {
+            node->position = InsertionPosition::AtTop;
+        } else if (match({TokenType::BOTTOM})) {
+            node->position = InsertionPosition::AtBottom;
+        } else {
+            throw std::runtime_error("Expected 'top' or 'bottom' after 'at'.");
+        }
+    } else {
+        throw std::runtime_error("Invalid insertion position.");
+    }
+
+    if (node->position == InsertionPosition::After || node->position == InsertionPosition::Before || node->position == InsertionPosition::Replace) {
+        node->targetTagName = consume(TokenType::IDENTIFIER, "Expect target tag name.").lexeme;
+        if (match({TokenType::LEFT_BRACKET})) {
+            node->targetIndex = std::stoi(consume(TokenType::NUMBER, "Expect index.").lexeme);
+            consume(TokenType::RIGHT_BRACKET, "Expect ']' after index.");
+        }
+    }
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' for insertion block.");
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        node->new_elements.push_back(parseStatement());
+    }
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after insertion block.");
+
     return node;
 }
 
@@ -209,20 +294,18 @@ std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
 
             if (match({TokenType::DOT})) {
                 selector_str += "." + consume(TokenType::IDENTIFIER, "Expect class name.").lexeme;
-                 parent->auto_classes.push_back(selector_str.substr(1));
+                if(parent) parent->auto_classes.push_back(selector_str.substr(1));
             } else if (match({TokenType::HASH})) {
                 selector_str += "#" + consume(TokenType::IDENTIFIER, "Expect id name.").lexeme;
-                 parent->auto_ids.push_back(selector_str.substr(1));
+                if(parent) parent->auto_ids.push_back(selector_str.substr(1));
             } else if (match({TokenType::AMPERSAND})) {
                 selector_str += "&";
             }
 
-            if (peek().type == TokenType::COLON) {
-                selector_str += consume(TokenType::COLON, "Expect ':'.").lexeme;
-                selector_str += consume(TokenType::IDENTIFIER, "Expect pseudo-class name.").lexeme;
-            } else if (peek().type == TokenType::COLON_COLON) {
-                selector_str += consume(TokenType::COLON_COLON, "Expect '::'.").lexeme;
-                selector_str += consume(TokenType::IDENTIFIER, "Expect pseudo-element name.").lexeme;
+            if (match({TokenType::COLON})) {
+                selector_str += ":" + consume(TokenType::IDENTIFIER, "Expect pseudo-class name.").lexeme;
+            } else if (match({TokenType::COLON_COLON})) {
+                selector_str += "::" + consume(TokenType::IDENTIFIER, "Expect pseudo-element name.").lexeme;
             }
 
             selector_block->selector = selector_str;

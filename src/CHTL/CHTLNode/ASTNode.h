@@ -24,6 +24,7 @@ struct PropertyAccessNode;
 struct TernaryOpNode;
 struct TemplateNode;
 struct TemplateUsageNode;
+struct ElementSpecializationNode;
 
 
 // Enum to identify the type of an AST node
@@ -35,6 +36,8 @@ enum class NodeType {
     SelectorBlock,
     Template,
     TemplateUsage,
+    ElementSpecialization,
+    ElementInsertion,
 
     // Expression Nodes
     BinaryOp,
@@ -224,12 +227,56 @@ struct TernaryOpNode : public ASTNode {
 
 enum class TemplateType { Style, Element, Var };
 
-// Represents the usage of a template, e.g., @Element Box;
+struct ElementSpecializationNode : public ASTNode {
+    std::string tagName;
+    int index = -1; // -1 indicates no index
+    std::unique_ptr<StyleNode> style;
+
+    NodeType getType() const override { return NodeType::ElementSpecialization; }
+
+    std::unique_ptr<ASTNode> clone() const override;
+    void print(int indent = 0) const override;
+};
+
+struct ElementDeletionSpec {
+    std::string tagName;
+    int index = -1;
+};
+
+enum class InsertionPosition { After, Before, Replace, AtTop, AtBottom };
+
+struct ElementInsertionNode : public ASTNode {
+    InsertionPosition position;
+    std::string targetTagName;
+    int targetIndex = -1;
+    std::vector<std::unique_ptr<ASTNode>> new_elements;
+
+    NodeType getType() const override { return NodeType::ElementInsertion; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<ElementInsertionNode>();
+        node->position = position;
+        node->targetTagName = targetTagName;
+        node->targetIndex = targetIndex;
+        for (const auto& el : new_elements) {
+            node->new_elements.push_back(el->clone());
+        }
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        // TODO
+    }
+};
+
 struct TemplateUsageNode : public ASTNode {
     TemplateType templateType;
     std::string name;
-    std::vector<StyleProperty> provided_values; // For custom styles
-    std::vector<std::string> deleted_properties; // For custom style deletion
+    std::vector<StyleProperty> provided_values;
+    std::vector<std::string> deleted_properties;
+    std::vector<std::unique_ptr<ElementSpecializationNode>> specializations;
+    std::vector<ElementDeletionSpec> deleted_elements;
+    std::vector<std::unique_ptr<ElementInsertionNode>> insertions;
 
     NodeType getType() const override { return NodeType::TemplateUsage; }
 
@@ -241,6 +288,13 @@ struct TemplateUsageNode : public ASTNode {
             node->provided_values.push_back({prop.key, prop.value->clone()});
         }
         node->deleted_properties = deleted_properties;
+        for (const auto& spec : specializations) {
+            node->specializations.push_back(std::unique_ptr<ElementSpecializationNode>(static_cast<ElementSpecializationNode*>(spec->clone().release())));
+        }
+        node->deleted_elements = deleted_elements;
+        for (const auto& insertion : insertions) {
+            node->insertions.push_back(std::unique_ptr<ElementInsertionNode>(static_cast<ElementInsertionNode*>(insertion->clone().release())));
+        }
         return node;
     }
 
@@ -250,7 +304,6 @@ struct TemplateUsageNode : public ASTNode {
     }
 };
 
-// Represents a style block
 struct StyleNode : public ASTNode {
     std::vector<StyleProperty> properties;
     std::vector<std::unique_ptr<SelectorBlockNode>> selector_blocks;
@@ -285,8 +338,6 @@ struct StyleNode : public ASTNode {
     }
 };
 
-
-// Represents an element node, like <div> or <span>
 struct ElementNode : public ASTNode {
     std::string tagName;
     std::vector<Attribute> attributes;
@@ -341,7 +392,6 @@ struct ElementNode : public ASTNode {
     }
 };
 
-// Represents a text node
 struct TextNode : public ASTNode {
     std::string content;
 
@@ -359,13 +409,12 @@ struct TextNode : public ASTNode {
     }
 };
 
-// Represents a [Template] or [Custom] definition
 struct TemplateNode : public ASTNode {
     TemplateType templateType;
     std::string name;
     bool isCustom = false;
     std::vector<std::unique_ptr<ASTNode>> children;
-    std::vector<StyleProperty> properties; // For @Style and @Var templates
+    std::vector<StyleProperty> properties;
     std::vector<std::unique_ptr<TemplateUsageNode>> inheritances;
     std::vector<std::string> deleted_properties;
 
@@ -398,8 +447,6 @@ struct TemplateNode : public ASTNode {
     }
 };
 
-
-// Represents the root of the AST
 struct ProgramNode : public ASTNode {
     std::vector<std::unique_ptr<ASTNode>> children;
 
@@ -420,5 +467,23 @@ struct ProgramNode : public ASTNode {
         }
     }
 };
+
+inline std::unique_ptr<ASTNode> ElementSpecializationNode::clone() const {
+    auto node = std::make_unique<ElementSpecializationNode>();
+    node->tagName = tagName;
+    node->index = index;
+    if (style) {
+        node->style = std::unique_ptr<StyleNode>(static_cast<StyleNode*>(style->clone().release()));
+    }
+    return node;
+}
+
+inline void ElementSpecializationNode::print(int indent) const {
+    for (int i = 0; i < indent; ++i) std::cout << "  ";
+    std::cout << "ElementSpecialization(" << tagName << "[" << index << "])" << std::endl;
+    if (style) {
+        style->print(indent + 1);
+    }
+}
 
 } // namespace CHTL

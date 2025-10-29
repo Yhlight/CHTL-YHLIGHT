@@ -128,7 +128,20 @@ EvaluatedValue ExpressionEvaluator::visit(const BinaryOpNode* node) {
         auto right_str = std::get<StringValue>(right).value;
         if (node->op.type == TokenType::EQUAL_EQUAL) return left_str == right_str;
         if (node->op.type == TokenType::BANG_EQUAL) return left_str != right_str;
+        if (node->op.type == TokenType::PLUS) {
+            return StringValue{left_str + right_str, StringType::Identifier};
+        }
     }
+
+    if (node->op.type == TokenType::PLUS) {
+        if (std::holds_alternative<StringValue>(left) && std::holds_alternative<NumericValue>(right)) {
+            return StringValue{std::get<StringValue>(left).value + formatDouble(std::get<NumericValue>(right).value) + std::get<NumericValue>(right).unit, StringType::Identifier};
+        }
+        if (std::holds_alternative<NumericValue>(left) && std::holds_alternative<StringValue>(right)) {
+            return StringValue{formatDouble(std::get<NumericValue>(left).value) + std::get<NumericValue>(left).unit + std::get<StringValue>(right).value, StringType::Identifier};
+        }
+    }
+
 
     throw std::runtime_error("Unsupported operator for the given types in binary operation.");
 }

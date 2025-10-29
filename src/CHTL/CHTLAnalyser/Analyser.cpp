@@ -194,8 +194,13 @@ void Analyser::resolve(ProgramNode* node) {
                     throw std::runtime_error("Unknown template: " + usage_node->name);
                 }
                 const TemplateNode* templateNode = it->second;
+				std::vector<std::unique_ptr<ASTNode>> expanded_children;
                 for (const auto& template_child : templateNode->children) {
-                    new_children.push_back(template_child->clone());
+                    expanded_children.push_back(template_child->clone());
+                }
+				applySpecializations(expanded_children, usage_node);
+                for (auto& expanded_child : expanded_children) {
+                    new_children.push_back(std::move(expanded_child));
                 }
             } else {
                 new_children.push_back(std::move(child));
@@ -223,8 +228,13 @@ void Analyser::resolve(ElementNode* node) {
                     throw std::runtime_error("Unknown template: " + usage_node->name);
                 }
                 const TemplateNode* templateNode = it->second;
+                std::vector<std::unique_ptr<ASTNode>> expanded_children;
                 for (const auto& template_child : templateNode->children) {
-                    new_children.push_back(template_child->clone());
+                    expanded_children.push_back(template_child->clone());
+                }
+                applySpecializations(expanded_children, usage_node);
+                for (auto& expanded_child : expanded_children) {
+                    new_children.push_back(std::move(expanded_child));
                 }
             } else {
                  new_children.push_back(std::move(child));
@@ -345,5 +355,98 @@ void Analyser::resolve(TemplateUsageNode* node) {
 void Analyser::resolve(StyleProperty& prop) {
     resolve(prop.value);
 }
+
+void Analyser::applySpecializations(std::vector<std::unique_ptr<ASTNode>>& elements, const TemplateUsageNode* usage_node) {
+    // Handle deletions first
+    if (!usage_node->deleted_elements.empty()) {
+        std::vector<bool> to_delete(elements.size(), false);
+        for (const auto& del_spec : usage_node->deleted_elements) {
+            int current_tag_index = 0;
+            for (size_t i = 0; i < elements.size(); ++i) {
+                if (elements[i]->getType() == NodeType::Element) {
+                    auto* element = static_cast<ElementNode*>(elements[i].get());
+                    if (element->tagName == del_spec.tagName) {
+                        if (del_spec.index == -1 || del_spec.index == current_tag_index) {
+                            to_delete[i] = true;
+                            if (del_spec.index != -1) break;
+                        }
+                        current_tag_index++;
+                    }
+                }
+            }
+        }
+
+        auto old_elements = std::move(elements);
+        elements.clear();
+        for (size_t i = 0; i < old_elements.size(); ++i) {
+            if (!to_delete[i]) {
+                elements.push_back(std::move(old_elements[i]));
+            }
+        }
+    }
+
+    // Handle insertions
+    for (const auto& insertion : usage_node->insertions) {
+        std::vector<std::unique_ptr<ASTNode>> new_elements_cloned;
+        for (const auto& el : insertion->new_elements) {
+            new_elements_cloned.push_back(el->clone());
+        }
+
+        if (insertion->position == InsertionPosition::AtTop) {
+            elements.insert(elements.begin(), std::make_move_iterator(new_elements_cloned.begin()), std::make_move_iterator(new_elements_cloned.end()));
+        } else if (insertion->position == InsertionPosition::AtBottom) {
+            elements.insert(elements.end(), std::make_move_iterator(new_elements_cloned.begin()), std::make_move_iterator(new_elements_cloned.end()));
+        } else {
+            int current_tag_index = 0;
+            for (auto it = elements.begin(); it != elements.end(); ++it) {
+                if ((*it)->getType() == NodeType::Element) {
+                    auto* element = static_cast<ElementNode*>((*it).get());
+                    if (element->tagName == insertion->targetTagName) {
+                        if (insertion->targetIndex == -1 || insertion->targetIndex == current_tag_index) {
+                            if (insertion->position == InsertionPosition::Before) {
+                                elements.insert(it, std::make_move_iterator(new_elements_cloned.begin()), std::make_move_iterator(new_elements_cloned.end()));
+                            } else if (insertion->position == InsertionPosition::After) {
+                                it = elements.insert(it + 1, std::make_move_iterator(new_elements_cloned.begin()), std::make_move_iterator(new_elements_cloned.end()));
+                            } else { // Replace
+                                it = elements.erase(it);
+                                elements.insert(it, std::make_move_iterator(new_elements_cloned.begin()), std::make_move_iterator(new_elements_cloned.end()));
+                            }
+                            if (insertion->targetIndex != -1) break;
+                        }
+                        current_tag_index++;
+                    }
+                }
+            }
+        }
+    }
+
+    for (const auto& spec : usage_node->specializations) {
+        int current_tag_index = 0;
+        for (auto& element_ptr : elements) {
+            if (element_ptr->getType() == NodeType::Element) {
+                auto* element = static_cast<ElementNode*>(element_ptr.get());
+                if (element->tagName == spec->tagName) {
+                    if (spec->index == -1 || spec->index == current_tag_index) {
+                        // This is the element we want to modify
+                        if (spec->style) {
+                            if (!element->style) {
+                                element->style = std::make_unique<StyleNode>();
+                            }
+                            // Merge properties. For now, just append.
+                            for (auto& prop : spec->style->properties) {
+                                element->style->properties.push_back({prop.key, prop.value->clone()});
+                            }
+                        }
+                        if (spec->index != -1) {
+                            break; // We found and modified the indexed element, move to next spec
+                        }
+                    }
+                    current_tag_index++;
+                }
+            }
+        }
+    }
+}
+
 
 } // namespace CHTL

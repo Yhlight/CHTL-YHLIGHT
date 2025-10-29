@@ -40,7 +40,7 @@ This document outlines the development roadmap for the CHTL project, guided by t
 - [x] **Customization (`[Custom]`):**
     - [x] Custom style groups with value placeholders.
     - [x] Specialization (deleting properties).
-    - [ ] Specialization (inserting/deleting elements).
+    - [x] Specialization (inserting/deleting elements).
 - [ ] **Imports (`[Import]`):**
     - [ ] Import CHTL, HTML, CSS, and JS files.
 - [ ] **Namespaces (`[Namespace]`):**

@@ -88,3 +88,70 @@ TEST(CustomTest, Deletion) {
     std::string expected = R"(<div style="color: "red"; font-weight: bold;"></div>)";
     EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
 }
+
+TEST(CustomTest, ElementSpecializationWithIndex) {
+    std::string source = R"(
+        [Custom] @Element MyComponent {
+            div {}
+            div {}
+            span {}
+        }
+
+        @Element MyComponent {
+            div[1] {
+                style {
+                    color: "blue";
+                }
+            }
+        }
+    )";
+    std::string result = compile(source);
+    std::string expected = R"(<div></div><div style="color: "blue";"></div><span></span>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}
+
+TEST(CustomTest, ElementDeletionWithIndex) {
+    std::string source = R"(
+        [Custom] @Element MyComponent {
+            div {}
+            p {}
+            div {}
+            span {}
+        }
+
+        @Element MyComponent {
+            delete div[1];
+            delete p[0];
+        }
+    )";
+    std::string result = compile(source);
+    std::string expected = R"(<div></div><span></span>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}
+
+TEST(CustomTest, ElementInsertion) {
+    std::string source = R"(
+        [Custom] @Element MyComponent {
+            div {}
+            span {}
+        }
+
+        @Element MyComponent {
+            insert after div[0] {
+                p {}
+            }
+            insert before span[0] {
+                hr {}
+            }
+            insert at top {
+                h1 {}
+            }
+            insert at bottom {
+                h2 {}
+            }
+        }
+    )";
+    std::string result = compile(source);
+    std::string expected = R"(<h1></h1><div></div><p></p><hr /><span></span><h2></h2>)";
+    EXPECT_EQ(removeWhitespace(result), removeWhitespace(expected));
+}

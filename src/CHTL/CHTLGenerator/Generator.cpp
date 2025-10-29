@@ -140,9 +140,16 @@ void Generator::visit(const ElementNode* node) {
     }
 
 
-    // CHTL does not use self-closing tags for elements that can have content,
-    // to align with HTML semantics (e.g., div, p, etc.).
-    // We will always generate a closing tag.
+    const static std::unordered_set<std::string> self_closing_tags = {
+        "area", "base", "br", "col", "embed", "hr", "img", "input",
+        "link", "meta", "param", "source", "track", "wbr"
+    };
+
+    if (self_closing_tags.count(node->tagName)) {
+        m_output << " />\n";
+        return;
+    }
+
     if (node->children.empty()) {
         m_output << "></" << node->tagName << ">\n";
         return;

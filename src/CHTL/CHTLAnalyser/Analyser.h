@@ -28,6 +28,8 @@ private:
     void resolve(std::unique_ptr<ASTNode>& node);
     void resolve(TemplateUsageNode* node);
 
+    void applySpecializations(std::vector<std::unique_ptr<ASTNode>>& elements, const TemplateUsageNode* usage_node);
+
     ProgramNode& m_program;
     SymbolTable m_symbol_table;
     std::unordered_map<std::string, TemplateNode*> m_templates;

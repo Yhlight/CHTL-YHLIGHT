@@ -12,7 +12,11 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     // Note: "else if" is handled by the parser consuming an "else" then an "if".
     {"delete", TokenType::DELETE},
     {"insert", TokenType::INSERT},
+    {"after", TokenType::AFTER},
+    {"before", TokenType::BEFORE},
     {"replace", TokenType::REPLACE},
+    {"top", TokenType::TOP},
+    {"bottom", TokenType::BOTTOM},
     {"from", TokenType::FROM},
     {"as", TokenType::AS},
     {"except", TokenType::EXCEPT},
