@@ -119,6 +119,12 @@ inline std::string tokenTypeToString(TokenType type) {
         case TokenType::HTML5: return "HTML5";
         case TokenType::INHERIT: return "INHERIT";
         case TokenType::TEMPLATE: return "TEMPLATE";
+        case TokenType::CUSTOM: return "CUSTOM";
+        case TokenType::IMPORT: return "IMPORT";
+        case TokenType::ORIGIN: return "ORIGIN";
+        case TokenType::NAMESPACE: return "NAMESPACE";
+        case TokenType::TOP: return "TOP";
+        case TokenType::BOTTOM: return "BOTTOM";
         case TokenType::SINGLE_LINE_COMMENT: return "SINGLE_LINE_COMMENT";
         case TokenType::MULTI_LINE_COMMENT: return "MULTI_LINE_COMMENT";
         case TokenType::GENERATOR_COMMENT: return "GENERATOR_COMMENT";
