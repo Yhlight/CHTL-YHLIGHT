@@ -176,8 +176,7 @@ void Generator::visit(const TextNode* node) {
 }
 
 void Generator::visit(const OriginNode* node) {
-    indent();
-    m_output << node->content << "\n";
+    m_output << node->content;
 }
 
 void Generator::indent() {
