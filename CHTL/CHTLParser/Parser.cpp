@@ -10,29 +10,16 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
-#include "Util/FileUtil.h"
+#include <fstream>
+#include <stdexcept>
 
 namespace CHTL {
 
-Parser::Parser(Lexer& lexer)
-    : m_lexer(lexer),
-      m_styleTemplates(std::make_shared<std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>>()),
-      m_elementTemplates(std::make_shared<std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>>()),
-      m_varTemplates(std::make_shared<std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>>()),
-      m_originTemplates(std::make_shared<std::map<std::string, std::shared_ptr<OriginNode>>>()) {
+Parser::Parser(Lexer& lexer) : m_lexer(lexer), m_symbolTable(std::make_shared<SymbolTable>()) {
     m_currentToken = m_lexer.nextToken();
 }
 
-Parser::Parser(Lexer& lexer,
-               std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>> styleTemplates,
-               std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>> elementTemplates,
-               std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>> varTemplates,
-               std::shared_ptr<std::map<std::string, std::shared_ptr<OriginNode>>> originTemplates)
-    : m_lexer(lexer),
-      m_styleTemplates(styleTemplates),
-      m_elementTemplates(elementTemplates),
-      m_varTemplates(varTemplates),
-      m_originTemplates(originTemplates) {
+Parser::Parser(Lexer& lexer, std::shared_ptr<SymbolTable> symbolTable) : m_lexer(lexer), m_symbolTable(symbolTable) {
     m_currentToken = m_lexer.nextToken();
 }
 
@@ -101,7 +88,7 @@ std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
     eat(TokenType::CloseBrace);
 
     auto templateNode = std::make_shared<TemplateStyleDefinitionNode>(templateName, styleBlock);
-    (*m_styleTemplates)[templateName] = templateNode;
+    m_symbolTable->styleTemplates[templateName] = templateNode;
     return templateNode;
 }
 
@@ -125,7 +112,7 @@ std::shared_ptr<BaseNode> Parser::parseTemplateVarDefinition() {
     }
     eat(TokenType::CloseBrace);
 
-    (*m_varTemplates)[templateName] = templateNode;
+    m_symbolTable->varTemplates[templateName] = templateNode;
     return templateNode;
 }
 
@@ -143,7 +130,7 @@ std::shared_ptr<BaseNode> Parser::parseTemplateElementDefinition() {
     }
     eat(TokenType::CloseBrace);
 
-    (*m_elementTemplates)[templateName] = templateNode;
+    m_symbolTable->elementTemplates[templateName] = templateNode;
     return templateNode;
 }
 
@@ -277,7 +264,7 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
     auto node = std::make_shared<OriginNode>(type, content);
     if (name) {
         node->setName(*name);
-        (*m_originTemplates)[*name] = node;
+        m_symbolTable->originTemplates[*name] = node;
     }
     return node;
 }
@@ -286,39 +273,61 @@ std::shared_ptr<BaseNode> Parser::parseImportStatement() {
     eat(TokenType::ImportKeyword);
 
     ImportType importType;
+    OriginType originType;
+    bool isChtlImport = false;
+
     if (m_currentToken.value == "@Html") {
         importType = ImportType::Html;
+        originType = OriginType::Html;
     } else if (m_currentToken.value == "@Style") {
         importType = ImportType::Style;
+        originType = OriginType::Style;
     } else if (m_currentToken.value == "@JavaScript") {
         importType = ImportType::JavaScript;
+        originType = OriginType::JavaScript;
     } else {
         importType = ImportType::Chtl;
+        isChtlImport = true;
     }
     eat(TokenType::Identifier);
 
-    eat(TokenType::FromKeyword);
+    eat(TokenType::Identifier); // "from"
 
-    std::string path = m_currentToken.value;
-    eat(TokenType::String);
+    std::string filePath = m_currentToken.value;
+    eat(m_currentToken.type);
 
-    std::optional<std::string> name;
-    if (m_currentToken.type == TokenType::AsKeyword) {
-        eat(TokenType::AsKeyword);
-        name = m_currentToken.value;
+    std::optional<std::string> asName;
+    if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "as") {
+        eat(TokenType::Identifier);
+        asName = m_currentToken.value;
         eat(TokenType::Identifier);
     }
 
-    eat(TokenType::Semicolon);
+    if (!isChtlImport) {
+        std::ifstream file(filePath);
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-    if (importType == ImportType::Chtl) {
-        std::string content = FileUtil::readFile(path);
-        Lexer lexer(content);
-        Parser parser(lexer, m_styleTemplates, m_elementTemplates, m_varTemplates, m_originTemplates);
-        return parser.parse();
+        if (asName) {
+            auto originNode = std::make_shared<OriginNode>(originType, content);
+            originNode->setName(*asName);
+            m_symbolTable->originTemplates[*asName] = originNode;
+        }
+    } else {
+        std::ifstream file(filePath);
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filePath);
+        }
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+        Lexer importedLexer(content);
+        Parser importedParser(importedLexer, m_symbolTable);
+        importedParser.parse();
     }
 
-    return std::make_shared<ImportNode>(importType, path, name);
+    return std::make_shared<ImportNode>(importType, filePath, asName);
 }
 
 } // namespace CHTL

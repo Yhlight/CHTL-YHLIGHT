@@ -17,28 +17,28 @@
 
 namespace CHTL {
 
+struct SymbolTable {
+    std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>> styleTemplates;
+    std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>> elementTemplates;
+    std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>> varTemplates;
+    std::map<std::string, std::shared_ptr<OriginNode>> originTemplates;
+};
+
 class Parser {
 public:
     Parser(Lexer& lexer);
-    Parser(Lexer& lexer,
-        std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>> styleTemplates,
-        std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>> elementTemplates,
-        std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>> varTemplates,
-        std::shared_ptr<std::map<std::string, std::shared_ptr<OriginNode>>> originTemplates);
+    Parser(Lexer& lexer, std::shared_ptr<SymbolTable> symbolTable);
 
     std::shared_ptr<ProgramNode> parse();
-    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return *m_styleTemplates; }
-    const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return *m_elementTemplates; }
-    const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return *m_varTemplates; }
-    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return *m_originTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& getStyleTemplates() const { return m_symbolTable->styleTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& getElementTemplates() const { return m_symbolTable->elementTemplates; }
+    const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& getVarTemplates() const { return m_symbolTable->varTemplates; }
+    const std::map<std::string, std::shared_ptr<OriginNode>>& getOriginTemplates() const { return m_symbolTable->originTemplates; }
 
 private:
     Lexer& m_lexer;
     Token m_currentToken;
-    std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>> m_styleTemplates;
-    std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>> m_elementTemplates;
-    std::shared_ptr<std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>> m_varTemplates;
-    std::shared_ptr<std::map<std::string, std::shared_ptr<OriginNode>>> m_originTemplates;
+    std::shared_ptr<SymbolTable> m_symbolTable;
 
     void eat(TokenType type);
     std::shared_ptr<BaseNode> parseStatement();

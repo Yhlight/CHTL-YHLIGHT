@@ -7,26 +7,27 @@
 namespace CHTL {
 
 enum class ImportType {
+    Chtl,
     Html,
     Style,
-    JavaScript,
-    Chtl
+    JavaScript
 };
 
 class ImportNode : public BaseNode {
 public:
-    ImportNode(ImportType type, const std::string& path, std::optional<std::string> name)
-        : m_type(type), m_path(path), m_name(name) {}
+    ImportNode(ImportType type, const std::string& filePath, std::optional<std::string> asName = std::nullopt)
+        : m_type(type), m_filePath(filePath), m_asName(asName) {}
 
-    NodeType getType() const override { return NodeType::Import; }
+    NodeType getType() const override { return NodeType::OriginUsage; }
+
     ImportType getImportType() const { return m_type; }
-    const std::string& getPath() const { return m_path; }
-    const std::optional<std::string>& getName() const { return m_name; }
+    const std::string& getFilePath() const { return m_filePath; }
+    const std::optional<std::string>& getAsName() const { return m_asName; }
 
 private:
     ImportType m_type;
-    std::string m_path;
-    std::optional<std::string> m_name;
+    std::string m_filePath;
+    std::optional<std::string> m_asName;
 };
 
 } // namespace CHTL

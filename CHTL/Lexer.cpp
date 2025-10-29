@@ -122,12 +122,6 @@ Token Lexer::nextToken() {
         if (value == "inherit") {
             return makeToken(TokenType::InheritKeyword, value, start_pos);
         }
-        if (value == "from") {
-            return makeToken(TokenType::FromKeyword, value, start_pos);
-        }
-        if (value == "as") {
-            return makeToken(TokenType::AsKeyword, value, start_pos);
-        }
 
         return makeToken(TokenType::Identifier, value, start_pos);
     }

@@ -14,7 +14,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(runTests)
 
 # Link the test executable against Google Test and other libraries
-target_link_libraries(runTests PRIVATE GTest::gtest_main Util CHTLLexer CHTLParser CHTLGenerator)
+target_link_libraries(runTests PRIVATE GTest::gtest_main StringUtil CHTLLexer CHTLParser CHTLGenerator)
 
 # Function to add a new test file
 function(add_test_file test_name file_path)

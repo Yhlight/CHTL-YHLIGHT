@@ -41,10 +41,8 @@ enum class TokenType {
     Script,
     TemplateKeyword, // [Template]
     OriginKeyword, // [Origin]
-    ImportKeyword,   // [Import]
+    ImportKeyword, // [Import]
     InheritKeyword,
-    FromKeyword,
-    AsKeyword,
 
     // Comments
     LineComment,
