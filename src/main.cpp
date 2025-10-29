@@ -68,7 +68,7 @@ int main() {
         std::unique_ptr<ProgramNode> ast = parser.parse();
 
         // 3. Analyser: Perform semantic analysis and resolve references
-        Analyser analyser(*ast);
+        Analyser analyser(*ast, "main.chtl");
         analyser.analyse();
 
         // 4. Generator: Generate HTML from the AST

@@ -22,6 +22,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::CUSTOM) {
             return parseCustomNode();
         }
+        if (m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::IMPORT) {
+            return parseImportNode();
+        }
     }
     if (peek().type == TokenType::AT) {
         return parseTemplateUsage();
@@ -183,6 +186,63 @@ std::unique_ptr<TemplateNode> Parser::parseCustomNode() {
     return node;
 }
 
+std::unique_ptr<ImportNode> Parser::parseImportNode() {
+    consume(TokenType::LEFT_BRACKET, "Expect '[' before 'Import'.");
+    consume(TokenType::IMPORT, "Expect 'Import' keyword.");
+    consume(TokenType::RIGHT_BRACKET, "Expect ']' after 'Import'.");
+
+    auto node = std::make_unique<ImportNode>();
+
+    if (match({ TokenType::LEFT_BRACKET })) {
+        if (match({ TokenType::CUSTOM })) {
+            node->isCustom = true;
+        }
+        else if (match({ TokenType::TEMPLATE })) {
+            node->isTemplate = true;
+        }
+        else if (match({ TokenType::IDENTIFIER }) && previous().lexeme == "Origin") {
+            node->isOrigin = true;
+        }
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after import type.");
+    }
+
+    consume(TokenType::AT, "Expect '@' after '[Import]'.");
+    const auto& typeToken = consume(TokenType::IDENTIFIER, "Expect import type.");
+    if (typeToken.lexeme == "Html") {
+        node->importType = ImportType::Html;
+    }
+    else if (typeToken.lexeme == "Style") {
+        node->importType = ImportType::Style;
+    }
+    else if (typeToken.lexeme == "JavaScript") {
+        node->importType = ImportType::JavaScript;
+    }
+    else if (typeToken.lexeme == "Chtl") {
+        node->importType = ImportType::Chtl;
+    }
+    else if (typeToken.lexeme == "CJmod") {
+        node->importType = ImportType::CJmod;
+    }
+    else {
+        throw std::runtime_error("Unknown import type: " + typeToken.lexeme);
+    }
+
+    if (peek().type == TokenType::IDENTIFIER) {
+        node->specificName = consume(TokenType::IDENTIFIER, "Expect specific name for import.").lexeme;
+    }
+
+    consume(TokenType::FROM, "Expect 'from' after import type.");
+    node->filePath = consume(TokenType::STRING, "Expect file path.").lexeme;
+
+    if (match({ TokenType::AS })) {
+        node->alias = consume(TokenType::IDENTIFIER, "Expect alias name.").lexeme;
+    }
+
+    consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
+
+    return node;
+}
+
 std::unique_ptr<ElementSpecializationNode> Parser::parseElementSpecialization() {
     auto node = std::make_unique<ElementSpecializationNode>();
     node->tagName = consume(TokenType::IDENTIFIER, "Expect tag name for specialization.").lexeme;
@@ -305,7 +365,12 @@ std::unique_ptr<StyleNode> Parser::parseStyleNode(ElementNode* parent) {
             if (match({TokenType::COLON})) {
                 selector_str += ":" + consume(TokenType::IDENTIFIER, "Expect pseudo-class name.").lexeme;
             } else if (match({TokenType::COLON_COLON})) {
-                selector_str += "::" + consume(TokenType::IDENTIFIER, "Expect pseudo-element name.").lexeme;
+                selector_str += "::";
+                if (peek().type == TokenType::IDENTIFIER || peek().type == TokenType::BEFORE || peek().type == TokenType::AFTER) {
+                    selector_str += advance().lexeme;
+                } else {
+                    consume(TokenType::IDENTIFIER, "Expect pseudo-element name.");
+                }
             }
 
             selector_block->selector = selector_str;

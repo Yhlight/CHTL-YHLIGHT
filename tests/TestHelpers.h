@@ -17,11 +17,11 @@ inline std::string removeWhitespace(std::string str) {
     return str;
 }
 
-inline std::string compile(const std::string& source) {
+inline std::string compile(const std::string& source, const std::string& filePath = "") {
     Lexer lexer(source);
     Parser parser(lexer.tokenize());
     auto program = parser.parse();
-    Analyser analyser(*program);
+    Analyser analyser(*program, filePath);
     analyser.analyse();
     Generator generator(*program);
     return generator.generate();

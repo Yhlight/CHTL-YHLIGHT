@@ -16,12 +16,14 @@ add_executable(
   ConditionalTest.cpp
   TemplateTest.cpp
   CustomTest.cpp
+  ImportTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp
   ../src/CHTL/CHTLGenerator/ExpressionEvaluator.cpp
   ../src/CHTL/CHTLAnalyser/Analyser.cpp
   ../src/CHTL/CHTLAnalyser/SymbolTable.cpp
+  ../src/CHTL/CHTLImporter/Importer.cpp
 )
 
 target_include_directories(run_tests PRIVATE ../src)

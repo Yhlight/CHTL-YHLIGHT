@@ -24,7 +24,9 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"html5", TokenType::HTML5},
     {"inherit", TokenType::INHERIT},
     {"Template", TokenType::TEMPLATE},
-    {"Custom", TokenType::CUSTOM}
+    {"Custom", TokenType::CUSTOM},
+    {"Import", TokenType::IMPORT},
+    {"Origin", TokenType::ORIGIN}
 };
 
 Lexer::Lexer(std::string_view source) : m_source(source) {}

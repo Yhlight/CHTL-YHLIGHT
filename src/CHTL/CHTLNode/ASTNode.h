@@ -25,6 +25,7 @@ struct TernaryOpNode;
 struct TemplateNode;
 struct TemplateUsageNode;
 struct ElementSpecializationNode;
+struct ImportNode;
 
 
 // Enum to identify the type of an AST node
@@ -38,6 +39,7 @@ enum class NodeType {
     TemplateUsage,
     ElementSpecialization,
     ElementInsertion,
+	Import,
 
     // Expression Nodes
     BinaryOp,
@@ -465,6 +467,52 @@ struct ProgramNode : public ASTNode {
         for (const auto& child : children) {
             child->print(indent + 1);
         }
+    }
+};
+
+enum class ImportType {
+    Html,
+    Style,
+    JavaScript,
+    Chtl,
+    CJmod,
+};
+
+enum class ImportTemplateType {
+    Element,
+    Style,
+    Var,
+    Config,
+};
+
+
+struct ImportNode : public ASTNode {
+    ImportType importType;
+    ImportTemplateType templateType;
+    bool isCustom = false;
+    bool isTemplate = false;
+    bool isOrigin = false;
+    std::string specificName;
+    std::string filePath;
+    std::string alias;
+
+    NodeType getType() const override { return NodeType::Import; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        auto node = std::make_unique<ImportNode>();
+        node->importType = importType;
+        node->templateType = templateType;
+        node->isCustom = isCustom;
+        node->isTemplate = isTemplate;
+        node->isOrigin = isOrigin;
+        node->filePath = filePath;
+        node->alias = alias;
+        return node;
+    }
+
+    void print(int indent = 0) const override {
+        for (int i = 0; i < indent; ++i) std::cout << "  ";
+        std::cout << "Import(file=\"" << filePath << "\", as=\"" << alias << "\")" << std::endl;
     }
 };
 

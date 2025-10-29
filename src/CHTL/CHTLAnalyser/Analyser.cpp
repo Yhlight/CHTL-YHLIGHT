@@ -8,7 +8,7 @@
 
 namespace CHTL {
 
-Analyser::Analyser(ProgramNode& program) : m_program(program) {}
+Analyser::Analyser(ProgramNode& program, std::string filePath) : m_program(program), m_filePath(filePath) {}
 
 void Analyser::analyse() {
     visit(&m_program);
@@ -33,12 +33,42 @@ void Analyser::visit(ASTNode* node) {
         case NodeType::Template:
             visit(static_cast<TemplateNode*>(node));
             break;
+        case NodeType::Import:
+            visit(static_cast<ImportNode*>(node));
+            break;
         default:
             break;
     }
 }
 
 void Analyser::visit(ProgramNode* node) {
+    bool changed = true;
+    while(changed) {
+        changed = false;
+        for (size_t i = 0; i < node->children.size(); ++i) {
+            auto& child = node->children[i];
+            if (child->getType() == NodeType::Import) {
+                auto* import_node = static_cast<ImportNode*>(child.get());
+                if (m_import_stack.count(import_node->filePath)) {
+                    throw std::runtime_error("Circular import detected: " + import_node->filePath);
+                }
+                m_import_stack.insert(import_node->filePath);
+                auto imported_ast = m_importer.importFile(import_node->filePath, m_filePath);
+                m_import_stack.erase(import_node->filePath);
+                auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+
+                // Erase the import node and insert the new nodes
+                node->children.erase(node->children.begin() + i);
+                node->children.insert(node->children.begin() + i,
+                                      std::make_move_iterator(imported_program->children.begin()),
+                                      std::make_move_iterator(imported_program->children.end()));
+
+                changed = true;
+                break;
+            }
+        }
+    }
+
     for (auto& child : node->children) {
         visit(child.get());
     }
@@ -94,6 +124,10 @@ void Analyser::visit(TemplateNode* node) {
         throw std::runtime_error("Template with name '" + node->name + "' already defined.");
     }
     m_templates[node->name] = node;
+}
+
+void Analyser::visit(ImportNode* node) {
+    // This is now handled in visit(ProgramNode*)
 }
 
 void Analyser::resolveInheritance(TemplateNode* node) {

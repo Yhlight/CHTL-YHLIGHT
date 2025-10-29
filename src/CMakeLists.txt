@@ -6,6 +6,7 @@ add_executable(chtl
     CHTL/CHTLGenerator/ExpressionEvaluator.cpp
     CHTL/CHTLAnalyser/Analyser.cpp
     CHTL/CHTLAnalyser/SymbolTable.cpp
+    CHTL/CHTLImporter/Importer.cpp
 )
 
 target_include_directories(chtl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
