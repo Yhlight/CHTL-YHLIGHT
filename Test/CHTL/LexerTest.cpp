@@ -135,7 +135,7 @@ TEST(LexerTest, TemplateStyleDefinition) {
     EXPECT_EQ(token.type, CHTL::TokenType::TemplateKeyword);
 
     token = lexer.nextToken();
-    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.type, CHTL::TokenType::Css);
     EXPECT_EQ(token.value, "@Style");
 
     token = lexer.nextToken();
@@ -160,7 +160,7 @@ TEST(LexerTest, LexRawContent) {
     EXPECT_EQ(token.type, CHTL::TokenType::OriginKeyword);
 
     token = lexer.nextToken();
-    EXPECT_EQ(token.type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(token.type, CHTL::TokenType::Html);
     EXPECT_EQ(token.value, "@Html");
 
     token = lexer.nextToken();

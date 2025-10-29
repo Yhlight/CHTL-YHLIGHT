@@ -60,16 +60,18 @@ std::shared_ptr<BaseNode> Parser::parseStatement() {
             return parseTemplateVarDefinition();
         }
     }
+    if (m_currentToken.type == TokenType::Text) {
+        return parseText();
+    }
     if (m_currentToken.type == TokenType::Identifier) {
         if (m_currentToken.value == "@Element") {
             return parseTemplateElementUsage();
         }
-        if (m_currentToken.value == "text") {
-            return parseText();
-        }
         return parseElement();
     }
-    return nullptr; // Return null for now
+    // If no statement matches, consume the token to avoid an infinite loop
+    eat(m_currentToken.type);
+    return nullptr;
 }
 
 std::shared_ptr<BaseNode> Parser::parseTemplateStyleDefinition() {
@@ -154,11 +156,11 @@ std::shared_ptr<BaseNode> Parser::parseElement() {
 
 void Parser::parseAttributesAndChildren(std::shared_ptr<ElementNode> element) {
     while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+        if (m_currentToken.type == TokenType::Style) {
+            element->setStyleBlock(parseStyleBlock());
+            continue;
+        }
         if (m_currentToken.type == TokenType::Identifier) {
-            if (m_currentToken.value == "style") {
-                element->setStyleBlock(parseStyleBlock());
-                continue;
-            }
             if (m_lexer.peek().type == TokenType::Colon) {
                 // It's an attribute
                 std::string key = m_currentToken.value;
@@ -188,7 +190,7 @@ void Parser::parseAttributesAndChildren(std::shared_ptr<ElementNode> element) {
 
 
 std::shared_ptr<BaseNode> Parser::parseText() {
-    eat(TokenType::Identifier); // Eat "text"
+    eat(TokenType::Text); // Eat "text"
     eat(TokenType::OpenBrace);
     std::string textValue = m_currentToken.value;
     eat(TokenType::String);
@@ -197,7 +199,7 @@ std::shared_ptr<BaseNode> Parser::parseText() {
 }
 
 std::shared_ptr<StyleBlockNode> Parser::parseStyleBlock() {
-    eat(TokenType::Identifier); // Eat "style"
+    eat(TokenType::Style); // Eat "style"
     eat(TokenType::OpenBrace);
 
     auto styleBlock = std::make_shared<StyleBlockNode>();
@@ -213,8 +215,8 @@ void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) 
             eat(TokenType::InheritKeyword);
         }
 
-        if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Style") {
-            eat(TokenType::Identifier); // Eat "@Style"
+        if (m_currentToken.type == TokenType::Css) {
+            eat(TokenType::Css); // Eat "@Style"
             styleBlock->addUsedTemplate(m_currentToken.value);
             eat(TokenType::Identifier); // Eat template name
             eat(TokenType::Semicolon);

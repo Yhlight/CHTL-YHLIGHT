@@ -110,17 +110,8 @@ Token Lexer::nextToken() {
             advance();
         }
 
-        if (value == "inherit") return makeToken(TokenType::InheritKeyword, value, start_pos);
-        if (value == "text") return makeToken(TokenType::Text, value, start_pos);
-        if (value == "style") return makeToken(TokenType::Style, value, start_pos);
-        if (value == "script") return makeToken(TokenType::Script, value, start_pos);
-        if (value == "@Html") return makeToken(TokenType::Html, value, start_pos);
-        if (value == "@Style") return makeToken(TokenType::Css, value, start_pos);
-        if (value == "@JavaScript") return makeToken(TokenType::Js, value, start_pos);
-		if (value == "from") return makeToken(TokenType::FromKeyword, "from", start_pos);
-		if (value == "as") return makeToken(TokenType::AsKeyword, "as", start_pos);
-
-        return makeToken(TokenType::Identifier, value, start_pos);
+        TokenType type = isKeyword(value);
+        return makeToken(type, value, start_pos);
     }
 
     if (c == '"' || c == '\'') {
@@ -191,6 +182,19 @@ Token Lexer::scanRawContent() {
     advance(); // Eat '}'
     m_state = LexerState::NORMAL; // Revert state
     return makeToken(TokenType::RAW_CONTENT, content, start_pos);
+}
+
+TokenType Lexer::isKeyword(const std::string& value) {
+    if (value == "inherit") return TokenType::InheritKeyword;
+    if (value == "text") return TokenType::Text;
+    if (value == "style") return TokenType::Style;
+    if (value == "script") return TokenType::Script;
+    if (value == "@Html") return TokenType::Html;
+    if (value == "@Style") return TokenType::Css;
+    if (value == "@JavaScript") return TokenType::Js;
+    if (value == "from") return TokenType::FromKeyword;
+    if (value == "as") return TokenType::AsKeyword;
+    return TokenType::Identifier;
 }
 
 } // namespace CHTL

@@ -7,7 +7,7 @@
 
 class OriginAndImportTest : public ::testing::Test {
 protected:
-    void SetUp() override {
+    static void SetUpTestSuite() {
         // Create dummy files for testing imports
         std::ofstream htmlFile("test.html");
         htmlFile << "<h1>Hello from HTML</h1>";
@@ -22,7 +22,7 @@ protected:
         jsFile.close();
     }
 
-    void TearDown() override {
+    static void TearDownTestSuite() {
         // Clean up dummy files
         remove("test.html");
         remove("test.css");

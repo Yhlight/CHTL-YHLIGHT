@@ -33,6 +33,7 @@ private:
     void advance(int count = 1);
     Token makeToken(TokenType type, const std::string& value, size_t start_pos);
     Token scanRawContent();
+    TokenType isKeyword(const std::string& value);
 };
 
 } // namespace CHTL
