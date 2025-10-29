@@ -1,6 +1,7 @@
 #include "Analyser.h"
 #include <stdexcept>
 #include <vector>
+#include <filesystem>
 #include <iterator>
 #include <algorithm>
 #include <sstream>
@@ -45,35 +46,13 @@ void Analyser::visit(ASTNode* node) {
 }
 
 void Analyser::visit(ProgramNode* node) {
-    bool changed = true;
-    while(changed) {
-        changed = false;
-        for (size_t i = 0; i < node->children.size(); ++i) {
-            auto& child = node->children[i];
-            if (child->getType() == NodeType::Import) {
-                auto* import_node = static_cast<ImportNode*>(child.get());
-                if (m_import_stack.count(import_node->filePath)) {
-                    throw std::runtime_error("Circular import detected: " + import_node->filePath);
-                }
-                m_import_stack.insert(import_node->filePath);
-                auto imported_ast = m_importer.importFile(import_node->filePath, m_filePath);
-                m_import_stack.erase(import_node->filePath);
-                auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
-
-                // Erase the import node and insert the new nodes
-                node->children.erase(node->children.begin() + i);
-                node->children.insert(node->children.begin() + i,
-                                      std::make_move_iterator(imported_program->children.begin()),
-                                      std::make_move_iterator(imported_program->children.end()));
-
-                changed = true;
-                break;
-            }
+    for (size_t i = 0; i < node->children.size();) {
+        visit(node->children[i].get());
+        // After visiting, if the node was an import, it might have been replaced.
+        // Re-evaluate the size and current position.
+        if (node->children[i]->getType() != NodeType::Import) {
+            i++;
         }
-    }
-
-    for (auto& child : node->children) {
-        visit(child.get());
     }
 }
 
@@ -138,7 +117,37 @@ void Analyser::visit(NamespaceNode* node) {
 }
 
 void Analyser::visit(ImportNode* node) {
-    // This is now handled in visit(ProgramNode*)
+    std::filesystem::path canonical_path = std::filesystem::canonical(std::filesystem::path(m_filePath).parent_path() / node->filePath);
+    std::string canonical_path_str = canonical_path.string();
+
+    if (m_import_stack.count(canonical_path_str)) {
+        throw std::runtime_error("Circular import detected: " + node->filePath);
+    }
+    m_import_stack.insert(canonical_path_str);
+
+    auto imported_ast = m_importer.importFile(node->filePath, m_filePath);
+    auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
+
+    // Create a new analyser for the imported file and run it.
+    Analyser imported_analyser(*imported_program, canonical_path_str);
+    imported_analyser.m_import_stack = this->m_import_stack; // Share the import stack
+    imported_analyser.analyse();
+
+    // Find the import node in the main program and replace it
+    auto& children = m_program.children;
+    auto it = std::find_if(children.begin(), children.end(),
+                           [node](const std::unique_ptr<ASTNode>& child) {
+                               return child.get() == node;
+                           });
+
+    if (it != children.end()) {
+        it = children.erase(it);
+        children.insert(it,
+                        std::make_move_iterator(imported_program->children.begin()),
+                        std::make_move_iterator(imported_program->children.end()));
+    }
+
+    m_import_stack.erase(canonical_path_str);
 }
 
 void Analyser::resolveInheritance(TemplateNode* node) {
