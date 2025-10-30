@@ -47,12 +47,10 @@ void Analyser::visit(ASTNode* node) {
 
 void Analyser::visit(ProgramNode* node) {
     for (size_t i = 0; i < node->children.size();) {
-        visit(node->children[i].get());
-        if (i < node->children.size() && node->children[i]->getType() != NodeType::Import) {
-            i++;
-        }
-         else if (i < node->children.size() && node->children[i]->getType() == NodeType::Import) {
-            // If the import node was not removed (because it had an alias), we still need to advance
+        if (node->children[i]->getType() == NodeType::Import) {
+            visit(node->children[i].get());
+        } else {
+            visit(node->children[i].get());
             i++;
         }
     }
@@ -104,10 +102,11 @@ void Analyser::visit(ElementNode* node) {
 }
 
 void Analyser::visit(TemplateNode* node) {
-    if (m_templates.count(node->name)) {
-        throw std::runtime_error("Template with name '" + node->name + "' already defined.");
+    std::string namespaced_name = m_symbol_table.getNamespacedSelector(node->name);
+    if (m_templates.count(namespaced_name)) {
+        throw std::runtime_error("Template with name '" + namespaced_name + "' already defined.");
     }
-    m_templates[node->name] = node;
+    m_templates[namespaced_name] = node;
 }
 
 void Analyser::visit(NamespaceNode* node) {
@@ -171,9 +170,10 @@ void Analyser::resolveInheritance(TemplateNode* node) {
     std::vector<StyleProperty> inherited_properties;
 
     for (const auto& inheritance : node->inheritances) {
-        auto it = m_templates.find(inheritance->name);
+        std::string qualified_name = inheritance->fromNamespace.empty() ? inheritance->name : inheritance->fromNamespace + "." + inheritance->name;
+        auto it = m_templates.find(qualified_name);
         if (it == m_templates.end()) {
-            throw std::runtime_error("Unknown template in inheritance: " + inheritance->name);
+            throw std::runtime_error("Unknown template in inheritance: " + qualified_name);
         }
         TemplateNode* parent = it->second;
         resolveInheritance(parent); // Recurse
@@ -254,9 +254,10 @@ void Analyser::resolve(ProgramNode* node) {
         if (child->getType() == NodeType::TemplateUsage) {
             auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
             if (usage_node->templateType == TemplateType::Element) {
-                auto it = m_templates.find(usage_node->name);
+                std::string qualified_name = usage_node->fromNamespace.empty() ? usage_node->name : usage_node->fromNamespace + "." + usage_node->name;
+                auto it = m_templates.find(qualified_name);
                 if (it == m_templates.end()) {
-                    throw std::runtime_error("Unknown template: " + usage_node->name);
+                    throw std::runtime_error("Unknown template: " + qualified_name);
                 }
                 const TemplateNode* templateNode = it->second;
 				std::vector<std::unique_ptr<ASTNode>> expanded_children;
@@ -296,9 +297,10 @@ void Analyser::resolve(ElementNode* node) {
         if (child->getType() == NodeType::TemplateUsage) {
             auto* usage_node = static_cast<TemplateUsageNode*>(child.get());
             if (usage_node->templateType == TemplateType::Element) {
-                auto it = m_templates.find(usage_node->name);
+                std::string qualified_name = usage_node->fromNamespace.empty() ? usage_node->name : usage_node->fromNamespace + "." + usage_node->name;
+                auto it = m_templates.find(qualified_name);
                 if (it == m_templates.end()) {
-                    throw std::runtime_error("Unknown template: " + usage_node->name);
+                    throw std::runtime_error("Unknown template: " + qualified_name);
                 }
                 const TemplateNode* templateNode = it->second;
                 std::vector<std::unique_ptr<ASTNode>> expanded_children;
@@ -324,9 +326,10 @@ void Analyser::resolve(StyleNode* node) {
     std::vector<StyleProperty> new_properties;
     for (const auto& usage : node->template_usages) {
         if (usage->templateType == TemplateType::Style) {
-            auto it = m_templates.find(usage->name);
+            std::string qualified_name = usage->fromNamespace.empty() ? usage->name : usage->fromNamespace + "." + usage->name;
+            auto it = m_templates.find(qualified_name);
             if (it == m_templates.end()) {
-                throw std::runtime_error("Unknown style template: " + usage->name);
+                throw std::runtime_error("Unknown style template: " + qualified_name);
             }
             TemplateNode* templateNode = it->second;
 
@@ -415,9 +418,10 @@ void Analyser::resolve(std::unique_ptr<ASTNode>& node) {
 }
 
 void Analyser::resolve(TemplateUsageNode* node) {
-    auto it = m_templates.find(node->name);
+    std::string qualified_name = node->fromNamespace.empty() ? node->name : node->fromNamespace + "." + node->name;
+    auto it = m_templates.find(qualified_name);
     if (it == m_templates.end()) {
-        throw std::runtime_error("Unknown template: " + node->name);
+        throw std::runtime_error("Unknown template: " + qualified_name);
     }
     const TemplateNode* templateNode = it->second;
 

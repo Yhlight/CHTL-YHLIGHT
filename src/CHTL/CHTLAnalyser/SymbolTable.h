@@ -24,11 +24,12 @@ public:
 
     void insert(const std::string& selector, const ElementNode* node);
     void insert(const std::string& alias, const OriginNode* node);
-    const Symbol* find(const std::string& selector) const;
+    const Symbol* find(const std::string& selector, const std::string& fromNamespace = "") const;
     void addProperty(const std::string& selector, const std::string& key, const ASTNode* value);
 
+public:
+    std::string getNamespacedSelector(const std::string& selector, const std::string& fromNamespace = "") const;
 private:
-    std::string getNamespacedSelector(const std::string& selector) const;
 
     std::unordered_map<std::string, Symbol> m_symbols;
     std::vector<std::string> m_namespaceStack;

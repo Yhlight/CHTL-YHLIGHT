@@ -87,7 +87,17 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsage() {
             }
         }
         consume(TokenType::RIGHT_BRACE, "Expect '}' after provided values.");
-    } else {
+    }
+
+    if (match({TokenType::FROM})) {
+        std::string ns = consume(TokenType::IDENTIFIER, "Expect namespace name.").lexeme;
+        while (match({TokenType::DOT})) {
+            ns += "." + consume(TokenType::IDENTIFIER, "Expect namespace name.").lexeme;
+        }
+        node->fromNamespace = ns;
+    }
+
+    if (previous().type != TokenType::RIGHT_BRACE) {
         consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
     }
 

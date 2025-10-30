@@ -21,8 +21,8 @@ void SymbolTable::insert(const std::string& alias, const OriginNode* node) {
     m_symbols[getNamespacedSelector(alias)] = {node, {}};
 }
 
-const Symbol* SymbolTable::find(const std::string& selector) const {
-    auto it = m_symbols.find(getNamespacedSelector(selector));
+const Symbol* SymbolTable::find(const std::string& selector, const std::string& fromNamespace) const {
+    auto it = m_symbols.find(getNamespacedSelector(selector, fromNamespace));
     if (it != m_symbols.end()) {
         return &it->second;
     }
@@ -36,7 +36,11 @@ void SymbolTable::addProperty(const std::string& selector, const std::string& ke
     }
 }
 
-std::string SymbolTable::getNamespacedSelector(const std::string& selector) const {
+std::string SymbolTable::getNamespacedSelector(const std::string& selector, const std::string& fromNamespace) const {
+    if (!fromNamespace.empty()) {
+        return fromNamespace + "." + selector;
+    }
+
     if (m_namespaceStack.empty()) {
         return selector;
     }
