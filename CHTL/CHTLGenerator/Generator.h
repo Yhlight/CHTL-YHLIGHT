@@ -5,6 +5,7 @@
 #include "CHTL/CHTLNode/TemplateElementDefinitionNode.h"
 #include "CHTL/CHTLNode/TemplateVarDefinitionNode.h"
 #include <string>
+#include <vector>
 #include <memory>
 #include <map>
 
@@ -24,6 +25,7 @@ private:
     const std::map<std::string, std::shared_ptr<TemplateStyleDefinitionNode>>& m_styleTemplates;
     const std::map<std::string, std::shared_ptr<TemplateElementDefinitionNode>>& m_elementTemplates;
     const std::map<std::string, std::shared_ptr<TemplateVarDefinitionNode>>& m_varTemplates;
+    std::vector<std::string> m_globalStyles;
 
     void visit(std::shared_ptr<BaseNode> node, std::string& output);
     std::string generateStyleContent(std::shared_ptr<const StyleBlockNode> styleBlock);

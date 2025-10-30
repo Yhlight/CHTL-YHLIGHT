@@ -8,6 +8,7 @@
 #include "CHTL/CHTLNode/TemplateElementUsageNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/StyleRuleNode.h"
 
 namespace CHTL {
 
@@ -18,9 +19,19 @@ Generator::Generator(std::shared_ptr<BaseNode> root,
     : m_root(root), m_styleTemplates(styleTemplates), m_elementTemplates(elementTemplates), m_varTemplates(varTemplates) {}
 
 std::string Generator::generate() {
-    std::string output;
-    visit(m_root, output);
-    return output;
+    std::string bodyContent;
+    visit(m_root, bodyContent);
+
+    std::string finalOutput = "<html><head>";
+    if (!m_globalStyles.empty()) {
+        finalOutput += "<style>";
+        for (const auto& rule : m_globalStyles) {
+            finalOutput += rule;
+        }
+        finalOutput += "</style>";
+    }
+    finalOutput += "</head><body>" + bodyContent + "</body></html>";
+    return finalOutput;
 }
 
 void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
@@ -42,13 +53,47 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
             }
 
             if (elementNode->getStyleBlock()) {
-                std::string styleContent = generateStyleContent(elementNode->getStyleBlock());
+                auto styleBlock = elementNode->getStyleBlock();
+
+                // Process and add inline styles
+                std::string styleContent = generateStyleContent(styleBlock);
                 if (!styleContent.empty()) {
-                    // Trim trailing space before closing quote
-                    if (styleContent.back() == ' ') {
-                        styleContent.pop_back();
-                    }
+                    if (styleContent.back() == ' ') styleContent.pop_back();
                     output += " style=\"" + styleContent + "\"";
+                }
+
+                std::string primarySelector;
+                bool primarySelectorSet = false;
+
+                // First pass: find the primary class or ID selector
+                for (const auto& rule : styleBlock->getRules()) {
+                    const auto& selector = rule->getSelector();
+                    if (!selector.empty() && (selector[0] == '.' || selector[0] == '#')) {
+                        primarySelector = selector;
+                        primarySelectorSet = true;
+
+                        if (selector[0] == '.') {
+                            output += " class=\"" + selector.substr(1) + "\"";
+                        } else { // It's an ID
+                            output += " id=\"" + selector.substr(1) + "\"";
+                        }
+                        break;
+                    }
+                }
+
+                // Second pass: process all rules
+                for (const auto& rule : styleBlock->getRules()) {
+                    std::string finalSelector = rule->getSelector();
+                    if (primarySelectorSet && !finalSelector.empty() && finalSelector[0] == '&') {
+                        finalSelector = primarySelector + finalSelector.substr(1);
+                    }
+
+                    std::string ruleContent = finalSelector + "{";
+                    for (const auto& prop : rule->getProperties()) {
+                        ruleContent += prop->getKey() + ":" + prop->getValue() + ";";
+                    }
+                    ruleContent += "}";
+                    m_globalStyles.push_back(ruleContent);
                 }
             }
 

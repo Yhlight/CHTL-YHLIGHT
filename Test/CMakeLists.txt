@@ -27,6 +27,7 @@ add_test_file(LexerTest ${CMAKE_SOURCE_DIR}/Test/CHTL/LexerTest.cpp)
 add_test_file(ParserTest ${CMAKE_SOURCE_DIR}/Test/CHTL/ParserTest.cpp)
 add_test_file(GeneratorTest ${CMAKE_SOURCE_DIR}/Test/CHTL/GeneratorTest.cpp)
 add_test_file(ImportTest ${CMAKE_SOURCE_DIR}/Test/ImportTest.cpp)
+add_test_file(StyleBlockTest ${CMAKE_SOURCE_DIR}/Test/CHTL/StyleBlockTest.cpp)
 
 # Include directories for headers
 target_include_directories(runTests PRIVATE ${CMAKE_SOURCE_DIR})

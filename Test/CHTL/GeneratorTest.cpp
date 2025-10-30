@@ -20,7 +20,7 @@ TEST(GeneratorTest, EndToEndElementTemplate) {
     CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
     std::string result = generator.generate();
 
-    std::string expected = "<div><span>hello</span></div>";
+    std::string expected = "<html><head></head><body><div><span>hello</span></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -41,7 +41,7 @@ TEST(GeneratorTest, EndToEndStyleTemplate) {
     CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
     std::string result = generator.generate();
 
-    std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
+    std::string expected = "<html><head></head><body><div style=\"color:red;font-size:16px;\"></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -63,7 +63,7 @@ TEST(GeneratorTest, EndToEndVarTemplate) {
     CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
     std::string result = generator.generate();
 
-    std::string expected = "<div style=\"color:#ff6347;\"></div>";
+    std::string expected = "<html><head></head><body><div style=\"color:#ff6347;\"></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -155,7 +155,7 @@ TEST(GeneratorTest, EndToEndElementTemplateInheritance) {
     CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
     std::string result = generator.generate();
 
-    std::string expected = "<div><p>from base</p><span>from child</span></div>";
+    std::string expected = "<html><head></head><body><div><p>from base</p><span>from child</span></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -170,7 +170,7 @@ TEST(GeneratorTest, EndToEndOriginBlock) {
     CHTL::Generator generator(root, parser.getStyleTemplates(), parser.getElementTemplates(), parser.getVarTemplates());
     std::string result = generator.generate();
 
-    EXPECT_EQ(result, rawHtml);
+    EXPECT_EQ(result, "<html><head></head><body>" + rawHtml + "</body></html>");
 }
 
 
@@ -186,7 +186,7 @@ TEST(GeneratorTest, GenerateHTMLWithAttribute) {
     CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap);
     std::string result = generator.generate();
 
-    std::string expected = "<div id=\"box\"></div>";
+    std::string expected = "<html><head></head><body><div id=\"box\"></div></body></html>";
     EXPECT_EQ(result, expected);
 }
 
@@ -204,6 +204,6 @@ TEST(GeneratorTest, GenerateSimpleHTML) {
     CHTL::Generator generator(divNode, emptyStyleMap, emptyElementMap, emptyVarMap);
     std::string result = generator.generate();
 
-    std::string expected = "<div><span>hello</span></div>";
+    std::string expected = "<html><head></head><body><div><span>hello</span></div></body></html>";
     EXPECT_EQ(result, expected);
 }

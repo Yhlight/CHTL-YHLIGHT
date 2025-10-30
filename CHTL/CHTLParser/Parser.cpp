@@ -214,30 +214,59 @@ std::shared_ptr<StyleBlockNode> Parser::parseStyleBlock() {
 }
 
 void Parser::parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock) {
-    while(m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+    while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
         if (m_currentToken.type == TokenType::InheritKeyword) {
             eat(TokenType::InheritKeyword);
         }
 
         if (m_currentToken.type == TokenType::Identifier && m_currentToken.value == "@Style") {
-            eat(TokenType::Identifier); // Eat "@Style"
-            styleBlock->addUsedTemplate(m_currentToken.value);
-            eat(TokenType::Identifier); // Eat template name
-            eat(TokenType::Semicolon);
-        } else {
-            // Assume it's a style property
-            std::string key = m_currentToken.value;
             eat(TokenType::Identifier);
-            eat(TokenType::Colon);
+            styleBlock->addUsedTemplate(m_currentToken.value);
+            eat(TokenType::Identifier);
+            eat(TokenType::Semicolon);
+            continue;
+        }
 
+        std::string selectorOrKey;
+        if (m_currentToken.type == TokenType::Dot) {
+            eat(TokenType::Dot);
+            selectorOrKey = "." + m_currentToken.value;
+            eat(TokenType::Identifier);
+        } else {
+            selectorOrKey = m_currentToken.value;
+            eat(m_currentToken.type);
+        }
+
+        if (m_currentToken.type == TokenType::OpenBrace) {
+            auto ruleNode = std::make_shared<StyleRuleNode>(selectorOrKey);
+            eat(TokenType::OpenBrace);
+            while (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+                std::string key = m_currentToken.value;
+                eat(TokenType::Identifier);
+                eat(TokenType::Colon);
+                std::string value;
+                while(m_currentToken.type != TokenType::Semicolon) {
+                    value += m_currentToken.value;
+                    eat(m_currentToken.type);
+                }
+                eat(TokenType::Semicolon);
+                ruleNode->addProperty(std::make_shared<StylePropertyNode>(key, value));
+            }
+            eat(TokenType::CloseBrace);
+            styleBlock->addRule(ruleNode);
+        } else if (m_currentToken.type == TokenType::Colon) {
+            eat(TokenType::Colon);
             std::string value;
-            while(m_currentToken.type != TokenType::Semicolon && m_currentToken.type != TokenType::EndOfFile) {
+            while(m_currentToken.type != TokenType::Semicolon) {
                 value += m_currentToken.value;
                 eat(m_currentToken.type);
             }
-
             eat(TokenType::Semicolon);
-            styleBlock->addProperty(std::make_shared<StylePropertyNode>(key, value));
+            styleBlock->addProperty(std::make_shared<StylePropertyNode>(selectorOrKey, value));
+        } else {
+            if (m_currentToken.type != TokenType::CloseBrace && m_currentToken.type != TokenType::EndOfFile) {
+                eat(m_currentToken.type);
+            }
         }
     }
 }

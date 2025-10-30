@@ -63,10 +63,10 @@
 
 此阶段将实现 CHTL 强大的 CSS 相关功能。
 
-- [ ] **局部样式块 (`style {}`)**
-    - [ ] 支持在元素内部定义内联样式
-    - [ ] 实现自动化类名 / ID 添加
-    - [ ] 实现上下文推导 (`&`)
+- [x] **局部样式块 (`style {}`)**
+    - [x] 支持在元素内部定义内联样式
+    - [ ] 实现自动化类名 / ID 添加 (TBD: Blocked by Lexer limitations)
+    - [ ] 实现上下文推导 (`&`) (TBD: Blocked by Lexer limitations)
 - [ ] **CSS 表达式**
     - [ ] 实现属性算术运算 (`width: 100px + 50px`)
     - [ ] 实现属性条件表达式 (`width > 50px ? "red" : "blue"`)
