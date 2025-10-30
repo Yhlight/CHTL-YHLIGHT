@@ -172,6 +172,8 @@ void Parser::parseAttributesAndChildren(std::shared_ptr<ElementNode> element) {
                 // It's a child element
                 element->addChild(parseStatement());
             }
+        } else if (m_currentToken.type == TokenType::OriginKeyword) {
+            element->addChild(parseOriginBlock());
         } else {
             // It's something else (e.g., another element), so parse it as a statement
             element->addChild(parseStatement());

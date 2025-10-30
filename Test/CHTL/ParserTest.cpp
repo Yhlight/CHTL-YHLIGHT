@@ -284,3 +284,23 @@ TEST(ParserTest, ParseNestedElement) {
     EXPECT_EQ(spanNode->getTagName(), "span");
     EXPECT_TRUE(spanNode->getChildren().empty());
 }
+
+TEST(ParserTest, ParseOriginBlockInsideElement) {
+    std::string source = "div { [Origin] @Html {<p>raw</p>} }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+
+    auto divNode = std::static_pointer_cast<CHTL::ElementNode>(programNode->getChildren()[0]);
+    ASSERT_NE(divNode, nullptr);
+    ASSERT_EQ(divNode->getTagName(), "div");
+    ASSERT_EQ(divNode->getChildren().size(), 1);
+
+    auto originNode = std::static_pointer_cast<CHTL::OriginNode>(divNode->getChildren()[0]);
+    ASSERT_NE(originNode, nullptr);
+    EXPECT_EQ(originNode->getOriginType(), CHTL::OriginType::Html);
+    EXPECT_EQ(originNode->getContent(), "<p>raw</p>");
+}
