@@ -305,14 +305,17 @@ void Analyser::resolve(ProgramNode* node) {
             m_symbol_table.popNamespace();
         } else if (child->getType() == NodeType::Origin) {
             auto* origin_node = static_cast<OriginNode*>(child.get());
-            if (!origin_node->name.empty() && origin_node->content.empty()) {
-                const Symbol* symbol = m_symbol_table.find(origin_node->name);
-                if (!symbol || !std::holds_alternative<const OriginNode*>(symbol->node)) {
-                    throw std::runtime_error("Unknown origin block alias: " + origin_node->name);
+            if (!origin_node->name.empty()) { // It's a named origin block
+                if (origin_node->content.empty()) { // It's a USAGE
+                    const Symbol* symbol = m_symbol_table.find(origin_node->name);
+                    if (!symbol || !std::holds_alternative<const OriginNode*>(symbol->node)) {
+                        throw std::runtime_error("Unknown origin block alias: " + origin_node->name);
+                    }
+                    const OriginNode* definition_node = std::get<const OriginNode*>(symbol->node);
+                    new_children.push_back(definition_node->clone());
                 }
-                const OriginNode* definition_node = std::get<const OriginNode*>(symbol->node);
-                new_children.push_back(definition_node->clone());
-            } else {
+                // else: It's a DEFINITION, so we do nothing.
+            } else { // It's an anonymous origin block
                 new_children.push_back(std::move(child));
             }
         } else {
@@ -352,14 +355,17 @@ void Analyser::resolve(ElementNode* node) {
             }
         } else if (child->getType() == NodeType::Origin) {
             auto* origin_node = static_cast<OriginNode*>(child.get());
-            if (!origin_node->name.empty() && origin_node->content.empty()) {
-                const Symbol* symbol = m_symbol_table.find(origin_node->name);
-                if (!symbol || !std::holds_alternative<const OriginNode*>(symbol->node)) {
-                    throw std::runtime_error("Unknown origin block alias: " + origin_node->name);
+            if (!origin_node->name.empty()) { // It's a named origin block
+                if (origin_node->content.empty()) { // It's a USAGE
+                    const Symbol* symbol = m_symbol_table.find(origin_node->name);
+                    if (!symbol || !std::holds_alternative<const OriginNode*>(symbol->node)) {
+                        throw std::runtime_error("Unknown origin block alias: " + origin_node->name);
+                    }
+                    const OriginNode* definition_node = std::get<const OriginNode*>(symbol->node);
+                    new_children.push_back(definition_node->clone());
                 }
-                const OriginNode* definition_node = std::get<const OriginNode*>(symbol->node);
-                new_children.push_back(definition_node->clone());
-            } else {
+                // else: It's a DEFINITION, so we do nothing.
+            } else { // It's an anonymous origin block
                 new_children.push_back(std::move(child));
             }
         } else {

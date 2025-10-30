@@ -22,6 +22,7 @@ add_executable(
   NonChtlImportTest.cpp
   NamespaceFeatureTest.cpp
   AutoNamespaceTest.cpp
+  OriginFeatureTest.cpp
   ../src/CHTL/CHTLLexer/Lexer.cpp
   ../src/CHTL/CHTLParser/Parser.cpp
   ../src/CHTL/CHTLGenerator/Generator.cpp

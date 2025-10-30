@@ -47,8 +47,8 @@ This document outlines the development roadmap for the CHTL project, guided by t
 - [x] **Namespaces (`[Namespace]`):**
     - [x] Define and use namespaces.
     - [x] Handle automatic namespacing on import.
-- [ ] **Other Features:**
-    - [ ] Raw embedding (`[Origin]`).
+- [x] **Other Features:**
+    - [x] Raw embedding (`[Origin]`).
     - [ ] Constraints (`except`).
     - [ ] Configuration (`[Configuration]`).
 
