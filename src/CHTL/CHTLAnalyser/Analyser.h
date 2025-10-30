@@ -20,6 +20,7 @@ private:
     void visit(TemplateNode* node);
     void visit(ImportNode* node);
     void visit(NamespaceNode* node);
+    void visit(OriginNode* node);
 
     void resolveInheritance(TemplateNode* node);
 

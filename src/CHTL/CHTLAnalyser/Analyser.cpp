@@ -40,20 +40,23 @@ void Analyser::visit(ASTNode* node) {
         case NodeType::Namespace:
             visit(static_cast<NamespaceNode*>(node));
             break;
+        case NodeType::Origin:
+            visit(static_cast<OriginNode*>(node));
+            break;
         default:
             break;
     }
 }
 
 void Analyser::visit(ProgramNode* node) {
-    for (size_t i = 0; i < node->children.size();) {
-        if (node->children[i]->getType() == NodeType::Import) {
-            visit(node->children[i].get());
-        } else {
-            visit(node->children[i].get());
-            i++;
-        }
-    }
+	for (size_t i = 0; i < node->children.size(); ) {
+		auto* child = node->children[i].get();
+		visit(child);
+		// If the node was an import that got erased, `i` should not be incremented
+		if (i < node->children.size() && child == node->children[i].get()) {
+			i++;
+		}
+	}
 }
 
 void Analyser::visit(ElementNode* node) {
@@ -115,6 +118,13 @@ void Analyser::visit(NamespaceNode* node) {
         visit(child.get());
     }
     m_symbol_table.popNamespace();
+}
+
+void Analyser::visit(OriginNode* node) {
+    // Only named origin definitions with content need to be stored
+    if (!node->name.empty() && !node->content.empty()) {
+        m_symbol_table.insert(node->name, node);
+    }
 }
 
 void Analyser::visit(ImportNode* node) {
@@ -279,6 +289,18 @@ void Analyser::resolve(ProgramNode* node) {
                 new_children.push_back(std::move(ns_child));
             }
             m_symbol_table.popNamespace();
+        } else if (child->getType() == NodeType::Origin) {
+            auto* origin_node = static_cast<OriginNode*>(child.get());
+            if (!origin_node->name.empty() && origin_node->content.empty()) {
+                const Symbol* symbol = m_symbol_table.find(origin_node->name);
+                if (!symbol || !std::holds_alternative<const OriginNode*>(symbol->node)) {
+                    throw std::runtime_error("Unknown origin block alias: " + origin_node->name);
+                }
+                const OriginNode* definition_node = std::get<const OriginNode*>(symbol->node);
+                new_children.push_back(definition_node->clone());
+            } else {
+                new_children.push_back(std::move(child));
+            }
         } else {
             resolve(child.get());
             new_children.push_back(std::move(child));
@@ -313,6 +335,18 @@ void Analyser::resolve(ElementNode* node) {
                 }
             } else {
                  new_children.push_back(std::move(child));
+            }
+        } else if (child->getType() == NodeType::Origin) {
+            auto* origin_node = static_cast<OriginNode*>(child.get());
+            if (!origin_node->name.empty() && origin_node->content.empty()) {
+                const Symbol* symbol = m_symbol_table.find(origin_node->name);
+                if (!symbol || !std::holds_alternative<const OriginNode*>(symbol->node)) {
+                    throw std::runtime_error("Unknown origin block alias: " + origin_node->name);
+                }
+                const OriginNode* definition_node = std::get<const OriginNode*>(symbol->node);
+                new_children.push_back(definition_node->clone());
+            } else {
+                new_children.push_back(std::move(child));
             }
         } else {
             resolve(child.get());

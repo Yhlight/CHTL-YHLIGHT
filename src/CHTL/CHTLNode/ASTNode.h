@@ -565,20 +565,26 @@ inline void ElementSpecializationNode::print(int indent) const {
 
 struct OriginNode : public ASTNode {
     std::string type;
-    std::string content;
+    std::string name; // The name/alias of the block
+    std::string content; // Empty if it's a usage, filled if it's a definition
 
     NodeType getType() const override { return NodeType::Origin; }
 
     std::unique_ptr<ASTNode> clone() const override {
         auto node = std::make_unique<OriginNode>();
         node->type = type;
+        node->name = name;
         node->content = content;
         return node;
     }
 
     void print(int indent = 0) const override {
         for (int i = 0; i < indent; ++i) std::cout << "  ";
-        std::cout << "Origin(" << type << "): \"" << content << "\"" << std::endl;
+        if (!name.empty() && content.empty()) {
+            std::cout << "OriginUsage(" << type << ", name=\"" << name << "\")" << std::endl;
+        } else {
+            std::cout << "OriginDef(" << type << ", name=\"" << name << "\"): \"" << content << "\"" << std::endl;
+        }
     }
 };
 

@@ -35,7 +35,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     if (peek().type == TokenType::AT) {
         return parseTemplateUsage();
     }
-    if (peek().type == TokenType::IDENTIFIER && m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::LEFT_BRACE) {
+    if ((peek().type == TokenType::IDENTIFIER || peek().type == TokenType::STYLE || peek().type == TokenType::SCRIPT)
+        && m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::LEFT_BRACE) {
         return parseElementNode();
     }
     if (peek().type == TokenType::TEXT) {
@@ -287,31 +288,40 @@ std::unique_ptr<OriginNode> Parser::parseOriginNode() {
     consume(TokenType::AT, "Expect '@' after '[Origin]'.");
     node->type = consume(TokenType::IDENTIFIER, "Expect origin type.").lexeme;
 
-    const auto& left_brace = consume(TokenType::LEFT_BRACE, "Expect '{' after origin type.");
+    // Check for an optional name
+    if (peek().type == TokenType::IDENTIFIER) {
+        node->name = consume(TokenType::IDENTIFIER, "Expect origin name/alias.").lexeme;
+    }
 
-    // Manually scan the source string for the raw content
-    size_t search_start = previous().start_pos + previous().lexeme.length();
-    int brace_level = 1;
-    size_t search_current = search_start;
-    while (brace_level > 0 && search_current < m_source.length()) {
-        if (m_source[search_current] == '{') {
-            brace_level++;
-        } else if (m_source[search_current] == '}') {
-            brace_level--;
+    if (match({TokenType::LEFT_BRACE})) { // It's a definition
+        // Manually scan the source string for the raw content
+        size_t search_start = previous().start_pos + previous().lexeme.length();
+        int brace_level = 1;
+        size_t search_current = search_start;
+        while (brace_level > 0 && search_current < m_source.length()) {
+            if (m_source[search_current] == '{') {
+                brace_level++;
+            } else if (m_source[search_current] == '}') {
+                brace_level--;
+            }
+            search_current++;
         }
-        search_current++;
-    }
 
-    if (brace_level > 0) {
-        throw std::runtime_error("Unterminated origin block.");
-    }
+        if (brace_level > 0) {
+            throw std::runtime_error("Unterminated origin block.");
+        }
 
-    size_t content_end = search_current - 1;
-    node->content = m_source.substr(search_start, content_end - search_start);
+        size_t content_end = search_current - 1;
+        node->content = m_source.substr(search_start, content_end - search_start);
 
-    // Fast-forward the token stream to after the origin block
-    while (!isAtEnd() && peek().start_pos < search_current) {
-        advance();
+        // Fast-forward the token stream to after the origin block
+        while (!isAtEnd() && peek().start_pos < search_current) {
+            advance();
+        }
+    } else if (!node->name.empty() && match({TokenType::SEMICOLON})) { // It's a usage
+        // This is a valid usage, content remains empty
+    } else {
+        throw std::runtime_error("Invalid origin block: Expect '{' for definition or ';' for usage.");
     }
 
     return node;
@@ -381,7 +391,11 @@ std::unique_ptr<ElementInsertionNode> Parser::parseElementInsertion() {
 
 std::unique_ptr<ElementNode> Parser::parseElementNode() {
     auto node = std::make_unique<ElementNode>();
-    node->tagName = consume(TokenType::IDENTIFIER, "Expect element tag name.").lexeme;
+    if (peek().type == TokenType::IDENTIFIER || peek().type == TokenType::STYLE || peek().type == TokenType::SCRIPT) {
+        node->tagName = advance().lexeme;
+    } else {
+        consume(TokenType::IDENTIFIER, "Expect element tag name."); // To throw the correct error
+    }
     consume(TokenType::LEFT_BRACE, "Expect '{' after element tag name.");
 
     while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
