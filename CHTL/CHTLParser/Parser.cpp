@@ -10,6 +10,8 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include <fstream>
+#include <sstream>
 
 namespace CHTL {
 
@@ -42,6 +44,10 @@ std::shared_ptr<BaseNode> Parser::parseStatement() {
 
     if (m_currentToken.type == TokenType::OriginKeyword) {
         return parseOriginBlock();
+    }
+
+    if (m_currentToken.type == TokenType::ImportKeyword) {
+        return parseImportStatement();
     }
 
     if (m_currentToken.type == TokenType::TemplateKeyword) {
@@ -239,8 +245,10 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
         type = OriginType::Html;
     } else if (m_currentToken.value == "@Style") {
         type = OriginType::Style;
-    } else { // Assuming @JavaScript for now
+    } else if (m_currentToken.value == "@JavaScript") {
         type = OriginType::JavaScript;
+    } else {
+        throw std::runtime_error("Unknown import type: " + m_currentToken.value);
     }
     eat(TokenType::Identifier);
 
@@ -258,6 +266,44 @@ std::shared_ptr<BaseNode> Parser::parseOriginBlock() {
         node->setName(*name);
         m_originTemplates[*name] = node;
     }
+    return node;
+}
+
+std::shared_ptr<BaseNode> Parser::parseImportStatement() {
+    eat(TokenType::ImportKeyword);
+
+    OriginType type;
+    if (m_currentToken.value == "@Html") {
+        type = OriginType::Html;
+    } else if (m_currentToken.value == "@Style") {
+        type = OriginType::Style;
+    } else { // Assuming @JavaScript for now
+        type = OriginType::JavaScript;
+    }
+    eat(TokenType::Identifier);
+
+    eat(TokenType::FromKeyword);
+
+    std::string filepath = m_currentToken.value;
+    eat(TokenType::String);
+
+    eat(TokenType::AsKeyword);
+
+    std::string name = m_currentToken.value;
+    eat(TokenType::Identifier);
+
+    std::ifstream file(filepath);
+    if (!file) {
+        throw std::runtime_error("Could not open file: " + filepath);
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+
+    auto node = std::make_shared<OriginNode>(type, content);
+    node->setName(name);
+    m_originTemplates[name] = node;
+
     return node;
 }
 

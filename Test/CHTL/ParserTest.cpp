@@ -304,3 +304,27 @@ TEST(ParserTest, ParseOriginBlockInsideElement) {
     EXPECT_EQ(originNode->getOriginType(), CHTL::OriginType::Html);
     EXPECT_EQ(originNode->getContent(), "<p>raw</p>");
 }
+
+TEST(ParserTest, ParseImportStatement) {
+    std::string source = "[Import] @Html from \"../../Test/CHTL/resources/test.html\" as MyHtml";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+
+    auto importNode = std::static_pointer_cast<CHTL::OriginNode>(programNode->getChildren()[0]);
+    ASSERT_NE(importNode, nullptr);
+    EXPECT_EQ(importNode->getOriginType(), CHTL::OriginType::Html);
+    EXPECT_EQ(importNode->getName().value_or(""), "MyHtml");
+    EXPECT_EQ(importNode->getContent(), "<p>This is a test file.</p>\n");
+}
+
+TEST(ParserTest, ParseImportStatementFileNotFound) {
+    std::string source = "[Import] @Html from \"nonexistent.html\" as MyHtml";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    EXPECT_THROW(parser.parse(), std::runtime_error);
+}

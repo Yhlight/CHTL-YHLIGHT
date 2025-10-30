@@ -93,6 +93,10 @@ Token Lexer::nextToken() {
             m_state = LexerState::IN_RAW_BLOCK;
             return makeToken(TokenType::OriginKeyword, "[Origin]", start_pos);
         }
+        if (m_source.substr(m_position, 8) == "[Import]") {
+            advance(8);
+            return makeToken(TokenType::ImportKeyword, "[Import]", start_pos);
+        }
     }
 
     if (m_state == LexerState::IN_RAW_BLOCK) {
@@ -117,6 +121,12 @@ Token Lexer::nextToken() {
 
         if (value == "inherit") {
             return makeToken(TokenType::InheritKeyword, value, start_pos);
+        }
+        if (value == "from") {
+            return makeToken(TokenType::FromKeyword, value, start_pos);
+        }
+        if (value == "as") {
+            return makeToken(TokenType::AsKeyword, value, start_pos);
         }
 
         return makeToken(TokenType::Identifier, value, start_pos);

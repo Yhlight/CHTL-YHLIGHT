@@ -45,6 +45,7 @@ private:
     std::shared_ptr<StyleBlockNode> parseStyleBlock();
     void parseAttributesAndChildren(std::shared_ptr<class ElementNode> element);
     std::shared_ptr<BaseNode> parseOriginBlock();
+    std::shared_ptr<BaseNode> parseImportStatement();
     void parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock);
 };
 
