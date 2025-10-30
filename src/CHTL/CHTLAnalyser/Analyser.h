@@ -13,6 +13,8 @@ public:
     explicit Analyser(ProgramNode& program, std::string filePath);
     void analyse();
 
+    const std::unordered_map<std::string, TemplateNode*>& getTemplates() const { return m_templates; }
+
 private:
     void visit(ASTNode* node);
     void visit(ElementNode* node);

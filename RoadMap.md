@@ -44,9 +44,9 @@ This document outlines the development roadmap for the CHTL project, guided by t
 - [x] **Imports (`[Import]`):**
     - [x] Import CHTL files.
     - [x] Import HTML, CSS, and JS files.
-- [ ] **Namespaces (`[Namespace]`):**
+- [x] **Namespaces (`[Namespace]`):**
     - [x] Define and use namespaces.
-    - [ ] Handle automatic namespacing on import.
+    - [x] Handle automatic namespacing on import.
 - [ ] **Other Features:**
     - [ ] Raw embedding (`[Origin]`).
     - [ ] Constraints (`except`).

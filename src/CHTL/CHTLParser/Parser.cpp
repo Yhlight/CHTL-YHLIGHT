@@ -37,10 +37,10 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     }
     if ((peek().type == TokenType::IDENTIFIER || peek().type == TokenType::STYLE || peek().type == TokenType::SCRIPT)
         && m_tokens.size() > m_current + 1 && m_tokens[m_current + 1].type == TokenType::LEFT_BRACE) {
+        if (peek().lexeme == "text") {
+            return parseTextNode();
+        }
         return parseElementNode();
-    }
-    if (peek().type == TokenType::TEXT) {
-         return parseTextNode();
     }
     throw std::runtime_error("Unexpected token in parseStatement: " + peek().lexeme);
 }
@@ -402,7 +402,20 @@ std::unique_ptr<ElementNode> Parser::parseElementNode() {
         if (peek().type == TokenType::STYLE) {
             node->style = parseStyleNode(node.get());
         } else if (peek().type == TokenType::IDENTIFIER && m_tokens[m_current + 1].type == TokenType::COLON) {
-            parseAttributes(*node);
+            if (peek().lexeme == "text") {
+                advance(); // consume 'text'
+                consume(TokenType::COLON, "Expect ':' after 'text' attribute.");
+                auto text_node = std::make_unique<TextNode>();
+                if (peek().type == TokenType::STRING || peek().type == TokenType::UNQUOTED_LITERAL || peek().type == TokenType::IDENTIFIER) {
+                    text_node->content = advance().lexeme;
+                } else {
+                    throw std::runtime_error("Expect string or unquoted literal for text attribute.");
+                }
+                node->children.push_back(std::move(text_node));
+                consume(TokenType::SEMICOLON, "Expect ';' after text attribute.");
+            } else {
+                parseAttributes(*node);
+            }
         } else {
             node->children.push_back(parseStatement());
         }
@@ -413,7 +426,7 @@ std::unique_ptr<ElementNode> Parser::parseElementNode() {
 }
 
 std::unique_ptr<TextNode> Parser::parseTextNode() {
-    consume(TokenType::TEXT, "Expect 'text' keyword.");
+    consume(TokenType::IDENTIFIER, "Expect 'text' keyword.");
     consume(TokenType::LEFT_BRACE, "Expect '{' after 'text' keyword.");
     auto node = std::make_unique<TextNode>();
     if (peek().type == TokenType::STRING) {

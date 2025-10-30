@@ -156,9 +156,23 @@ void Analyser::visit(ImportNode* node) {
         } else {
             auto* imported_program = static_cast<ProgramNode*>(imported_ast.get());
 
+            bool has_top_level_namespace = false;
+            if (!imported_program->children.empty() && imported_program->children[0]->getType() == NodeType::Namespace) {
+                has_top_level_namespace = true;
+            }
+
+            if (!has_top_level_namespace) {
+                auto ns_node = std::make_unique<NamespaceNode>();
+                ns_node->name = std::filesystem::path(node->filePath).stem().string();
+                ns_node->children = std::move(imported_program->children);
+                imported_program->children.push_back(std::move(ns_node));
+            }
+
             Analyser imported_analyser(*imported_program, canonical_path_str);
             imported_analyser.m_import_stack = this->m_import_stack;
             imported_analyser.analyse();
+
+            m_templates.insert(imported_analyser.getTemplates().begin(), imported_analyser.getTemplates().end());
 
             it = children.erase(it);
             children.insert(it,

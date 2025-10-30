@@ -4,7 +4,6 @@
 namespace CHTL {
 
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
-    {"text", TokenType::TEXT},
     {"style", TokenType::STYLE},
     {"script", TokenType::SCRIPT},
     {"if", TokenType::IF},
