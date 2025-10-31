@@ -26,6 +26,8 @@ enum class TokenType {
     Comma,          // ,
     Dot,            // .
     At,             // @
+    Hash,           // #
+    Ampersand,      // &
 
     // Operators
     Plus,           // +

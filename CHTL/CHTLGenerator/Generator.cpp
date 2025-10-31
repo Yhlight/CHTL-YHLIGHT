@@ -18,9 +18,26 @@ Generator::Generator(std::shared_ptr<BaseNode> root,
     : m_root(root), m_styleTemplates(styleTemplates), m_elementTemplates(elementTemplates), m_varTemplates(varTemplates) {}
 
 std::string Generator::generate() {
-    std::string output;
-    visit(m_root, output);
-    return output;
+    std::string bodyContent;
+    visit(m_root, bodyContent);
+
+    std::string cssContent;
+    collectCssRules(m_root);
+    for (const auto& rule : m_globalCssRules) {
+        cssContent += rule->getSelector() + "{";
+        for (const auto& prop : rule->getProperties()) {
+            cssContent += prop->getKey() + ":" + prop->getValue() + ";";
+        }
+        cssContent += "}";
+    }
+
+    std::string finalHtml = "<html><head>";
+    if (!cssContent.empty()) {
+        finalHtml += "<style>" + cssContent + "</style>";
+    }
+    finalHtml += "</head><body>" + bodyContent + "</body></html>";
+
+    return finalHtml;
 }
 
 void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
@@ -42,13 +59,20 @@ void Generator::visit(std::shared_ptr<BaseNode> node, std::string& output) {
             }
 
             if (elementNode->getStyleBlock()) {
+                // Handle inline styles
                 std::string styleContent = generateStyleContent(elementNode->getStyleBlock());
                 if (!styleContent.empty()) {
-                    // Trim trailing space before closing quote
-                    if (styleContent.back() == ' ') {
-                        styleContent.pop_back();
-                    }
                     output += " style=\"" + styleContent + "\"";
+                }
+
+                // Handle class/id from style rules
+                for (const auto& rule : elementNode->getStyleBlock()->getRules()) {
+                    std::string selector = rule->getSelector();
+                    if (selector[0] == '.') {
+                        output += " class=\"" + selector.substr(1) + "\"";
+                    } else if (selector[0] == '#') {
+                        output += " id=\"" + selector.substr(1) + "\"";
+                    }
                 }
             }
 
@@ -128,6 +152,27 @@ std::string Generator::generateStyleContent(std::shared_ptr<const StyleBlockNode
         content += pair.first + ":" + pair.second + ";";
     }
     return content;
+}
+
+void Generator::collectCssRules(std::shared_ptr<BaseNode> node) {
+    if (!node) return;
+
+    if (node->getType() == NodeType::Element) {
+        auto elementNode = std::static_pointer_cast<ElementNode>(node);
+        if (elementNode->getStyleBlock()) {
+            for (const auto& rule : elementNode->getStyleBlock()->getRules()) {
+                m_globalCssRules.push_back(rule);
+            }
+        }
+        for (const auto& child : elementNode->getChildren()) {
+            collectCssRules(child);
+        }
+    } else if (node->getType() == NodeType::Program) {
+        auto programNode = std::static_pointer_cast<ProgramNode>(node);
+        for (const auto& child : programNode->getChildren()) {
+            collectCssRules(child);
+        }
+    }
 }
 
 } // namespace CHTL

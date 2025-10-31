@@ -150,6 +150,9 @@ Token Lexer::nextToken() {
         case ';': advance(); return makeToken(TokenType::Semicolon, ";", start_pos);
         case ':': advance(); return makeToken(TokenType::Colon, ":", start_pos);
         case '=': advance(); return makeToken(TokenType::Colon, "=", start_pos);
+        case '#': advance(); return makeToken(TokenType::Hash, "#", start_pos);
+        case '&': advance(); return makeToken(TokenType::Ampersand, "&", start_pos);
+        case '.': advance(); return makeToken(TokenType::Dot, ".", start_pos);
     }
 
     std::string unexpected_char;

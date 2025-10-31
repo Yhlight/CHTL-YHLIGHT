@@ -328,3 +328,24 @@ TEST(ParserTest, ParseImportStatementFileNotFound) {
 
     EXPECT_THROW(parser.parse(), std::runtime_error);
 }
+
+TEST(ParserTest, ParseStyleBlockWithCssRule) {
+    std::string source = "div { style { .my-class { color: red; } } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto programNode = parser.parse();
+    ASSERT_NE(programNode, nullptr);
+    ASSERT_EQ(programNode->getChildren().size(), 1);
+
+    auto elementNode = std::static_pointer_cast<CHTL::ElementNode>(programNode->getChildren()[0]);
+    auto styleBlock = elementNode->getStyleBlock();
+    ASSERT_NE(styleBlock, nullptr);
+
+    ASSERT_EQ(styleBlock->getRules().size(), 1);
+    auto rule = styleBlock->getRules()[0];
+    EXPECT_EQ(rule->getSelector(), ".my-class");
+    ASSERT_EQ(rule->getProperties().size(), 1);
+    EXPECT_EQ(rule->getProperties()[0]->getKey(), "color");
+    EXPECT_EQ(rule->getProperties()[0]->getValue(), "red");
+}

@@ -47,6 +47,7 @@ private:
     std::shared_ptr<BaseNode> parseOriginBlock();
     std::shared_ptr<BaseNode> parseImportStatement();
     void parseStyleBlockContent(std::shared_ptr<StyleBlockNode> styleBlock);
+    std::shared_ptr<StyleRuleNode> parseStyleRule();
 };
 
 } // namespace CHTL
