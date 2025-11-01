@@ -1,1 +1,20 @@
-third-party/
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# IDE files
+.vscode/
+*.suo
+*.user
+*.userprefs
+*.DS_Store
+
+# Other
+bin/
+*.log
