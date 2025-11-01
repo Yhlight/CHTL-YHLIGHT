@@ -5,7 +5,7 @@ This document outlines the development plan for the CHTL compiler and its ecosys
 ## Phase 1: Core Compiler Infrastructure
 
 - [x] **Project Setup**: Initialize the repository with the basic directory structure, build scripts, and configuration files.
-- [ ] **Lexer Implementation**: Create the lexical analyzer to tokenize the CHTL source code.
+- [x] **Lexer Implementation**: Create the lexical analyzer to tokenize the CHTL source code.
 - [ ] **Parser & AST**: Implement the parser to build an Abstract Syntax Tree (AST) from the token stream. Define the core AST nodes.
 - [ ] **Basic Generator**: Implement a simple generator to traverse the AST and produce basic HTML output.
 - [ ] **Testing Framework**: Set up the Google Test framework and create initial tests for the core components.
