@@ -82,6 +82,8 @@ std::unique_ptr<ASTNode> Parser::parseElement() {
 
     consume(TokenType::LeftBrace, "Expect '{' after element tag.");
 
+    parseAttributes(*elementNode);
+
     while (!check(TokenType::RightBrace) && !isAtEnd()) {
         elementNode->children.push_back(parseStatement());
     }
@@ -89,6 +91,16 @@ std::unique_ptr<ASTNode> Parser::parseElement() {
     consume(TokenType::RightBrace, "Expect '}' after element block.");
 
     return elementNode;
+}
+
+void Parser::parseAttributes(ElementNode& element) {
+    while (check(TokenType::Identifier) && (m_tokens[m_current + 1].type == TokenType::Colon || m_tokens[m_current + 1].type == TokenType::Equals)) {
+        std::string name(advance().lexeme);
+        advance(); // consume ':' or '='
+        std::string value(advance().lexeme);
+        consume(TokenType::Semicolon, "Expect ';' after attribute value.");
+        element.attributes[name] = value;
+    }
 }
 
 } // namespace CHTL

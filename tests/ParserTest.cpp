@@ -122,3 +122,56 @@ TEST(ParserTest, ParsesElementWithText) {
     CHTL::TextNode* textNode = static_cast<CHTL::TextNode*>(divNode->children[0].get());
     EXPECT_EQ(textNode->content, " hello ");
 }
+
+TEST(ParserTest, ParsesSingleAttribute) {
+    std::string source = "div { id: \"main\"; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ElementNode* elementNode = static_cast<CHTL::ElementNode*>(programNode->children[0].get());
+    ASSERT_EQ(elementNode->attributes.size(), 1);
+    EXPECT_EQ(elementNode->attributes["id"], "\"main\"");
+}
+
+TEST(ParserTest, ParsesMultipleAttributes) {
+    std::string source = "div { id: \"main\"; class: \"container\"; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ElementNode* elementNode = static_cast<CHTL::ElementNode*>(programNode->children[0].get());
+    ASSERT_EQ(elementNode->attributes.size(), 2);
+    EXPECT_EQ(elementNode->attributes["id"], "\"main\"");
+    EXPECT_EQ(elementNode->attributes["class"], "\"container\"");
+}
+
+TEST(ParserTest, ParsesAttributesAndChildren) {
+    std::string source = "div { id: \"main\"; span {} }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ElementNode* divNode = static_cast<CHTL::ElementNode*>(programNode->children[0].get());
+    ASSERT_EQ(divNode->attributes.size(), 1);
+    EXPECT_EQ(divNode->attributes["id"], "\"main\"");
+    ASSERT_EQ(divNode->children.size(), 1);
+
+    CHTL::ElementNode* spanNode = static_cast<CHTL::ElementNode*>(divNode->children[0].get());
+    EXPECT_EQ(spanNode->tagName, "span");
+}

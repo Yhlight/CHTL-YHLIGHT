@@ -7,6 +7,8 @@
 
 namespace CHTL {
 
+class ElementNode;
+
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens, std::string_view source);
@@ -27,6 +29,7 @@ private:
     std::unique_ptr<ASTNode> parseStatement();
     std::unique_ptr<ASTNode> parseText();
     std::unique_ptr<ASTNode> parseElement();
+    void parseAttributes(ElementNode& element);
 };
 
 } // namespace CHTL
