@@ -51,4 +51,28 @@ void GeneratorTests() {
         std::string expected = R"(<!-- This is a comment --><div id="main"><style>color: "red";</style><script>console.log('Hello');</script>Hello, CHTL!</div>)";
         ASSERT(result == expected);
     }});
+
+    tests.push_back({"Test Style Template", []() {
+        std::string source = R"(
+            [Template] @Style DefaultText {
+                color: "black";
+                line-height: 1.6;
+            }
+
+            div {
+                style {
+                    @Style DefaultText;
+                }
+            }
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = R"(<div><style>color: "black";
+                line-height: 1.6;</style></div>)";
+        ASSERT(result == expected);
+    }});
 }

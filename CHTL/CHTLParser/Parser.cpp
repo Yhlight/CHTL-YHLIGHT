@@ -55,8 +55,21 @@ AstNode Parser::parseTemplate() {
     }
     if (peek().type == TokenType::OpenBrace) {
         advance(); // consume '{'
-        while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
-            node->body.push_back(parseStatement());
+        if (node->type == "@Style") {
+            auto textNode = std::make_unique<TextNode>();
+            size_t start = peek().pos;
+            while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                advance();
+            }
+            size_t end = peek().pos;
+            std::string content = source.substr(start, end - start);
+            StringUtil::trim(content);
+            textNode->text = content;
+            node->body.push_back(std::move(textNode));
+        } else {
+            while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                node->body.push_back(parseStatement());
+            }
         }
         if (peek().type == TokenType::CloseBrace) {
             advance(); // consume '}'
@@ -104,7 +117,9 @@ AstNode Parser::parseOrigin() {
             advance();
         }
         size_t end = peek().pos;
-        node->content = source.substr(start, end - start);
+        std::string content = source.substr(start, end - start);
+        StringUtil::trim(content);
+        node->content = content;
 
         if (peek().type == TokenType::CloseBrace) {
             advance(); // consume '}'

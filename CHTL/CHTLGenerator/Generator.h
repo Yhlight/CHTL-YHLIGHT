@@ -1,7 +1,9 @@
 #pragma once
 
 #include "CHTLNode/BaseNode.h"
+#include "CHTLNode/TemplateNode.h"
 #include <string>
+#include <map>
 
 class Generator {
 public:
@@ -13,6 +15,7 @@ private:
     std::string html_output;
     std::string css_output;
     std::string js_output;
+    std::map<std::string, std::string> style_templates;
 
     void visit(BaseNode* node);
     void visitElement(class ElementNode* node);
@@ -20,4 +23,5 @@ private:
     void visitComment(class CommentNode* node);
     void visitStyle(class StyleNode* node);
     void visitScript(class ScriptNode* node);
+    void visitTemplate(class TemplateNode* node);
 };

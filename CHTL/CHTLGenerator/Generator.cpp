@@ -4,6 +4,7 @@
 #include "CHTLNode/CommentNode.h"
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/ScriptNode.h"
+#include "CHTLNode/TemplateNode.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -26,6 +27,8 @@ void Generator::visit(BaseNode* node) {
         visitStyle(styleNode);
     } else if (auto scriptNode = dynamic_cast<ScriptNode*>(node)) {
         visitScript(scriptNode);
+    } else if (auto templateNode = dynamic_cast<TemplateNode*>(node)) {
+        visitTemplate(templateNode);
     }
 }
 
@@ -52,9 +55,30 @@ void Generator::visitComment(CommentNode* node) {
 }
 
 void Generator::visitStyle(StyleNode* node) {
-    html_output += "<style>" + node->content + "</style>";
+    std::string content = node->content;
+    size_t pos = content.find("@Style ");
+    if (pos != std::string::npos) {
+        size_t end_pos = content.find(";", pos);
+        std::string template_name = content.substr(pos + 7, end_pos - (pos + 7));
+        if (style_templates.count(template_name)) {
+            content.replace(pos, end_pos - pos + 1, style_templates[template_name]);
+        }
+    }
+    html_output += "<style>" + content + "</style>";
 }
 
 void Generator::visitScript(ScriptNode* node) {
     html_output += "<script>" + node->content + "</script>";
+}
+
+void Generator::visitTemplate(TemplateNode* node) {
+    if (node->type == "@Style") {
+        std::string style_content;
+        for (const auto& child : node->body) {
+            if (auto textNode = dynamic_cast<TextNode*>(child.get())) {
+                style_content += textNode->text;
+            }
+        }
+        style_templates[node->name] = style_content;
+    }
 }
