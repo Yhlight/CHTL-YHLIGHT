@@ -51,7 +51,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Shared Core (Salt Bridge)
 - [x] CHTL JS Lexer
 - [x] CHTL JS Parser
-- [ ] CHTL JS Generator
+- [x] CHTL JS Generator
 - [ ] Enhanced Selectors (`{{...}}`)
 - [ ] Event Handling (`Listen`, `&->`, `Delegate`)
 - [ ] Animations (`Animate`)

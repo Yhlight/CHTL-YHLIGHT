@@ -4,6 +4,7 @@ target_sources(libchtljs
   PRIVATE
     CHTLLexer/Lexer.cpp
     CHTLParser/Parser.cpp
+    CHTLGenerator/Generator.cpp
 )
 
 target_include_directories(libchtljs
