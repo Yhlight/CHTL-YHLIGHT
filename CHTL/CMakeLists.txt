@@ -1,7 +1,15 @@
 add_library(CHTLLexer
     CHTLLexer/Lexer.cpp
-    CHTLLexer/Lexer.h
-    CHTLLexer/Token.h
 )
 
-target_include_directories(CHTLLexer PUBLIC .)
+target_include_directories(CHTLLexer PUBLIC ./)
+
+add_library(CHTLParser
+    CHTLParser/Parser.cpp
+    CHTLNode/BaseNode.h
+    CHTLNode/ElementNode.h
+    CHTLNode/TextNode.h
+)
+
+target_link_libraries(CHTLParser PRIVATE CHTLLexer)
+target_include_directories(CHTLParser PUBLIC ./)

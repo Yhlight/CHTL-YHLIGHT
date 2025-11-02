@@ -5,12 +5,35 @@
 
 enum class TokenType {
     // Keywords
-    TemplateKeyword,
-    CustomKeyword,
-    OriginKeyword,
-    ImportKeyword,
-    NamespaceKeyword,
-    ConfigurationKeyword,
+    TemplateKeyword, // [Template]
+    CustomKeyword, // [Custom]
+    OriginKeyword, // [Origin]
+    ImportKeyword, // [Import]
+    NamespaceKeyword, // [Namespace]
+    ConfigurationKeyword, // [Configuration]
+    StyleSpecifier, // @Style
+    ElementSpecifier, // @Element
+    VarSpecifier, // @Var
+    HtmlSpecifier, // @Html
+    JavaScriptSpecifier, // @JavaScript
+    ChtlSpecifier, // @Chtl
+    CJmodSpecifier, // @CJmod
+    InheritKeyword,
+    DeleteKeyword,
+    InsertKeyword,
+    AfterKeyword,
+    BeforeKeyword,
+    ReplaceKeyword,
+    AtTopKeyword,
+    AtBottomKeyword,
+    FromKeyword,
+    AsKeyword,
+    ExceptKeyword,
+    UseKeyword,
+    Html5Keyword,
+    TextKeyword,
+    StyleKeyword,
+    ScriptKeyword,
 
     // Identifiers and literals
     Identifier,

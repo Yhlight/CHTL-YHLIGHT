@@ -21,9 +21,11 @@ void run_tests() {
 }
 
 void LexerTests();
+void ParserTests();
 
 int main() {
     LexerTests();
+    ParserTests();
     run_tests();
     return 0;
 }

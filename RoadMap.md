@@ -4,10 +4,10 @@ This document outlines the development roadmap for the CHTL project. The project
 
 ## Phase 1: Core Compiler Implementation
 
-- **[ ] Lexer:** Implement the lexical analyzer to tokenize the CHTL source code.
+- **[X] Lexer:** Implement the lexical analyzer to tokenize the CHTL source code.
   - [X] Basic tokenization (keywords, identifiers, literals)
   - [X] Comment handling (`//`, `/**/`, `#`)
-  - [ ] Support for all specified token types in `CHTL.md`
+  - [X] Support for all specified token types in `CHTL.md`
 - **[ ] Parser:** Implement the parser to build an Abstract Syntax Tree (AST) from the token stream.
   - [ ] Basic AST structure
   - [ ] Parsing of core language features (elements, attributes, text)
