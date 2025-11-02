@@ -4,12 +4,154 @@
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/CommentNode.h"
+#include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/CustomNode.h"
+#include "CHTLNode/OriginNode.h"
+#include "CHTLNode/ImportNode.h"
+#include "CHTLNode/NamespaceNode.h"
 
 Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
 
-AstNode Parser::parse() {
-    // For now, we assume the root is an element. This will be expanded later.
-    return parseElement();
+AstNodeList Parser::parse() {
+    AstNodeList nodes;
+    while (!isAtEnd()) {
+        nodes.push_back(parseStatement());
+    }
+    return nodes;
+}
+
+AstNode Parser::parseStatement() {
+    switch (peek().type) {
+        case TokenType::Identifier:
+            return parseElement();
+        case TokenType::TemplateKeyword:
+            return parseTemplate();
+        case TokenType::CustomKeyword:
+            return parseCustom();
+        case TokenType::OriginKeyword:
+            return parseOrigin();
+        case TokenType::ImportKeyword:
+            return parseImport();
+        case TokenType::NamespaceKeyword:
+            return parseNamespace();
+        default:
+            advance();
+            return nullptr;
+    }
+}
+
+AstNode Parser::parseTemplate() {
+    advance(); // consume [Template]
+    auto node = std::make_unique<TemplateNode>();
+
+    if (peek().type == TokenType::StyleSpecifier || peek().type == TokenType::ElementSpecifier || peek().type == TokenType::VarSpecifier) {
+        node->type = advance().value;
+    }
+    if (peek().type == TokenType::Identifier) {
+        node->name = advance().value;
+    }
+    if (peek().type == TokenType::OpenBrace) {
+        advance(); // consume '{'
+        while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+            node->body.push_back(parseStatement());
+        }
+        if (peek().type == TokenType::CloseBrace) {
+            advance(); // consume '}'
+        }
+    }
+    return node;
+}
+
+AstNode Parser::parseCustom() {
+    advance(); // consume [Custom]
+    auto node = std::make_unique<CustomNode>();
+
+    if (peek().type == TokenType::StyleSpecifier || peek().type == TokenType::ElementSpecifier || peek().type == TokenType::VarSpecifier) {
+        node->type = advance().value;
+    }
+    if (peek().type == TokenType::Identifier) {
+        node->name = advance().value;
+    }
+    if (peek().type == TokenType::OpenBrace) {
+        advance(); // consume '{'
+        while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+            node->body.push_back(parseStatement());
+        }
+        if (peek().type == TokenType::CloseBrace) {
+            advance(); // consume '}'
+        }
+    }
+    return node;
+}
+
+AstNode Parser::parseOrigin() {
+    advance(); // consume [Origin]
+    auto node = std::make_unique<OriginNode>();
+
+    if (peek().type == TokenType::HtmlSpecifier || peek().type == TokenType::StyleSpecifier || peek().type == TokenType::JavaScriptSpecifier) {
+        node->type = advance().value;
+    }
+    if (peek().type == TokenType::Identifier) {
+        node->name = advance().value;
+    }
+    if (peek().type == TokenType::OpenBrace) {
+        advance(); // consume '{'
+        std::string content;
+        while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+            content += advance().value;
+        }
+        node->content = content;
+        if (peek().type == TokenType::CloseBrace) {
+            advance(); // consume '}'
+        }
+    }
+    return node;
+}
+
+AstNode Parser::parseImport() {
+    advance(); // consume [Import]
+    auto node = std::make_unique<ImportNode>();
+
+    if (peek().type == TokenType::ChtlSpecifier || peek().type == TokenType::HtmlSpecifier || peek().type == TokenType::StyleSpecifier || peek().type == TokenType::JavaScriptSpecifier) {
+        node->type = advance().value;
+    }
+
+    if (peek().type == TokenType::FromKeyword) {
+        advance(); // consume 'from'
+    }
+
+    if (peek().type == TokenType::StringLiteral) {
+        node->file_path = advance().value;
+    }
+
+    if (peek().type == TokenType::AsKeyword) {
+        advance(); // consume 'as'
+        if (peek().type == TokenType::Identifier) {
+            node->as_name = advance().value;
+        }
+    }
+
+    return node;
+}
+
+AstNode Parser::parseNamespace() {
+    advance(); // consume [Namespace]
+    auto node = std::make_unique<NamespaceNode>();
+
+    if (peek().type == TokenType::Identifier) {
+        node->name = advance().value;
+    }
+
+    if (peek().type == TokenType::OpenBrace) {
+        advance(); // consume '{'
+        while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+            node->body.push_back(parseStatement());
+        }
+        if (peek().type == TokenType::CloseBrace) {
+            advance(); // consume '}'
+        }
+    }
+    return node;
 }
 
 AstNode Parser::parseStyleBlock() {

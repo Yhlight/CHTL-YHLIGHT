@@ -7,6 +7,11 @@
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/CommentNode.h"
+#include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/CustomNode.h"
+#include "CHTLNode/OriginNode.h"
+#include "CHTLNode/ImportNode.h"
+#include "CHTLNode/NamespaceNode.h"
 
 #define ASSERT(condition) \
     if (!(condition)) { \
@@ -27,10 +32,10 @@ void ParserTests() {
         Lexer lexer(source);
         std::vector<Token> tokens = lexer.tokenize();
         Parser parser(tokens);
-        AstNode ast = parser.parse();
+        AstNodeList ast = parser.parse();
 
-        ASSERT(ast != nullptr);
-        ElementNode* root = static_cast<ElementNode*>(ast.get());
+        ASSERT(ast.size() == 1);
+        ElementNode* root = static_cast<ElementNode*>(ast[0].get());
         ASSERT(root->tag_name == "div");
         ASSERT(root->attributes.size() == 1);
         ASSERT(root->attributes["id"] == "main");
@@ -61,10 +66,10 @@ void ParserTests() {
         Lexer lexer(source);
         std::vector<Token> tokens = lexer.tokenize();
         Parser parser(tokens);
-        AstNode ast = parser.parse();
+        AstNodeList ast = parser.parse();
 
-        ASSERT(ast != nullptr);
-        ElementNode* body = static_cast<ElementNode*>(ast.get());
+        ASSERT(ast.size() > 0);
+        ElementNode* body = static_cast<ElementNode*>(ast[0].get());
         ASSERT(body->tag_name == "body");
         ASSERT(body->children.size() == 3);
 
@@ -86,5 +91,61 @@ void ParserTests() {
 
         ScriptNode* script = static_cast<ScriptNode*>(body->children[2].get());
         ASSERT(script->content.find("let x = 1") != std::string::npos);
+    }});
+
+    tests.push_back({"Test Top-Level Constructs", []() {
+        std::string source = R"(
+            [Template] @Element MyTemplate {
+                div {}
+            }
+            [Custom] @Style MyCustomStyle {
+                span {}
+            }
+            [Origin] @Html MyOrigin {}
+            [Import] @Chtl from "my.chtl"
+            [Namespace] MyNamespace {
+                p {}
+            }
+            div {}
+        )";
+
+        Lexer lexer(source);
+        std::vector<Token> tokens = lexer.tokenize();
+        Parser parser(tokens);
+        AstNodeList ast = parser.parse();
+
+        ASSERT(ast.size() == 6);
+        TemplateNode* templateNode = dynamic_cast<TemplateNode*>(ast[0].get());
+        ASSERT(templateNode != nullptr);
+        ASSERT(templateNode->type == "@Element");
+        ASSERT(templateNode->name == "MyTemplate");
+        ASSERT(templateNode->body.size() > 0);
+        ElementNode* div = dynamic_cast<ElementNode*>(templateNode->body[0].get());
+        ASSERT(div != nullptr);
+        ASSERT(div->tag_name == "div");
+        CustomNode* customNode = dynamic_cast<CustomNode*>(ast[1].get());
+        ASSERT(customNode != nullptr);
+        ASSERT(customNode->type == "@Style");
+        ASSERT(customNode->name == "MyCustomStyle");
+        ASSERT(customNode->body.size() > 0);
+        ElementNode* span = dynamic_cast<ElementNode*>(customNode->body[0].get());
+        ASSERT(span != nullptr);
+        ASSERT(span->tag_name == "span");
+        OriginNode* originNode = dynamic_cast<OriginNode*>(ast[2].get());
+        ASSERT(originNode != nullptr);
+        ASSERT(originNode->type == "@Html");
+        ASSERT(originNode->name == "MyOrigin");
+        ImportNode* importNode = dynamic_cast<ImportNode*>(ast[3].get());
+        ASSERT(importNode != nullptr);
+        ASSERT(importNode->type == "@Chtl");
+        ASSERT(importNode->file_path == "my.chtl");
+        NamespaceNode* namespaceNode = dynamic_cast<NamespaceNode*>(ast[4].get());
+        ASSERT(namespaceNode != nullptr);
+        ASSERT(namespaceNode->name == "MyNamespace");
+        ASSERT(namespaceNode->body.size() > 0);
+        ElementNode* p = dynamic_cast<ElementNode*>(namespaceNode->body[0].get());
+        ASSERT(p != nullptr);
+        ASSERT(p->tag_name == "p");
+        ASSERT(dynamic_cast<ElementNode*>(ast[5].get()) != nullptr);
     }});
 }
