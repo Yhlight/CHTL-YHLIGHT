@@ -14,11 +14,13 @@ add_executable(run_tests
     ImporterTest.cpp
     Parser/ConfigurationTest.cpp
     Analyser/ConfigurationTest.cpp
+    CHTLJS/LexerTest.cpp
 )
 
 target_link_libraries(run_tests
   PRIVATE
   libchtl
+  libchtljs
   GTest::gtest
 )
 

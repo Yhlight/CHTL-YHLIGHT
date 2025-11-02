@@ -15,6 +15,7 @@ target_include_directories(libchtl
 )
 
 add_subdirectory(SharedCore)
+add_subdirectory(CHTLJS)
 
 target_link_libraries(libchtl
     PRIVATE

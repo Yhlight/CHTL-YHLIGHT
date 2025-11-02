@@ -49,7 +49,7 @@ This document outlines the development roadmap for the CHTL project.
 ## Phase 3: CHTL JS Integration
 
 - [x] Shared Core (Salt Bridge)
-- [ ] CHTL JS Lexer
+- [x] CHTL JS Lexer
 - [ ] CHTL JS Parser
 - [ ] CHTL JS Generator
 - [ ] Enhanced Selectors (`{{...}}`)
