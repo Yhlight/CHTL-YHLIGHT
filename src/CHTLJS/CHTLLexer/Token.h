@@ -7,7 +7,7 @@ namespace CHTLJS {
 
 enum class TokenType {
     // Single-character tokens.
-    LeftParen, RightParen, LeftBrace, RightBrace,
+    LeftParen, RightParen, LeftBrace, RightBrace, LeftBracket, RightBracket,
     Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
 
     // One or two character tokens.

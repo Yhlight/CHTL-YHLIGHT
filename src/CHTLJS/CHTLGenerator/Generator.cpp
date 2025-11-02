@@ -34,7 +34,27 @@ std::string Generator::visitLiteral(LiteralNode* node) {
 }
 
 std::string Generator::visitSelectorExpr(SelectorExprNode* node) {
-    return "document.querySelector(\"" + node->selector + "\")";
+    std::string query;
+    switch (node->type) {
+        case SelectorType::Id:
+            query = "document.getElementById(\"" + node->baseName + "\")";
+            break;
+        case SelectorType::Class:
+            query = "document.querySelectorAll(\"." + node->baseName + "\")";
+            break;
+        case SelectorType::Tag:
+            query = "document.querySelectorAll(\"" + node->baseName + "\")";
+            break;
+        case SelectorType::Compound:
+            query = "document.querySelectorAll(\"." + node->baseName + " " + node->descendant + "\")";
+            break;
+    }
+
+    if (node->index.has_value()) {
+        query += "[" + std::to_string(node->index.value()) + "]";
+    }
+
+    return query;
 }
 
 } // namespace CHTLJS

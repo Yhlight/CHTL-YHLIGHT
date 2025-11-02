@@ -119,7 +119,29 @@ std::unique_ptr<ExprNode> Parser::primary() {
     if (check(TokenType::LeftDoubleBrace)) {
         advance(); // consume {{
         auto selectorNode = std::make_unique<SelectorExprNode>();
-        selectorNode->selector = std::string(consume(TokenType::Identifier, "Expect selector.").lexeme);
+        if (check(TokenType::Dot)) {
+            advance(); // consume .
+            selectorNode->type = SelectorType::Class;
+            selectorNode->baseName = std::string(consume(TokenType::Identifier, "Expect class name.").lexeme);
+        } else if (check(TokenType::Identifier) && peek().lexeme[0] == '#') {
+            selectorNode->type = SelectorType::Id;
+            selectorNode->baseName = std::string(advance().lexeme).substr(1);
+        } else {
+            selectorNode->type = SelectorType::Tag;
+            selectorNode->baseName = std::string(consume(TokenType::Identifier, "Expect tag name.").lexeme);
+        }
+
+        if (check(TokenType::Identifier)) {
+            selectorNode->descendant = std::string(advance().lexeme);
+            selectorNode->type = SelectorType::Compound;
+        }
+
+        if (check(TokenType::LeftBracket)) {
+            advance(); // consume [
+            selectorNode->index = std::stoi(std::string(consume(TokenType::Number, "Expect index.").lexeme));
+            consume(TokenType::RightBracket, "Expect ']' after index.");
+        }
+
         consume(TokenType::RightDoubleBrace, "Expect '}}' after selector.");
         return selectorNode;
     }

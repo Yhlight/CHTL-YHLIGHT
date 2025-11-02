@@ -52,7 +52,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] CHTL JS Lexer
 - [x] CHTL JS Parser
 - [x] CHTL JS Generator
-- [ ] Enhanced Selectors (`{{...}}`)
+- [x] Enhanced Selectors (`{{...}}`)
 - [ ] Event Handling (`Listen`, `&->`, `Delegate`)
 - [ ] Animations (`Animate`)
 - [ ] Virtual Objects (`Vir`)

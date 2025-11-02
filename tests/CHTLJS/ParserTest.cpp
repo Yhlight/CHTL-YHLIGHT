@@ -18,7 +18,7 @@ TEST(CHTLJSParserTest, ParsesLiteral) {
     EXPECT_EQ(literal->value, "123");
 }
 
-TEST(CHTLJSParserTest, ParsesSelector) {
+TEST(CHTLJSParserTest, ParsesTagSelector) {
     std::string source = "{{mySelector}}";
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
@@ -28,7 +28,67 @@ TEST(CHTLJSParserTest, ParsesSelector) {
     ASSERT_NE(expr, nullptr);
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
     auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
-    EXPECT_EQ(selector->selector, "mySelector");
+    EXPECT_EQ(selector->type, CHTLJS::SelectorType::Tag);
+    EXPECT_EQ(selector->baseName, "mySelector");
+}
+
+TEST(CHTLJSParserTest, ParsesIdSelector) {
+    std::string source = "{{#myId}}";
+    CHTLJS::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    CHTLJS::Parser parser(tokens);
+    auto expr = parser.parse();
+
+    ASSERT_NE(expr, nullptr);
+    ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
+    auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
+    EXPECT_EQ(selector->type, CHTLJS::SelectorType::Id);
+    EXPECT_EQ(selector->baseName, "myId");
+}
+
+TEST(CHTLJSParserTest, ParsesClassSelector) {
+    std::string source = "{{.myClass}}";
+    CHTLJS::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    CHTLJS::Parser parser(tokens);
+    auto expr = parser.parse();
+
+    ASSERT_NE(expr, nullptr);
+    ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
+    auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
+    EXPECT_EQ(selector->type, CHTLJS::SelectorType::Class);
+    EXPECT_EQ(selector->baseName, "myClass");
+}
+
+TEST(CHTLJSParserTest, ParsesCompoundSelector) {
+    std::string source = "{{.myClass myDescendant}}";
+    CHTLJS::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    CHTLJS::Parser parser(tokens);
+    auto expr = parser.parse();
+
+    ASSERT_NE(expr, nullptr);
+    ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
+    auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
+    EXPECT_EQ(selector->type, CHTLJS::SelectorType::Compound);
+    EXPECT_EQ(selector->baseName, "myClass");
+    EXPECT_EQ(selector->descendant, "myDescendant");
+}
+
+TEST(CHTLJSParserTest, ParsesIndexedSelector) {
+    std::string source = "{{myTag[0]}}";
+    CHTLJS::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    CHTLJS::Parser parser(tokens);
+    auto expr = parser.parse();
+
+    ASSERT_NE(expr, nullptr);
+    ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
+    auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
+    EXPECT_EQ(selector->type, CHTLJS::SelectorType::Tag);
+    EXPECT_EQ(selector->baseName, "myTag");
+    ASSERT_TRUE(selector->index.has_value());
+    EXPECT_EQ(selector->index.value(), 0);
 }
 
 TEST(CHTLJSParserTest, ParsesBinaryExpression) {

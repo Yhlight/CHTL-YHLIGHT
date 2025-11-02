@@ -2,14 +2,25 @@
 
 #include "ExprNode.h"
 #include <string>
+#include <optional>
 
 namespace CHTLJS {
+
+enum class SelectorType {
+    Tag,
+    Id,
+    Class,
+    Compound,
+};
 
 class SelectorExprNode : public ExprNode {
 public:
     ASTNodeType getType() const override { return ASTNodeType::SelectorExpr; }
 
-    std::string selector;
+    SelectorType type;
+    std::string baseName;
+    std::string descendant;
+    std::optional<int> index;
 };
 
 } // namespace CHTLJS

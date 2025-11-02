@@ -48,6 +48,8 @@ void Lexer::scanToken() {
     switch (c) {
         case '(': addToken(TokenType::LeftParen); break;
         case ')': addToken(TokenType::RightParen); break;
+        case '[': addToken(TokenType::LeftBracket); break;
+        case ']': addToken(TokenType::RightBracket); break;
         case '{':
             if (match('{')) {
                 addToken(TokenType::LeftDoubleBrace);
@@ -93,6 +95,7 @@ void Lexer::scanToken() {
             m_line++;
             break;
         case '"': string(); break;
+        case '#': identifier(); break;
         default:
             if (isdigit(c)) {
                 number();
