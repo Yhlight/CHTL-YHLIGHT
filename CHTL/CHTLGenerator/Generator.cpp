@@ -5,6 +5,7 @@
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/StyleContentNode.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -55,16 +56,17 @@ void Generator::visitComment(CommentNode* node) {
 }
 
 void Generator::visitStyle(StyleNode* node) {
-    std::string content = node->content;
-    size_t pos = content.find("@Style ");
-    if (pos != std::string::npos) {
-        size_t end_pos = content.find(";", pos);
-        std::string template_name = content.substr(pos + 7, end_pos - (pos + 7));
-        if (style_templates.count(template_name)) {
-            content.replace(pos, end_pos - pos + 1, style_templates[template_name]);
+    html_output += "<style>";
+    for (const auto& content_node : node->content) {
+        if (auto rawNode = dynamic_cast<RawStyleContentNode*>(content_node.get())) {
+            html_output += rawNode->raw_css;
+        } else if (auto directiveNode = dynamic_cast<StyleDirectiveNode*>(content_node.get())) {
+            if (style_templates.count(directiveNode->template_name)) {
+                html_output += style_templates[directiveNode->template_name];
+            }
         }
     }
-    html_output += "<style>" + content + "</style>";
+    html_output += "</style>";
 }
 
 void Generator::visitScript(ScriptNode* node) {

@@ -10,6 +10,8 @@
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
 #include "Util/StringUtil.h"
+#include "StyleParser.h"
+#include "CHTLLexer/Lexer.h"
 
 Parser::Parser(std::vector<Token> tokens, std::string source) : tokens(std::move(tokens)), source(std::move(source)) {}
 
@@ -191,7 +193,10 @@ AstNode Parser::parseStyleBlock() {
     size_t end = peek().pos;
     std::string content = source.substr(start, end - start);
     StringUtil::trim(content);
-    styleNode->content = content;
+
+    Lexer styleLexer(content);
+    StyleParser styleParser(styleLexer.tokenize());
+    styleNode->content = styleParser.parse();
 
     if (peek().type == TokenType::CloseBrace) advance(); // consume '}'
     return styleNode;

@@ -38,8 +38,6 @@ enum class TokenType {
     Ampersand,
     Pipe,
     Comma,
-    DoubleAsterisk,
-    Asterisk,
     At,
 
     // Literals
@@ -85,4 +83,11 @@ struct Token {
     size_t line;
     size_t col;
     size_t pos;
+
+    std::string reconstruct() const {
+        if (type == TokenType::StringLiteral) {
+            return "\"" + value + "\"";
+        }
+        return value;
+    }
 };

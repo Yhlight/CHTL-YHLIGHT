@@ -8,6 +8,7 @@
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/CommentNode.h"
 #include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/StyleContentNode.h"
 #include "CHTLNode/CustomNode.h"
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/ImportNode.h"
@@ -87,7 +88,10 @@ void ParserTests() {
         ASSERT(h1_text->text == "Title");
 
         StyleNode* style = static_cast<StyleNode*>(div->children[1].get());
-        ASSERT(style->content.find("color") != std::string::npos);
+        ASSERT(!style->content.empty());
+        RawStyleContentNode* raw_style = dynamic_cast<RawStyleContentNode*>(style->content[0].get());
+        ASSERT(raw_style != nullptr);
+        ASSERT(raw_style->raw_css.find("color") != std::string::npos);
 
         ScriptNode* script = static_cast<ScriptNode*>(body->children[2].get());
         ASSERT(script->content.find("let x = 1") != std::string::npos);

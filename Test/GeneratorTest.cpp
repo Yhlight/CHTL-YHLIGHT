@@ -48,7 +48,7 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = R"(<!-- This is a comment --><div id="main"><style>color: "red";</style><script>console.log('Hello');</script>Hello, CHTL!</div>)";
+        std::string expected = R"(<!-- This is a comment --><div id="main"><style>color: "red"; </style><script>console.log('Hello');</script>Hello, CHTL!</div>)";
         ASSERT(result == expected);
     }});
 

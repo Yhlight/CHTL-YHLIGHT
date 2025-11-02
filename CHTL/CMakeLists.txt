@@ -6,6 +6,7 @@ target_include_directories(CHTLLexer PUBLIC ./)
 
 add_library(CHTLParser
     CHTLParser/Parser.cpp
+    CHTLParser/StyleParser.cpp
     CHTLNode/BaseNode.h
     CHTLNode/ElementNode.h
     CHTLNode/TextNode.h
@@ -13,6 +14,8 @@ add_library(CHTLParser
     CHTLNode/ScriptNode.h
     CHTLNode/CommentNode.h
     CHTLNode/TemplateNode.h
+    CHTLNode/StyleContentNode.h
+    CHTLParser/StyleParser.h
     CHTLNode/CustomNode.h
     CHTLNode/OriginNode.h
     CHTLNode/ImportNode.h
