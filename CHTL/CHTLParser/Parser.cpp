@@ -12,6 +12,7 @@
 #include "Util/StringUtil.h"
 #include "StyleParser.h"
 #include "CHTLLexer/Lexer.h"
+#include "CHTLNode/ElementDirectiveNode.h"
 
 Parser::Parser(std::vector<Token> tokens, std::string source) : tokens(std::move(tokens)), source(std::move(source)) {}
 
@@ -281,6 +282,17 @@ AstNode Parser::parseElement() {
             case TokenType::BlockComment:
             case TokenType::GeneratorComment:
                 element->children.push_back(parseComment());
+                break;
+            case TokenType::ElementSpecifier:
+                advance(); // consume '@Element'
+                if (peek().type == TokenType::Identifier) {
+                    auto directiveNode = std::make_unique<ElementDirectiveNode>();
+                    directiveNode->template_name = advance().value;
+                    if (peek().type == TokenType::Semicolon) {
+                        advance(); // consume ';'
+                    }
+                    element->children.push_back(std::move(directiveNode));
+                }
                 break;
             default:
                 advance(); // Skip unexpected tokens

@@ -75,4 +75,26 @@ void GeneratorTests() {
                 line-height: 1.6;</style></div>)";
         ASSERT(result == expected);
     }});
+
+    tests.push_back({"Test Element Template", []() {
+        std::string source = R"(
+            [Template] @Element Box {
+                span {
+                    text { "This is a box." }
+                }
+            }
+
+            body {
+                @Element Box;
+            }
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = R"(<body><span>This is a box.</span></body>)";
+        ASSERT(result == expected);
+    }});
 }

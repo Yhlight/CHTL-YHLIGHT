@@ -1,7 +1,10 @@
 #pragma once
 
+#pragma once
+
 #include "CHTLNode/BaseNode.h"
 #include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/ElementDirectiveNode.h"
 #include <string>
 #include <map>
 
@@ -16,6 +19,7 @@ private:
     std::string css_output;
     std::string js_output;
     std::map<std::string, std::string> style_templates;
+    std::map<std::string, TemplateNode*> element_templates;
 
     void visit(BaseNode* node);
     void visitElement(class ElementNode* node);
@@ -24,4 +28,5 @@ private:
     void visitStyle(class StyleNode* node);
     void visitScript(class ScriptNode* node);
     void visitTemplate(class TemplateNode* node);
+    void visitElementDirective(class ElementDirectiveNode* node);
 };

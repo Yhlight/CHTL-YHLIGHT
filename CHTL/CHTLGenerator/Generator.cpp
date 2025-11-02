@@ -6,6 +6,7 @@
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/StyleContentNode.h"
+#include "CHTLNode/ElementDirectiveNode.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -30,6 +31,8 @@ void Generator::visit(BaseNode* node) {
         visitScript(scriptNode);
     } else if (auto templateNode = dynamic_cast<TemplateNode*>(node)) {
         visitTemplate(templateNode);
+    } else if (auto elementDirectiveNode = dynamic_cast<ElementDirectiveNode*>(node)) {
+        visitElementDirective(elementDirectiveNode);
     }
 }
 
@@ -82,5 +85,16 @@ void Generator::visitTemplate(TemplateNode* node) {
             }
         }
         style_templates[node->name] = style_content;
+    } else if (node->type == "@Element") {
+        element_templates[node->name] = node;
+    }
+}
+
+void Generator::visitElementDirective(ElementDirectiveNode* node) {
+    if (element_templates.count(node->template_name)) {
+        TemplateNode* templateNode = element_templates[node->template_name];
+        for (const auto& child : templateNode->body) {
+            visit(child.get());
+        }
     }
 }

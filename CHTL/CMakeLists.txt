@@ -16,6 +16,7 @@ add_library(CHTLParser
     CHTLNode/TemplateNode.h
     CHTLNode/StyleContentNode.h
     CHTLParser/StyleParser.h
+    CHTLNode/ElementDirectiveNode.h
     CHTLNode/CustomNode.h
     CHTLNode/OriginNode.h
     CHTLNode/ImportNode.h
