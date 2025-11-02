@@ -6,6 +6,7 @@
 #include "CHTL/CHTLNode/ElementNode.h"
 #include "CHTL/CHTLNode/StyleNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
+#include "CHTL/CHTLNode/TemplateNode.h"
 
 TEST(ParserTest, ParsesUnquotedTextBlock) {
     std::string source = "text { hello world }";
@@ -221,4 +222,48 @@ TEST(ParserTest, ParsesMultipleStyleProperties) {
     CHTL::StylePropertyNode* prop2 = styleNode->properties[1].get();
     EXPECT_EQ(prop2->name, "font-size");
     EXPECT_EQ(prop2->value, "16px");
+}
+
+TEST(ParserTest, ParsesStyleTemplate) {
+    std::string source = "[Template] @Style MyStyle { color: red; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ASTNode* templateNodeBase = programNode->children[0].get();
+    ASSERT_EQ(templateNodeBase->getType(), CHTL::ASTNodeType::Template);
+
+    CHTL::TemplateNode* templateNode = static_cast<CHTL::TemplateNode*>(templateNodeBase);
+    EXPECT_EQ(templateNode->templateType, CHTL::TemplateType::Style);
+    EXPECT_EQ(templateNode->name, "MyStyle");
+    ASSERT_EQ(templateNode->children.size(), 1);
+
+    CHTL::StyleNode* styleNode = static_cast<CHTL::StyleNode*>(templateNode->children[0].get());
+    ASSERT_EQ(styleNode->properties.size(), 1);
+
+    CHTL::StylePropertyNode* propNode = styleNode->properties[0].get();
+    EXPECT_EQ(propNode->name, "color");
+    EXPECT_EQ(propNode->value, "red");
+}
+
+TEST(ParserTest, ParsesElementTemplate) {
+    std::string source = "[Template] @Element MyElement { div {} }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::TemplateNode* templateNode = static_cast<CHTL::TemplateNode*>(programNode->children[0].get());
+    EXPECT_EQ(templateNode->templateType, CHTL::TemplateType::Element);
+    EXPECT_EQ(templateNode->name, "MyElement");
+    ASSERT_EQ(templateNode->children.size(), 1);
 }

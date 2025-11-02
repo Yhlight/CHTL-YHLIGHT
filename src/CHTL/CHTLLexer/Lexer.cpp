@@ -54,7 +54,11 @@ void Lexer::scanToken() {
         addToken(TokenType::RightBrace);
         break;
     case '[':
-        addToken(TokenType::LeftBracket);
+        if (isalpha(peek())) {
+            blockKeyword();
+        } else {
+            addToken(TokenType::LeftBracket);
+        }
         break;
     case ']':
         addToken(TokenType::RightBracket);
@@ -127,7 +131,7 @@ void Lexer::scanToken() {
     default:
         if (isdigit(c)) {
             number();
-        } else if (isalpha(c) || c == '_') {
+        } else if (isalpha(c) || c == '_' || c == '@') {
             identifier();
         } else {
             addToken(TokenType::Unexpected, "Unexpected character.");
@@ -138,12 +142,12 @@ void Lexer::scanToken() {
 
 TokenType Lexer::identifierType() {
     auto identifier = m_source.substr(m_start, m_current - m_start);
-    if (identifier == "text") {
-        return TokenType::Text;
-    }
-    if (identifier == "style") {
-        return TokenType::Style;
-    }
+    if (identifier == "text") return TokenType::Text;
+    if (identifier == "style") return TokenType::Style;
+    if (identifier == "@Style") return TokenType::AtStyle;
+    if (identifier == "@Element") return TokenType::AtElement;
+    if (identifier == "@Var") return TokenType::AtVar;
+
     return TokenType::Identifier;
 }
 
@@ -151,6 +155,18 @@ void Lexer::identifier() {
     while (isalnum(peek()) || peek() == '_' || peek() == '-')
         advance();
     addToken(identifierType());
+}
+
+void Lexer::blockKeyword() {
+    while (peek() != ']' && !isAtEnd()) {
+        advance();
+    }
+    if (isAtEnd()) {
+        addToken(TokenType::Unexpected, "Unterminated block keyword.");
+        return;
+    }
+    advance(); // consume ']'
+    addToken(TokenType::BlockKeyword);
 }
 
 void Lexer::number() {

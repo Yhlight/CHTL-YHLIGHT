@@ -49,6 +49,26 @@ TEST(LexerTest, TokenizesNumbers) {
     EXPECT_EQ(tokens[2].type, CHTL::TokenType::Eof);
 }
 
+TEST(LexerTest, TokenizesBlockKeyword) {
+    CHTL::Lexer lexer("[Template]");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::BlockKeyword);
+    EXPECT_EQ(tokens[0].lexeme, "[Template]");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, TokenizesAtKeyword) {
+    CHTL::Lexer lexer("@Style");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::AtStyle);
+    EXPECT_EQ(tokens[0].lexeme, "@Style");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}
+
 TEST(LexerTest, TokenizesStrings) {
     CHTL::Lexer lexer("\"hello world\"");
     std::vector<CHTL::Token> tokens = lexer.scanTokens();

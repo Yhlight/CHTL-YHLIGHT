@@ -29,6 +29,7 @@ private:
     void identifier();
     void number();
     void string();
+    void blockKeyword();
 };
 
 } // namespace CHTL

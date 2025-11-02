@@ -8,6 +8,7 @@
 namespace CHTL {
 
 class ElementNode;
+class StyleNode;
 
 class Parser {
 public:
@@ -31,6 +32,8 @@ private:
     std::unique_ptr<ASTNode> parseElement();
     void parseAttributes(ElementNode& element);
     std::unique_ptr<ASTNode> parseStyle();
+    void parseStyleProperties(StyleNode& styleNode);
+    std::unique_ptr<ASTNode> parseTemplate();
 };
 
 } // namespace CHTL

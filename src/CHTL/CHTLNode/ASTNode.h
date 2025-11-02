@@ -11,6 +11,7 @@ enum class ASTNodeType {
     Element,
     StyleBlock,
     StyleProperty,
+    Template,
 };
 
 class ASTNode {

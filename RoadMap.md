@@ -36,7 +36,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Unquoted Literals
 - [x] Element Attributes
 - [x] Local Style Blocks (`style {}`)
-- [ ] Templates (`[Template]`)
+- [x] Templates (`[Template]`)
 - [ ] Custom Templates (`[Custom]`)
 - [ ] Origin Blocks (`[Origin]`)
 - [ ] Imports (`[Import]`)
