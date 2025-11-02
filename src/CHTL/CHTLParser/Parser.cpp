@@ -10,6 +10,7 @@
 #include "CHTL/CHTLNode/ImportNode.h"
 #include "CHTL/CHTLNode/NamespaceNode.h"
 #include "CHTL/CHTLNode/TemplateUsageNode.h"
+#include "CHTL/CHTLNode/ConfigurationNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -104,6 +105,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         }
         if (peek().lexeme == "[Namespace]") {
             return parseNamespace();
+        }
+        if (peek().lexeme == "[Configuration]") {
+            return parseConfiguration();
         }
     }
     // For now, just advance to avoid infinite loops on unknown tokens
@@ -365,6 +369,42 @@ std::unique_ptr<ASTNode> Parser::parseNamespace() {
     }
 
     return namespaceNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseConfiguration() {
+    consume(TokenType::BlockKeyword, "Expect block keyword.");
+    auto configNode = std::make_unique<ConfigurationNode>();
+
+    if (check(TokenType::Identifier)) {
+        configNode->name = std::string(advance().lexeme);
+    }
+
+    consume(TokenType::LeftBrace, "Expect '{' after configuration name.");
+
+    while (!check(TokenType::RightBrace) && !isAtEnd()) {
+        if (check(TokenType::BlockKeyword) && peek().lexeme == "[Name]") {
+            advance(); // consume '[Name]'
+            consume(TokenType::LeftBrace, "Expect '{' after '[Name]'.");
+            while (!check(TokenType::RightBrace) && !isAtEnd()) {
+                std::string key = std::string(consume(TokenType::Identifier, "Expect key in [Name] block.").lexeme);
+                consume(TokenType::Equals, "Expect '=' after key in [Name] block.");
+                std::string value = std::string(advance().lexeme);
+                consume(TokenType::Semicolon, "Expect ';' after value in [Name] block.");
+                configNode->nameGroup[key] = value;
+            }
+            consume(TokenType::RightBrace, "Expect '}' after '[Name]' block.");
+        } else {
+            std::string key = std::string(consume(TokenType::Identifier, "Expect key in configuration block.").lexeme);
+            consume(TokenType::Equals, "Expect '=' after key in configuration block.");
+            std::string value = std::string(advance().lexeme);
+            consume(TokenType::Semicolon, "Expect ';' after value in configuration block.");
+            configNode->settings[key] = value;
+        }
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after configuration block.");
+
+    return configNode;
 }
 
 } // namespace CHTL

@@ -7,6 +7,7 @@
 #include "CHTL/CHTLNode/TemplateUsageNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/ImportNode.h"
+#include "CHTL/CHTLNode/ConfigurationNode.h"
 #include "CHTL/CHTLLexer/Lexer.h"
 #include "CHTL/CHTLParser/Parser.h"
 #include <iostream>
@@ -102,6 +103,11 @@ void Analyser::resolve(ASTNode* node) {
 
             break;
         }
+        case ASTNodeType::Configuration: {
+            ConfigurationNode* configNode = static_cast<ConfigurationNode*>(node);
+            resolve(configNode);
+            break;
+        }
         default:
             break;
     }
@@ -148,6 +154,15 @@ void Analyser::resolve(StyleNode* node) {
         }
     }
     node->properties = std::move(new_properties);
+}
+
+void Analyser::resolve(ConfigurationNode* node) {
+    for (const auto& [key, value] : node->settings) {
+        m_config[key] = value;
+    }
+    for (const auto& [key, value] : node->nameGroup) {
+        m_config[key] = value;
+    }
 }
 
 

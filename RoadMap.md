@@ -44,7 +44,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Origin Blocks (`[Origin]`)
 - [x] Imports (`[Import]`)
 - [x] Namespaces (`[Namespace]`)
-- [ ] Configuration (`[Configuration]`)
+- [x] Configuration (`[Configuration]`)
 
 ## Phase 3: CHTL JS Integration
 
