@@ -5,7 +5,7 @@
 
 namespace CHTL {
 
-Parser::Parser(const std::vector<Token>& tokens) : m_tokens(tokens) {}
+Parser::Parser(const std::vector<Token>& tokens, std::string_view source) : m_tokens(tokens), m_source(source) {}
 
 std::unique_ptr<ASTNode> Parser::parse() {
     auto programNode = std::make_unique<ProgramNode>();
@@ -43,12 +43,28 @@ const Token& Parser::consume(TokenType type, const std::string& message) {
 
 std::unique_ptr<ASTNode> Parser::parseText() {
     consume(TokenType::Text, "Expect 'text' keyword.");
-    consume(TokenType::LeftBrace, "Expect '{' after 'text' keyword.");
-    auto textNode = std::make_unique<TextNode>();
-    if (check(TokenType::String)) {
-        textNode->content = advance().lexeme;
+    const Token& leftBrace = consume(TokenType::LeftBrace, "Expect '{' after 'text' keyword.");
+
+    int startPos = leftBrace.start_pos + leftBrace.lexeme.length();
+
+    int lookahead = m_current;
+    while (m_tokens[lookahead].type != TokenType::RightBrace && m_tokens[lookahead].type != TokenType::Eof) {
+        lookahead++;
     }
+
+    if (m_tokens[lookahead].type == TokenType::Eof) {
+        throw std::runtime_error("Unterminated text block.");
+    }
+
+    const Token& rightBrace = m_tokens[lookahead];
+    int endPos = rightBrace.start_pos;
+
+    auto textNode = std::make_unique<TextNode>();
+    textNode->content = m_source.substr(startPos, endPos - startPos);
+
+    m_current = lookahead;
     consume(TokenType::RightBrace, "Expect '}' after text block.");
+
     return textNode;
 }
 

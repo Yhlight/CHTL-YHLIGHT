@@ -33,7 +33,7 @@ This document outlines the development roadmap for the CHTL project.
 
 - [x] Comments (`//`, `/**/`, `#`)
 - [x] Text Nodes (`text {}` and `text:` attribute)
-- [ ] Unquoted Literals
+- [x] Unquoted Literals
 - [ ] Element Attributes
 - [ ] Local Style Blocks (`style {}`)
 - [ ] Templates (`[Template]`)

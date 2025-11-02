@@ -9,11 +9,12 @@ namespace CHTL {
 
 class Parser {
 public:
-    Parser(const std::vector<Token>& tokens);
+    Parser(const std::vector<Token>& tokens, std::string_view source);
     std::unique_ptr<ASTNode> parse();
 
 private:
     const std::vector<Token>& m_tokens;
+    std::string_view m_source;
     int m_current = 0;
 
     const Token& peek();

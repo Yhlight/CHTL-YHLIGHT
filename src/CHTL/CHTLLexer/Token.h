@@ -49,7 +49,7 @@ struct Token {
     TokenType type;
     std::string_view lexeme;
     int line;
-    int col;
+    int start_pos;
 };
 
 }
