@@ -1,6 +1,9 @@
 #include "Generator.h"
 #include "CHTLNode/ElementNode.h"
 #include "CHTLNode/TextNode.h"
+#include "CHTLNode/CommentNode.h"
+#include "CHTLNode/StyleNode.h"
+#include "CHTLNode/ScriptNode.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -17,6 +20,12 @@ void Generator::visit(BaseNode* node) {
         visitElement(elementNode);
     } else if (auto textNode = dynamic_cast<TextNode*>(node)) {
         visitText(textNode);
+    } else if (auto commentNode = dynamic_cast<CommentNode*>(node)) {
+        visitComment(commentNode);
+    } else if (auto styleNode = dynamic_cast<StyleNode*>(node)) {
+        visitStyle(styleNode);
+    } else if (auto scriptNode = dynamic_cast<ScriptNode*>(node)) {
+        visitScript(scriptNode);
     }
 }
 
@@ -36,4 +45,16 @@ void Generator::visitElement(ElementNode* node) {
 
 void Generator::visitText(TextNode* node) {
     html_output += node->text;
+}
+
+void Generator::visitComment(CommentNode* node) {
+    html_output += "<!--" + node->comment + " -->";
+}
+
+void Generator::visitStyle(StyleNode* node) {
+    html_output += "<style>" + node->content + "</style>";
+}
+
+void Generator::visitScript(ScriptNode* node) {
+    html_output += "<script>" + node->content + "</script>";
 }

@@ -31,7 +31,7 @@ void ParserTests() {
 
         Lexer lexer(source);
         std::vector<Token> tokens = lexer.tokenize();
-        Parser parser(tokens);
+        Parser parser(tokens, source);
         AstNodeList ast = parser.parse();
 
         ASSERT(ast.size() == 1);
@@ -65,7 +65,7 @@ void ParserTests() {
 
         Lexer lexer(source);
         std::vector<Token> tokens = lexer.tokenize();
-        Parser parser(tokens);
+        Parser parser(tokens, source);
         AstNodeList ast = parser.parse();
 
         ASSERT(ast.size() > 0);
@@ -111,7 +111,7 @@ void ParserTests() {
 
         Lexer lexer(source);
         std::vector<Token> tokens = lexer.tokenize();
-        Parser parser(tokens);
+        Parser parser(tokens, source);
         AstNodeList ast = parser.parse();
 
         ASSERT(ast.size() == 6);

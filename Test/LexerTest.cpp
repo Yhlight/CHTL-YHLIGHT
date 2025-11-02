@@ -1,5 +1,6 @@
 #include "Test.h"
 #include <stdexcept>
+#include <iostream>
 #include "CHTLLexer/Lexer.h"
 
 #define ASSERT(condition) \
@@ -64,7 +65,7 @@ void LexerTests() {
         ASSERT(tokens[16].type == TokenType::AtTopKeyword);
         ASSERT(tokens[17].type == TokenType::AtBottomKeyword);
         ASSERT(tokens[18].type == TokenType::NumericLiteral);
-        ASSERT(tokens[19].type == TokenType::DoubleAsterisk);
+        ASSERT(tokens[19].type == TokenType::DoubleStar);
         ASSERT(tokens[20].type == TokenType::NumericLiteral);
         ASSERT(tokens[21].type == TokenType::EndOfFile);
     }});

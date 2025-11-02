@@ -9,8 +9,9 @@
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
+#include "Util/StringUtil.h"
 
-Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
+Parser::Parser(std::vector<Token> tokens, std::string source) : tokens(std::move(tokens)), source(std::move(source)) {}
 
 AstNodeList Parser::parse() {
     AstNodeList nodes;
@@ -34,6 +35,8 @@ AstNode Parser::parseStatement() {
             return parseImport();
         case TokenType::NamespaceKeyword:
             return parseNamespace();
+        case TokenType::GeneratorComment:
+            return parseComment();
         default:
             advance();
             return nullptr;
@@ -96,11 +99,13 @@ AstNode Parser::parseOrigin() {
     }
     if (peek().type == TokenType::OpenBrace) {
         advance(); // consume '{'
-        std::string content;
+        size_t start = peek().pos;
         while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
-            content += advance().value;
+            advance();
         }
-        node->content = content;
+        size_t end = peek().pos;
+        node->content = source.substr(start, end - start);
+
         if (peek().type == TokenType::CloseBrace) {
             advance(); // consume '}'
         }
@@ -160,14 +165,17 @@ AstNode Parser::parseStyleBlock() {
     advance(); // consume '{'
 
     auto styleNode = std::make_unique<StyleNode>();
-    std::string content;
+    size_t start = peek().pos;
     int braceLevel = 1;
     while (!isAtEnd()) {
         if (peek().type == TokenType::OpenBrace) braceLevel++;
         if (peek().type == TokenType::CloseBrace) braceLevel--;
         if (braceLevel == 0) break;
-        content += advance().value + " ";
+        advance();
     }
+    size_t end = peek().pos;
+    std::string content = source.substr(start, end - start);
+    StringUtil::trim(content);
     styleNode->content = content;
 
     if (peek().type == TokenType::CloseBrace) advance(); // consume '}'
@@ -180,14 +188,17 @@ AstNode Parser::parseScriptBlock() {
     advance(); // consume '{'
 
     auto scriptNode = std::make_unique<ScriptNode>();
-    std::string content;
+    size_t start = peek().pos;
     int braceLevel = 1;
     while (!isAtEnd()) {
         if (peek().type == TokenType::OpenBrace) braceLevel++;
         if (peek().type == TokenType::CloseBrace) braceLevel--;
         if (braceLevel == 0) break;
-        content += advance().value + " ";
+        advance();
     }
+    size_t end = peek().pos;
+    std::string content = source.substr(start, end - start);
+    StringUtil::trim(content);
     scriptNode->content = content;
 
     if (peek().type == TokenType::CloseBrace) advance(); // consume '}'

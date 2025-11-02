@@ -4,6 +4,10 @@ add_library(CHTLLexer
 
 target_include_directories(CHTLLexer PUBLIC ./)
 
+add_library(CHTLUtil INTERFACE)
+
+target_include_directories(CHTLUtil INTERFACE ./)
+
 add_library(CHTLParser
     CHTLParser/Parser.cpp
     CHTLNode/BaseNode.h

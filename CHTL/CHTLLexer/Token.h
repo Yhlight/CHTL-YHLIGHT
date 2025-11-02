@@ -1,23 +1,67 @@
 #pragma once
 
 #include <string>
-#include <utility>
 
 enum class TokenType {
     // Keywords
-    TemplateKeyword, // [Template]
-    CustomKeyword, // [Custom]
-    OriginKeyword, // [Origin]
-    ImportKeyword, // [Import]
-    NamespaceKeyword, // [Namespace]
-    ConfigurationKeyword, // [Configuration]
-    StyleSpecifier, // @Style
-    ElementSpecifier, // @Element
-    VarSpecifier, // @Var
-    HtmlSpecifier, // @Html
-    JavaScriptSpecifier, // @JavaScript
-    ChtlSpecifier, // @Chtl
-    CJmodSpecifier, // @CJmod
+    HtmlKeyword,
+    HeadKeyword,
+    BodyKeyword,
+    TitleKeyword,
+    DivKeyword,
+    SpanKeyword,
+    TextKeyword,
+    StyleKeyword,
+    ScriptKeyword,
+    TemplateKeyword,
+    CustomKeyword,
+    OriginKeyword,
+    ImportKeyword,
+    NamespaceKeyword,
+
+    // Punctuation
+    OpenBrace,
+    CloseBrace,
+    OpenParen,
+    CloseParen,
+    OpenBracket,
+    CloseBracket,
+    Semicolon,
+    Colon,
+    Equals,
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Percent,
+    DoubleStar,
+    Ampersand,
+    Pipe,
+    Comma,
+    DoubleAsterisk,
+    Asterisk,
+    At,
+
+    // Literals
+    Identifier,
+    StringLiteral,
+    NumericLiteral,
+
+    // Comments
+    LineComment,
+    BlockComment,
+    GeneratorComment,
+
+    // Special
+    StyleSpecifier,
+    ElementSpecifier,
+    VarSpecifier,
+    HtmlSpecifier,
+    JavaScriptSpecifier,
+    ChtlSpecifier,
+    CjmodSpecifier,
+    FromKeyword,
+    AsKeyword,
     InheritKeyword,
     DeleteKeyword,
     InsertKeyword,
@@ -26,58 +70,19 @@ enum class TokenType {
     ReplaceKeyword,
     AtTopKeyword,
     AtBottomKeyword,
-    FromKeyword,
-    AsKeyword,
     ExceptKeyword,
     UseKeyword,
     Html5Keyword,
-    TextKeyword,
-    StyleKeyword,
-    ScriptKeyword,
+    ConfigSpecifier,
 
-    // Identifiers and literals
-    Identifier,
-    StringLiteral,
-    NumericLiteral,
-
-    // Punctuation
-    OpenBrace,
-    CloseBrace,
-    OpenParen,
-    CloseParen,
-    Semicolon,
-    Colon,
-    Equals,
-    Comma,
-
-    // Comments
-    LineComment,
-    BlockComment,
-    GeneratorComment,
-
-    // Special Symbols
-    At,
-    Hash,
-    Ampersand,
-
-    // Operators
-    Plus,
-    Minus,
-    Asterisk,
-    Slash,
-    Percent,
-    DoubleAsterisk,
-
-    // End-of-file
+    // End of File
     EndOfFile,
-
-    // Unknown
-    Unknown,
 };
 
 struct Token {
     TokenType type;
     std::string value;
     size_t line;
-    size_t column;
+    size_t col;
+    size_t pos;
 };

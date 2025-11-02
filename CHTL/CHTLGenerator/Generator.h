@@ -17,4 +17,7 @@ private:
     void visit(BaseNode* node);
     void visitElement(class ElementNode* node);
     void visitText(class TextNode* node);
+    void visitComment(class CommentNode* node);
+    void visitStyle(class StyleNode* node);
+    void visitScript(class ScriptNode* node);
 };

@@ -35,9 +35,10 @@ std::vector<Token> Lexer::tokenize() {
 
 Token Lexer::nextToken() {
     skipWhitespace();
+    size_t start_pos = current;
 
     if (isAtEnd()) {
-        return {TokenType::EndOfFile, "", line, column};
+        return {TokenType::EndOfFile, "", line, col, start_pos};
     }
 
     char c = advance();
@@ -47,7 +48,7 @@ Token Lexer::nextToken() {
         while (peek() != '\n' && !isAtEnd()) {
             comment += advance();
         }
-        return {TokenType::LineComment, comment, line, column};
+        return {TokenType::LineComment, comment, line, col, start_pos};
     }
 
     if (c == '/' && peek() == '*') {
@@ -61,7 +62,7 @@ Token Lexer::nextToken() {
         }
         advance();
         advance();
-        return {TokenType::BlockComment, comment, line, column};
+        return {TokenType::BlockComment, comment, line, col, start_pos};
     }
 
     if (c == '#') {
@@ -69,7 +70,7 @@ Token Lexer::nextToken() {
         while (peek() != '\n' && !isAtEnd()) {
             comment += advance();
         }
-        return {TokenType::GeneratorComment, comment, line, column};
+        return {TokenType::GeneratorComment, comment, line, col, start_pos};
     }
     if (c == '[') {
         std::string value;
@@ -78,28 +79,28 @@ Token Lexer::nextToken() {
         }
         if (peek() == ']') {
             advance(); // consume ']'
-            if (value == "Template") return {TokenType::TemplateKeyword, "[Template]", line, column};
-            if (value == "Custom") return {TokenType::CustomKeyword, "[Custom]", line, column};
-            if (value == "Origin") return {TokenType::OriginKeyword, "[Origin]", line, column};
-            if (value == "Import") return {TokenType::ImportKeyword, "[Import]", line, column};
-            if (value == "Namespace") return {TokenType::NamespaceKeyword, "[Namespace]", line, column};
-            if (value == "Configuration") return {TokenType::ConfigurationKeyword, "[Configuration]", line, column};
+            if (value == "Template") return {TokenType::TemplateKeyword, "[Template]", line, col, start_pos};
+            if (value == "Custom") return {TokenType::CustomKeyword, "[Custom]", line, col, start_pos};
+            if (value == "Origin") return {TokenType::OriginKeyword, "[Origin]", line, col, start_pos};
+            if (value == "Import") return {TokenType::ImportKeyword, "[Import]", line, col, start_pos};
+            if (value == "Namespace") return {TokenType::NamespaceKeyword, "[Namespace]", line, col, start_pos};
+            if (value == "Configuration") return {TokenType::ConfigSpecifier, "[Configuration]", line, col, start_pos};
         }
-        return {TokenType::Unknown, "[" + value + (isAtEnd() ? "" : "]"), line, column};
+        return {TokenType::Identifier, "[" + value + (isAtEnd() ? "" : "]"), line, col, start_pos};
     }
     if (c == '@') {
         std::string value;
         while (isalpha(peek())) {
             value += advance();
         }
-        if (value == "Style") return {TokenType::StyleSpecifier, "@Style", line, column};
-        if (value == "Element") return {TokenType::ElementSpecifier, "@Element", line, column};
-        if (value == "Var") return {TokenType::VarSpecifier, "@Var", line, column};
-        if (value == "Html") return {TokenType::HtmlSpecifier, "@Html", line, column};
-        if (value == "JavaScript") return {TokenType::JavaScriptSpecifier, "@JavaScript", line, column};
-        if (value == "Chtl") return {TokenType::ChtlSpecifier, "@Chtl", line, column};
-        if (value == "CJmod") return {TokenType::CJmodSpecifier, "@CJmod", line, column};
-        return {TokenType::At, "@" + value, line, column};
+        if (value == "Style") return {TokenType::StyleSpecifier, "@Style", line, col, start_pos};
+        if (value == "Element") return {TokenType::ElementSpecifier, "@Element", line, col, start_pos};
+        if (value == "Var") return {TokenType::VarSpecifier, "@Var", line, col, start_pos};
+        if (value == "Html") return {TokenType::HtmlSpecifier, "@Html", line, col, start_pos};
+        if (value == "JavaScript") return {TokenType::JavaScriptSpecifier, "@JavaScript", line, col, start_pos};
+        if (value == "Chtl") return {TokenType::ChtlSpecifier, "@Chtl", line, col, start_pos};
+        if (value == "CJmod") return {TokenType::CjmodSpecifier, "@CJmod", line, col, start_pos};
+        return {TokenType::Identifier, "@" + value, line, col, start_pos};
     }
 
     if (c == '"' || c == '\'') {
@@ -109,7 +110,7 @@ Token Lexer::nextToken() {
             value += advance();
         }
         advance(); // consume the closing quote
-        return {TokenType::StringLiteral, value, line, column};
+        return {TokenType::StringLiteral, value, line, col, start_pos};
     }
 
     if (isalpha(c)) {
@@ -121,25 +122,25 @@ Token Lexer::nextToken() {
         if (value == "at") {
             size_t saved_current = current;
             size_t saved_line = line;
-            size_t saved_column = column;
+            size_t saved_col = col;
             skipWhitespace();
             if (peek() == 't' && source.substr(current, 3) == "top") {
                 advance(); advance(); advance();
-                return {TokenType::AtTopKeyword, "at top", line, column};
+                return {TokenType::AtTopKeyword, "at top", line, col, start_pos};
             }
             if (peek() == 'b' && source.substr(current, 6) == "bottom") {
                 advance(); advance(); advance(); advance(); advance(); advance();
-                return {TokenType::AtBottomKeyword, "at bottom", line, column};
+                return {TokenType::AtBottomKeyword, "at bottom", line, col, start_pos};
             }
             current = saved_current;
             line = saved_line;
-            column = saved_column;
+            col = saved_col;
         }
 
         if (keywords.count(value)) {
-            return {keywords.at(value), value, line, column};
+            return {keywords.at(value), value, line, col, start_pos};
         }
-        return {TokenType::Identifier, value, line, column};
+        return {TokenType::Identifier, value, line, col, start_pos};
     }
 
     if (isdigit(c)) {
@@ -148,37 +149,37 @@ Token Lexer::nextToken() {
         while (isdigit(peek())) {
             value += advance();
         }
-        return {TokenType::NumericLiteral, value, line, column};
+        return {TokenType::NumericLiteral, value, line, col, start_pos};
     }
 
     switch (c) {
-        case '{': return {TokenType::OpenBrace, "{", line, column};
-        case '}': return {TokenType::CloseBrace, "}", line, column};
-        case '(': return {TokenType::OpenParen, "(", line, column};
-        case ')': return {TokenType::CloseParen, ")", line, column};
-        case ';': return {TokenType::Semicolon, ";", line, column};
-        case ':': return {TokenType::Colon, ":", line, column};
-        case '=': return {TokenType::Equals, "=", line, column};
-        case ',': return {TokenType::Comma, ",", line, column};
-        case '&': return {TokenType::Ampersand, "&", line, column};
-        case '+': return {TokenType::Plus, "+", line, column};
-        case '-': return {TokenType::Minus, "-", line, column};
+        case '{': return {TokenType::OpenBrace, "{", line, col, start_pos};
+        case '}': return {TokenType::CloseBrace, "}", line, col, start_pos};
+        case '(': return {TokenType::OpenParen, "(", line, col, start_pos};
+        case ')': return {TokenType::CloseParen, ")", line, col, start_pos};
+        case ';': return {TokenType::Semicolon, ";", line, col, start_pos};
+        case ':': return {TokenType::Colon, ":", line, col, start_pos};
+        case '=': return {TokenType::Equals, "=", line, col, start_pos};
+        case ',': return {TokenType::Comma, ",", line, col, start_pos};
+        case '&': return {TokenType::Ampersand, "&", line, col, start_pos};
+        case '+': return {TokenType::Plus, "+", line, col, start_pos};
+        case '-': return {TokenType::Minus, "-", line, col, start_pos};
         case '*': {
             if (peek() == '*') {
                 advance();
-                return {TokenType::DoubleAsterisk, "**", line, column};
+                return {TokenType::DoubleStar, "**", line, col, start_pos};
             }
-            return {TokenType::Asterisk, "*", line, column};
+            return {TokenType::Star, "*", line, col, start_pos};
         }
-        case '/': return {TokenType::Slash, "/", line, column};
-        case '%': return {TokenType::Percent, "%", line, column};
+        case '/': return {TokenType::Slash, "/", line, col, start_pos};
+        case '%': return {TokenType::Percent, "%", line, col, start_pos};
     }
 
-    return {TokenType::Unknown, std::string(1, c), line, column};
+    return {TokenType::Identifier, std::string(1, c), line, col, start_pos};
 }
 
 char Lexer::advance() {
-    column++;
+    col++;
     return source[current++];
 }
 
@@ -202,7 +203,7 @@ void Lexer::skipWhitespace() {
                 break;
             case '\n':
                 line++;
-                column = 1;
+                col = 1;
                 advance();
                 break;
             default:

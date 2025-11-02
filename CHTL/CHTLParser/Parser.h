@@ -6,10 +6,11 @@
 
 class Parser {
 public:
-    explicit Parser(std::vector<Token> tokens);
+    explicit Parser(std::vector<Token> tokens, std::string source);
     AstNodeList parse();
 
 private:
+    std::string source;
     std::vector<Token> tokens;
     size_t current = 0;
 
