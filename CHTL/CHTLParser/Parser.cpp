@@ -69,6 +69,21 @@ AstNode Parser::parseTemplate() {
             StringUtil::trim(content);
             textNode->text = content;
             node->body.push_back(std::move(textNode));
+        } else if (node->type == "@Var") {
+            while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                if (peek().type == TokenType::Identifier && peekNext().type == TokenType::Colon) {
+                    std::string key = advance().value;
+                    advance(); // consume ':'
+                    if (peek().type == TokenType::StringLiteral) {
+                        node->variables[key] = advance().value;
+                    }
+                    if (peek().type == TokenType::Semicolon) {
+                        advance(); // consume ';'
+                    }
+                } else {
+                    advance();
+                }
+            }
         } else {
             while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
                 node->body.push_back(parseStatement());

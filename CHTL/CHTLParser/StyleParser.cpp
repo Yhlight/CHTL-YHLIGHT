@@ -22,7 +22,7 @@ std::vector<std::unique_ptr<StyleContentNode>> StyleParser::parse() {
             while (!isAtEnd() && peek().type != TokenType::StyleSpecifier) {
                 Token token = advance();
                 raw_css += token.reconstruct();
-                if (token.type == TokenType::Colon || token.type == TokenType::Semicolon) {
+                if (token.type == TokenType::Colon) {
                     raw_css += " ";
                 }
             }

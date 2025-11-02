@@ -20,6 +20,7 @@ private:
     std::string js_output;
     std::map<std::string, std::string> style_templates;
     std::map<std::string, TemplateNode*> element_templates;
+    std::map<std::string, std::map<std::string, std::string>> variable_templates;
 
     void visit(BaseNode* node);
     void visitElement(class ElementNode* node);

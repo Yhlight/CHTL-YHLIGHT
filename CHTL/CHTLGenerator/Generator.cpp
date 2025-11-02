@@ -62,7 +62,21 @@ void Generator::visitStyle(StyleNode* node) {
     html_output += "<style>";
     for (const auto& content_node : node->content) {
         if (auto rawNode = dynamic_cast<RawStyleContentNode*>(content_node.get())) {
-            html_output += rawNode->raw_css;
+            std::string css = rawNode->raw_css;
+            for (const auto& var_template : variable_templates) {
+                std::string template_name = var_template.first;
+                for (const auto& var : var_template.second) {
+                    std::string var_name = var.first;
+                    std::string var_value = var.second;
+                    std::string search_str = template_name + "(" + var_name + ")";
+                    size_t pos = css.find(search_str);
+                    while (pos != std::string::npos) {
+                        css.replace(pos, search_str.length(), "\"" + var_value + "\"");
+                        pos = css.find(search_str, pos + var_value.length() + 2);
+                    }
+                }
+            }
+            html_output += css;
         } else if (auto directiveNode = dynamic_cast<StyleDirectiveNode*>(content_node.get())) {
             if (style_templates.count(directiveNode->template_name)) {
                 html_output += style_templates[directiveNode->template_name];
@@ -87,6 +101,8 @@ void Generator::visitTemplate(TemplateNode* node) {
         style_templates[node->name] = style_content;
     } else if (node->type == "@Element") {
         element_templates[node->name] = node;
+    } else if (node->type == "@Var") {
+        variable_templates[node->name] = node->variables;
     }
 }
 

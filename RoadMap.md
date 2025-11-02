@@ -15,6 +15,7 @@ This document outlines the development roadmap for the CHTL project. The project
 - **[ ] Generator:** Implement the code generator to produce HTML from the AST.
   - [X] Basic HTML generation
   - [X] Style Templates
+  - [X] Variable Templates
   - [ ] Generation of all CHTL features into corresponding HTML and CSS
 
 ## Phase 2: Advanced Language Features
