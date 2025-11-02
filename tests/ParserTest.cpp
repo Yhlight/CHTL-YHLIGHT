@@ -8,6 +8,7 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/TemplateNode.h"
 #include "CHTL/CHTLNode/CustomTemplateNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
 
 TEST(ParserTest, ParsesUnquotedTextBlock) {
     std::string source = "text { hello world }";
@@ -309,4 +310,42 @@ TEST(ParserTest, ParsesStylePlaceholder) {
     CHTL::StylePropertyNode* propNode = styleNode->properties[0].get();
     EXPECT_EQ(propNode->name, "color");
     EXPECT_FALSE(propNode->value.has_value());
+}
+
+TEST(ParserTest, ParsesAnonymousOriginBlock) {
+    std::string source = "[Origin] @Html { <div>hello</div> }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ASTNode* originNodeBase = programNode->children[0].get();
+    ASSERT_EQ(originNodeBase->getType(), CHTL::ASTNodeType::Origin);
+
+    CHTL::OriginNode* originNode = static_cast<CHTL::OriginNode*>(originNodeBase);
+    EXPECT_EQ(originNode->originType, "@Html");
+    EXPECT_FALSE(originNode->name.has_value());
+    EXPECT_EQ(originNode->content, " <div>hello</div> ");
+}
+
+TEST(ParserTest, ParsesNamedOriginBlock) {
+    std::string source = "[Origin] @JavaScript myScript { console.log('hello'); }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::OriginNode* originNode = static_cast<CHTL::OriginNode*>(programNode->children[0].get());
+    EXPECT_EQ(originNode->originType, "@JavaScript");
+    ASSERT_TRUE(originNode->name.has_value());
+    EXPECT_EQ(originNode->name.value(), "myScript");
+    EXPECT_EQ(originNode->content, " console.log('hello'); ");
 }

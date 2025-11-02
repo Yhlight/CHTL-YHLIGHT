@@ -6,6 +6,7 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/TemplateNode.h"
 #include "CHTL/CHTLNode/CustomTemplateNode.h"
+#include "CHTL/CHTLNode/OriginNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -84,6 +85,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         }
         if (peek().lexeme == "[Custom]") {
             return parseCustomTemplate();
+        }
+        if (peek().lexeme == "[Origin]") {
+            return parseOrigin();
         }
     }
     // For now, just advance to avoid infinite loops on unknown tokens
@@ -216,6 +220,40 @@ std::unique_ptr<ASTNode> Parser::parseCustomTemplate() {
     consume(TokenType::RightBrace, "Expect '}' after template block.");
 
     return customTemplateNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseOrigin() {
+    consume(TokenType::BlockKeyword, "Expect block keyword.");
+    auto originNode = std::make_unique<OriginNode>();
+
+    originNode->originType = std::string(advance().lexeme);
+
+    if (check(TokenType::Identifier)) {
+        originNode->name = std::string(advance().lexeme);
+    }
+
+    const Token& leftBrace = consume(TokenType::LeftBrace, "Expect '{' after origin type.");
+
+    int startPos = leftBrace.start_pos + leftBrace.lexeme.length();
+
+    int lookahead = m_current;
+    while (m_tokens[lookahead].type != TokenType::RightBrace && m_tokens[lookahead].type != TokenType::Eof) {
+        lookahead++;
+    }
+
+    if (m_tokens[lookahead].type == TokenType::Eof) {
+        throw std::runtime_error("Unterminated origin block.");
+    }
+
+    const Token& rightBrace = m_tokens[lookahead];
+    int endPos = rightBrace.start_pos;
+
+    originNode->content = m_source.substr(startPos, endPos - startPos);
+
+    m_current = lookahead;
+    consume(TokenType::RightBrace, "Expect '}' after origin block.");
+
+    return originNode;
 }
 
 } // namespace CHTL

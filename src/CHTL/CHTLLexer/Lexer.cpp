@@ -147,6 +147,8 @@ TokenType Lexer::identifierType() {
     if (identifier == "@Style") return TokenType::AtStyle;
     if (identifier == "@Element") return TokenType::AtElement;
     if (identifier == "@Var") return TokenType::AtVar;
+    if (identifier == "@Html") return TokenType::AtHtml;
+    if (identifier == "@JavaScript") return TokenType::AtJavaScript;
 
     return TokenType::Identifier;
 }

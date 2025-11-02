@@ -60,13 +60,17 @@ TEST(LexerTest, TokenizesBlockKeyword) {
 }
 
 TEST(LexerTest, TokenizesAtKeyword) {
-    CHTL::Lexer lexer("@Style");
+    CHTL::Lexer lexer("@Style @Html @JavaScript");
     std::vector<CHTL::Token> tokens = lexer.scanTokens();
 
-    ASSERT_EQ(tokens.size(), 2);
+    ASSERT_EQ(tokens.size(), 4);
     EXPECT_EQ(tokens[0].type, CHTL::TokenType::AtStyle);
     EXPECT_EQ(tokens[0].lexeme, "@Style");
-    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::AtHtml);
+    EXPECT_EQ(tokens[1].lexeme, "@Html");
+    EXPECT_EQ(tokens[2].type, CHTL::TokenType::AtJavaScript);
+    EXPECT_EQ(tokens[2].lexeme, "@JavaScript");
+    EXPECT_EQ(tokens[3].type, CHTL::TokenType::Eof);
 }
 
 TEST(LexerTest, TokenizesStrings) {

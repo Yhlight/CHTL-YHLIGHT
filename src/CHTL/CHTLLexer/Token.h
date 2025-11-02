@@ -52,6 +52,8 @@ enum class TokenType {
     AtStyle,
     AtElement,
     AtVar,
+    AtHtml,
+    AtJavaScript,
 };
 
 struct Token {

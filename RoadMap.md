@@ -38,7 +38,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Local Style Blocks (`style {}`)
 - [x] Templates (`[Template]`)
 - [x] Custom Templates (`[Custom]`)
-- [ ] Origin Blocks (`[Origin]`)
+- [x] Origin Blocks (`[Origin]`)
 - [ ] Imports (`[Import]`)
 - [ ] Namespaces (`[Namespace]`)
 - [ ] Configuration (`[Configuration]`)

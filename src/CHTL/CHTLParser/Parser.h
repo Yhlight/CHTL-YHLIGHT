@@ -35,6 +35,7 @@ private:
     void parseStyleProperties(StyleNode& styleNode);
     std::unique_ptr<ASTNode> parseTemplate();
     std::unique_ptr<ASTNode> parseCustomTemplate();
+    std::unique_ptr<ASTNode> parseOrigin();
 };
 
 } // namespace CHTL

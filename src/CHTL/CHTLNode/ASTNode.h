@@ -13,6 +13,7 @@ enum class ASTNodeType {
     StyleProperty,
     Template,
     CustomTemplate,
+    Origin,
 };
 
 class ASTNode {
