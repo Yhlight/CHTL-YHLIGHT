@@ -7,6 +7,7 @@
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/StyleContentNode.h"
 #include "CHTLNode/ElementDirectiveNode.h"
+#include "CHTLNode/CustomNode.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -33,6 +34,8 @@ void Generator::visit(BaseNode* node) {
         visitTemplate(templateNode);
     } else if (auto elementDirectiveNode = dynamic_cast<ElementDirectiveNode*>(node)) {
         visitElementDirective(elementDirectiveNode);
+    } else if (auto customNode = dynamic_cast<CustomNode*>(node)) {
+        visitCustom(customNode);
     }
 }
 
@@ -80,6 +83,13 @@ void Generator::visitStyle(StyleNode* node) {
         } else if (auto directiveNode = dynamic_cast<StyleDirectiveNode*>(content_node.get())) {
             if (style_templates.count(directiveNode->template_name)) {
                 html_output += style_templates[directiveNode->template_name];
+            } else if (custom_style_templates.count(directiveNode->template_name)) {
+                CustomNode* customNode = custom_style_templates[directiveNode->template_name];
+                for (const auto& prop : customNode->valueless_properties) {
+                    if (directiveNode->properties.count(prop)) {
+                        html_output += prop + ": " + directiveNode->properties[prop] + ";";
+                    }
+                }
             }
         }
     }
@@ -112,5 +122,11 @@ void Generator::visitElementDirective(ElementDirectiveNode* node) {
         for (const auto& child : templateNode->body) {
             visit(child.get());
         }
+    }
+}
+
+void Generator::visitCustom(CustomNode* node) {
+    if (node->type == "@Style") {
+        custom_style_templates[node->name] = node;
     }
 }

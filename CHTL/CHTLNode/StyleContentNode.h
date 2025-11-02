@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 
 enum class StyleContentType {
     Raw,
@@ -26,4 +27,5 @@ public:
     StyleDirectiveNode() { type = StyleContentType::Directive; }
     std::string directive_name; // e.g. @Style
     std::string template_name;
+    std::map<std::string, std::string> properties;
 };

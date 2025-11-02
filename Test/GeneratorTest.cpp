@@ -119,4 +119,30 @@ void GeneratorTests() {
         std::string expected = "<div><style>background-color: \"rgb(255, 192, 203)\";</style></div>";
         ASSERT(result == expected);
     }});
+
+    tests.push_back({"Test Custom Style Group", []() {
+        std::string source = R"(
+            [Custom] @Style TextSet {
+                color,
+                font-size;
+            }
+
+            div {
+                style {
+                    @Style TextSet {
+                        color: red;
+                        font-size: 16px;
+                    }
+                }
+            }
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<div><style>color: red;font-size: 16px;</style></div>";
+        ASSERT(result == expected);
+    }});
 }

@@ -116,7 +116,7 @@ Token Lexer::nextToken() {
     if (isalpha(c)) {
         std::string value;
         value += c;
-        while (isalnum(peek())) {
+        while (isalnum(peek()) || peek() == '-') {
             value += advance();
         }
         if (value == "at") {
@@ -146,7 +146,7 @@ Token Lexer::nextToken() {
     if (isdigit(c)) {
         std::string value;
         value += c;
-        while (isdigit(peek())) {
+        while (isdigit(peek()) || isalpha(peek())) {
             value += advance();
         }
         return {TokenType::NumericLiteral, value, line, col, start_pos};

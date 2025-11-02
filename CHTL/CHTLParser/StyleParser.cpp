@@ -1,4 +1,5 @@
 #include "StyleParser.h"
+#include <map>
 
 StyleParser::StyleParser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
 
@@ -12,7 +13,24 @@ std::vector<std::unique_ptr<StyleContentNode>> StyleParser::parse() {
             if (peek().type == TokenType::Identifier) {
                 directiveNode->template_name = advance().value;
             }
-            if (peek().type == TokenType::Semicolon) {
+            if (peek().type == TokenType::OpenBrace) {
+                advance(); // consume '{'
+                while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                    if (peek().type == TokenType::Identifier && tokens[current + 1].type == TokenType::Colon) {
+                        std::string key = advance().value;
+                        advance(); // consume ':'
+                        if (peek().type == TokenType::StringLiteral || peek().type == TokenType::Identifier || peek().type == TokenType::NumericLiteral) {
+                            directiveNode->properties[key] = advance().value;
+                        }
+                        if (peek().type == TokenType::Semicolon) {
+                            advance(); // consume ';'
+                        }
+                    } else {
+                        advance();
+                    }
+                }
+                advance(); // consume '}'
+            } else if (peek().type == TokenType::Semicolon) {
                 advance(); // consume ';'
             }
             nodes.push_back(std::move(directiveNode));

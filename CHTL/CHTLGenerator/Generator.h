@@ -5,6 +5,7 @@
 #include "CHTLNode/BaseNode.h"
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/ElementDirectiveNode.h"
+#include "CHTLNode/CustomNode.h"
 #include <string>
 #include <map>
 
@@ -21,6 +22,7 @@ private:
     std::map<std::string, std::string> style_templates;
     std::map<std::string, TemplateNode*> element_templates;
     std::map<std::string, std::map<std::string, std::string>> variable_templates;
+    std::map<std::string, CustomNode*> custom_style_templates;
 
     void visit(BaseNode* node);
     void visitElement(class ElementNode* node);
@@ -30,4 +32,5 @@ private:
     void visitScript(class ScriptNode* node);
     void visitTemplate(class TemplateNode* node);
     void visitElementDirective(class ElementDirectiveNode* node);
+    void visitCustom(class CustomNode* node);
 };

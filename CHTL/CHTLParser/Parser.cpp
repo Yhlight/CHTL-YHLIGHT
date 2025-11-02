@@ -108,8 +108,27 @@ AstNode Parser::parseCustom() {
     }
     if (peek().type == TokenType::OpenBrace) {
         advance(); // consume '{'
-        while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
-            node->body.push_back(parseStatement());
+        if (node->type == "@Style") {
+            if (peek().type == TokenType::Identifier && tokens[current + 1].type == TokenType::Comma || tokens[current + 1].type == TokenType::CloseBrace) {
+                while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                    if (peek().type == TokenType::Identifier) {
+                        node->valueless_properties.push_back(advance().value);
+                        if (peek().type == TokenType::Comma) {
+                            advance(); // consume ','
+                        }
+                    } else {
+                        advance();
+                    }
+                }
+            } else {
+                while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                    node->body.push_back(parseStatement());
+                }
+            }
+        } else {
+            while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
+                node->body.push_back(parseStatement());
+            }
         }
         if (peek().type == TokenType::CloseBrace) {
             advance(); // consume '}'
