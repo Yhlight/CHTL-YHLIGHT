@@ -2,6 +2,8 @@
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/ElementNode.h"
+#include "CHTL/CHTLNode/StyleNode.h"
+#include "CHTL/CHTLNode/StylePropertyNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -71,9 +73,38 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
     if (check(TokenType::Identifier)) {
         return parseElement();
     }
+    if (check(TokenType::Style)) {
+        return parseStyle();
+    }
     // For now, just advance to avoid infinite loops on unknown tokens
     advance();
     return nullptr;
+}
+
+std::unique_ptr<ASTNode> Parser::parseStyle() {
+    consume(TokenType::Style, "Expect 'style' keyword.");
+    consume(TokenType::LeftBrace, "Expect '{' after 'style' keyword.");
+
+    auto styleNode = std::make_unique<StyleNode>();
+
+    while (!check(TokenType::RightBrace) && !isAtEnd()) {
+        auto propNode = std::make_unique<StylePropertyNode>();
+        propNode->name = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
+        consume(TokenType::Colon, "Expect ':' after property name.");
+
+        std::string value = "";
+        while (!check(TokenType::Semicolon) && !isAtEnd()) {
+            value += advance().lexeme;
+        }
+        propNode->value = value;
+
+        consume(TokenType::Semicolon, "Expect ';' after property value.");
+        styleNode->properties.push_back(std::move(propNode));
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after style block.");
+
+    return styleNode;
 }
 
 std::unique_ptr<ASTNode> Parser::parseElement() {

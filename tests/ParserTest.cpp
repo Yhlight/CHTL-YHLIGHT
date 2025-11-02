@@ -4,6 +4,8 @@
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/ElementNode.h"
+#include "CHTL/CHTLNode/StyleNode.h"
+#include "CHTL/CHTLNode/StylePropertyNode.h"
 
 TEST(ParserTest, ParsesUnquotedTextBlock) {
     std::string source = "text { hello world }";
@@ -174,4 +176,49 @@ TEST(ParserTest, ParsesAttributesAndChildren) {
 
     CHTL::ElementNode* spanNode = static_cast<CHTL::ElementNode*>(divNode->children[0].get());
     EXPECT_EQ(spanNode->tagName, "span");
+}
+
+TEST(ParserTest, ParsesStyleBlock) {
+    std::string source = "style { color: red; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ASTNode* styleNodeBase = programNode->children[0].get();
+    ASSERT_EQ(styleNodeBase->getType(), CHTL::ASTNodeType::StyleBlock);
+
+    CHTL::StyleNode* styleNode = static_cast<CHTL::StyleNode*>(styleNodeBase);
+    ASSERT_EQ(styleNode->properties.size(), 1);
+
+    CHTL::StylePropertyNode* propNode = styleNode->properties[0].get();
+    EXPECT_EQ(propNode->name, "color");
+    EXPECT_EQ(propNode->value, "red");
+}
+
+TEST(ParserTest, ParsesMultipleStyleProperties) {
+    std::string source = "style { color: red; font-size: 16px; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::StyleNode* styleNode = static_cast<CHTL::StyleNode*>(programNode->children[0].get());
+    ASSERT_EQ(styleNode->properties.size(), 2);
+
+    CHTL::StylePropertyNode* prop1 = styleNode->properties[0].get();
+    EXPECT_EQ(prop1->name, "color");
+    EXPECT_EQ(prop1->value, "red");
+
+    CHTL::StylePropertyNode* prop2 = styleNode->properties[1].get();
+    EXPECT_EQ(prop2->name, "font-size");
+    EXPECT_EQ(prop2->value, "16px");
 }

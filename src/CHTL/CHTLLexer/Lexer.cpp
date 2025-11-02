@@ -137,14 +137,18 @@ void Lexer::scanToken() {
 }
 
 TokenType Lexer::identifierType() {
-    if (m_source.substr(m_start, m_current - m_start) == "text") {
+    auto identifier = m_source.substr(m_start, m_current - m_start);
+    if (identifier == "text") {
         return TokenType::Text;
+    }
+    if (identifier == "style") {
+        return TokenType::Style;
     }
     return TokenType::Identifier;
 }
 
 void Lexer::identifier() {
-    while (isalnum(peek()) || peek() == '_')
+    while (isalnum(peek()) || peek() == '_' || peek() == '-')
         advance();
     addToken(identifierType());
 }

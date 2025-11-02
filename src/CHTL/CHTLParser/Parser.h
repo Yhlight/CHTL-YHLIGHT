@@ -30,6 +30,7 @@ private:
     std::unique_ptr<ASTNode> parseText();
     std::unique_ptr<ASTNode> parseElement();
     void parseAttributes(ElementNode& element);
+    std::unique_ptr<ASTNode> parseStyle();
 };
 
 } // namespace CHTL

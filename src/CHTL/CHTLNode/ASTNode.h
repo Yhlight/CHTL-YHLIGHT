@@ -9,6 +9,8 @@ enum class ASTNodeType {
     Program,
     Text,
     Element,
+    StyleBlock,
+    StyleProperty,
 };
 
 class ASTNode {
