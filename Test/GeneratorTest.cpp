@@ -48,7 +48,7 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = R"(<!-- This is a comment --><div id="main"><style>color: "red";</style><script>console.log('Hello');</script>Hello, CHTL!</div>)";
+        std::string expected = R"(<!-- This is a comment --><div id="main"><style>color: "red";</style>Hello, CHTL!</div><script>console.log('Hello');</script>)";
         ASSERT(result == expected);
     }});
 
@@ -143,6 +143,26 @@ void GeneratorTests() {
         std::string result = generator.generate();
 
         std::string expected = "<div><style>color: red;font-size: 16px;</style></div>";
+        ASSERT(result == expected);
+    }});
+
+    tests.push_back({"Test Local Script Block Compilation", []() {
+        std::string source = R"(
+            body {
+                div {
+                    script {
+                        {{box}}->textContent()
+                    }
+                }
+            }
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<body><div></div><script>document.querySelector('box').textContent();\n</script></body>";
         ASSERT(result == expected);
     }});
 }

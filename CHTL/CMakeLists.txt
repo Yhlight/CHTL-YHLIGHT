@@ -30,5 +30,5 @@ add_library(CHTLGenerator
     CHTLGenerator/Generator.cpp
 )
 
-target_link_libraries(CHTLGenerator PRIVATE CHTLParser)
-target_include_directories(CHTLGenerator PUBLIC ./)
+target_link_libraries(CHTLGenerator PRIVATE CHTLParser CHTLJSLexer CHTLJSParser CHTLJSNode CHTLJSGenerator)
+target_include_directories(CHTLGenerator PUBLIC ./ ../)

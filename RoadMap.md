@@ -25,6 +25,7 @@ This document outlines the development roadmap for the CHTL project. The project
   - [ ] Salt bridge for communication between CHTL and CHTL JS compilers
   - [ ] CHTL JS preprocessor
   - [X] CHTL JS parser and generator
+    - [X] Local `script` block integration
 - **[ ] Module System:** Implement the CMOD and CJMOD module systems.
   - [ ] CMOD packaging and unpacking
   - [ ] CJMOD support

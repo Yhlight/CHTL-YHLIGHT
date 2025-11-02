@@ -16,6 +16,16 @@ std::string Generator::generate() {
     for (const auto& node : ast) {
         visit(node.get());
     }
+
+    if (!js_output.empty()) {
+        size_t body_end = html_output.rfind("</body>");
+        if (body_end != std::string::npos) {
+            html_output.insert(body_end, "<script>" + js_output + "</script>");
+        } else {
+            html_output += "<script>" + js_output + "</script>";
+        }
+    }
+
     return html_output;
 }
 
@@ -97,7 +107,16 @@ void Generator::visitStyle(StyleNode* node) {
 }
 
 void Generator::visitScript(ScriptNode* node) {
-    html_output += "<script>" + node->content + "</script>";
+    if (node->content.find("{{") != std::string::npos || node->content.find("->") != std::string::npos) {
+        CHTLJSLexer lexer(node->content);
+        std::vector<CHTLJSToken> tokens = lexer.tokenize();
+        CHTLJSParser parser(tokens);
+        std::unique_ptr<ProgramNode> program = parser.parse();
+        CHTLJSGenerator generator;
+        js_output += generator.generate(program.get());
+    } else {
+        js_output += node->content;
+    }
 }
 
 void Generator::visitTemplate(TemplateNode* node) {

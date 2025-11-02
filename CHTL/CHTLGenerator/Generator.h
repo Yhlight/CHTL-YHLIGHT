@@ -6,6 +6,9 @@
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/ElementDirectiveNode.h"
 #include "CHTLNode/CustomNode.h"
+#include "CHTLJS/CHTLJSLexer/Lexer.h"
+#include "CHTLJS/CHTLJSParser/Parser.h"
+#include "CHTLJS/CHTLJSGenerator/Generator.h"
 #include <string>
 #include <map>
 
