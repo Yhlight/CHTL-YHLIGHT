@@ -19,6 +19,10 @@ public:
         return nullptr;
     }
 
+    const std::unordered_map<std::string, TemplateNode*>& getStyleTemplates() const {
+        return m_styleTemplates;
+    }
+
 private:
     std::unordered_map<std::string, TemplateNode*> m_styleTemplates;
 };

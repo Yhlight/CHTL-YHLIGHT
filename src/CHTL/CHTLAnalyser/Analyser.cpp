@@ -6,11 +6,16 @@
 #include "CHTL/CHTLNode/StyleNode.h"
 #include "CHTL/CHTLNode/TemplateUsageNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
+#include "CHTL/CHTLLexer/Lexer.h"
+#include "CHTL/CHTLParser/Parser.h"
 #include <iostream>
+#include <algorithm>
 
 namespace CHTL {
 
-Analyser::Analyser(ASTNode& root) : m_root(root) {}
+Analyser::Analyser(ASTNode& root, const std::string& filePath, std::vector<std::string>& importStack)
+    : m_root(root), m_filePath(filePath), m_importStack(importStack) {}
 
 void Analyser::analyse() {
     if (m_root.getType() == ASTNodeType::Program) {
@@ -63,6 +68,38 @@ void Analyser::resolve(ASTNode* node) {
             for (auto& child : namespaceNode->children) {
                 resolve(child.get());
             }
+            break;
+        }
+        case ASTNodeType::Import: {
+            ImportNode* importNode = static_cast<ImportNode*>(node);
+            std::string path = importNode->path;
+            path.erase(std::remove(path.begin(), path.end(), '"'), path.end());
+
+            std::string content = m_importer.importFile(m_filePath, path);
+
+            std::string canonical_path = std::filesystem::weakly_canonical(std::filesystem::path(m_filePath).parent_path() / path).string();
+            if (std::find(m_importStack.begin(), m_importStack.end(), canonical_path) != m_importStack.end()) {
+                throw std::runtime_error("Circular import detected: " + canonical_path);
+            }
+            m_importStack.push_back(canonical_path);
+
+            Lexer lexer(content);
+            auto tokens = lexer.scanTokens();
+            Parser parser(tokens, content);
+            auto ast = parser.parse();
+
+            Analyser subAnalyser(*ast, canonical_path, m_importStack);
+            subAnalyser.analyse();
+
+            for (auto const& [key, val] : subAnalyser.m_symbolTable.getStyleTemplates()) {
+                m_symbolTable.insertStyleTemplate(key, val);
+            }
+
+            auto owned = subAnalyser.getOwnedTemplates();
+            m_ownedTemplates.insert(m_ownedTemplates.end(), std::make_move_iterator(owned.begin()), std::make_move_iterator(owned.end()));
+
+            m_importStack.pop_back();
+
             break;
         }
         default:

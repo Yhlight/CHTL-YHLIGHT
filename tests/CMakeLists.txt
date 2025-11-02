@@ -11,6 +11,7 @@ add_executable(run_tests
   ParserTest.cpp
   GeneratorTest.cpp
     AnalyserTest.cpp
+    ImporterTest.cpp
 )
 
 target_link_libraries(run_tests

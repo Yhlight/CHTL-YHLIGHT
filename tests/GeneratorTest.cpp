@@ -9,7 +9,8 @@ std::string compile(const std::string& source) {
     auto tokens = lexer.scanTokens();
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
-    CHTL::Analyser analyser(*ast);
+    std::vector<std::string> importStack;
+    CHTL::Analyser analyser(*ast, "test.chtl", importStack);
     analyser.analyse();
     CHTL::Generator generator(*ast);
     return generator.generate();
