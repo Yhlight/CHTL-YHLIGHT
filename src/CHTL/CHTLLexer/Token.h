@@ -44,6 +44,8 @@ enum class TokenType {
     // Keywords
     Text,
     Style,
+    From,
+    As,
 
     // Block Keywords
     BlockKeyword,
@@ -54,6 +56,7 @@ enum class TokenType {
     AtVar,
     AtHtml,
     AtJavaScript,
+    AtChtl,
 };
 
 struct Token {

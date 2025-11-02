@@ -36,6 +36,7 @@ private:
     std::unique_ptr<ASTNode> parseTemplate();
     std::unique_ptr<ASTNode> parseCustomTemplate();
     std::unique_ptr<ASTNode> parseOrigin();
+    std::unique_ptr<ASTNode> parseImport();
 };
 
 } // namespace CHTL

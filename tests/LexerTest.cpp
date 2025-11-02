@@ -73,6 +73,20 @@ TEST(LexerTest, TokenizesAtKeyword) {
     EXPECT_EQ(tokens[3].type, CHTL::TokenType::Eof);
 }
 
+TEST(LexerTest, TokenizesImportKeywords) {
+    CHTL::Lexer lexer("from as @Chtl");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 4);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::From);
+    EXPECT_EQ(tokens[0].lexeme, "from");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::As);
+    EXPECT_EQ(tokens[1].lexeme, "as");
+    EXPECT_EQ(tokens[2].type, CHTL::TokenType::AtChtl);
+    EXPECT_EQ(tokens[2].lexeme, "@Chtl");
+    EXPECT_EQ(tokens[3].type, CHTL::TokenType::Eof);
+}
+
 TEST(LexerTest, TokenizesStrings) {
     CHTL::Lexer lexer("\"hello world\"");
     std::vector<CHTL::Token> tokens = lexer.scanTokens();

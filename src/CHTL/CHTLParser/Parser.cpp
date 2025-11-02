@@ -7,6 +7,7 @@
 #include "CHTL/CHTLNode/TemplateNode.h"
 #include "CHTL/CHTLNode/CustomTemplateNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -16,7 +17,14 @@ Parser::Parser(const std::vector<Token>& tokens, std::string_view source) : m_to
 std::unique_ptr<ASTNode> Parser::parse() {
     auto programNode = std::make_unique<ProgramNode>();
     while (!isAtEnd()) {
-        programNode->children.push_back(parseStatement());
+        try {
+            if (auto statement = parseStatement()) {
+                programNode->children.push_back(std::move(statement));
+            }
+        } catch (const std::runtime_error& e) {
+            // For now, just advance to avoid infinite loops on unknown tokens
+            advance();
+        }
     }
     return programNode;
 }
@@ -89,10 +97,12 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         if (peek().lexeme == "[Origin]") {
             return parseOrigin();
         }
+        if (peek().lexeme == "[Import]") {
+            return parseImport();
+        }
     }
     // For now, just advance to avoid infinite loops on unknown tokens
-    advance();
-    return nullptr;
+    throw std::runtime_error("Unexpected token.");
 }
 
 std::unique_ptr<ASTNode> Parser::parseStyle() {
@@ -254,6 +264,36 @@ std::unique_ptr<ASTNode> Parser::parseOrigin() {
     consume(TokenType::RightBrace, "Expect '}' after origin block.");
 
     return originNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseImport() {
+    consume(TokenType::BlockKeyword, "Expect block keyword.");
+    auto importNode = std::make_unique<ImportNode>();
+
+    ImportTarget target;
+    if (check(TokenType::BlockKeyword)) {
+        if (peek().lexeme == "[Custom]") {
+            target.isCustom = true;
+            advance();
+        }
+    }
+
+    target.type = std::string(advance().lexeme);
+
+    if (check(TokenType::Identifier)) {
+        target.name = std::string(advance().lexeme);
+    }
+    importNode->targets.push_back(target);
+
+    consume(TokenType::From, "Expect 'from' after import target.");
+    importNode->path = std::string(advance().lexeme);
+
+    if (check(TokenType::As)) {
+        consume(TokenType::As, "Expect 'as' for alias.");
+        importNode->alias = std::string(consume(TokenType::Identifier, "Expect alias name.").lexeme);
+    }
+
+    return importNode;
 }
 
 } // namespace CHTL

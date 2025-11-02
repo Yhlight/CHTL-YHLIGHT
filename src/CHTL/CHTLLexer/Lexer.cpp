@@ -144,11 +144,14 @@ TokenType Lexer::identifierType() {
     auto identifier = m_source.substr(m_start, m_current - m_start);
     if (identifier == "text") return TokenType::Text;
     if (identifier == "style") return TokenType::Style;
+    if (identifier == "from") return TokenType::From;
+    if (identifier == "as") return TokenType::As;
     if (identifier == "@Style") return TokenType::AtStyle;
     if (identifier == "@Element") return TokenType::AtElement;
     if (identifier == "@Var") return TokenType::AtVar;
     if (identifier == "@Html") return TokenType::AtHtml;
     if (identifier == "@JavaScript") return TokenType::AtJavaScript;
+    if (identifier == "@Chtl") return TokenType::AtChtl;
 
     return TokenType::Identifier;
 }

@@ -9,6 +9,7 @@
 #include "CHTL/CHTLNode/TemplateNode.h"
 #include "CHTL/CHTLNode/CustomTemplateNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
 
 TEST(ParserTest, ParsesUnquotedTextBlock) {
     std::string source = "text { hello world }";
@@ -348,4 +349,46 @@ TEST(ParserTest, ParsesNamedOriginBlock) {
     ASSERT_TRUE(originNode->name.has_value());
     EXPECT_EQ(originNode->name.value(), "myScript");
     EXPECT_EQ(originNode->content, " console.log('hello'); ");
+}
+
+TEST(ParserTest, ParsesSimpleImport) {
+    std::string source = "[Import] @Chtl from \"./myFile.chtl\"";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ASTNode* importNodeBase = programNode->children[0].get();
+    ASSERT_EQ(importNodeBase->getType(), CHTL::ASTNodeType::Import);
+
+    CHTL::ImportNode* importNode = static_cast<CHTL::ImportNode*>(importNodeBase);
+    ASSERT_EQ(importNode->targets.size(), 1);
+    EXPECT_EQ(importNode->targets[0].type, "@Chtl");
+    EXPECT_EQ(importNode->path, "\"./myFile.chtl\"");
+    EXPECT_FALSE(importNode->alias.has_value());
+}
+
+TEST(ParserTest, ParsesImportWithAlias) {
+    std::string source = "[Import] @Element MyElement from \"./elements.chtl\" as MyAlias";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ImportNode* importNode = static_cast<CHTL::ImportNode*>(programNode->children[0].get());
+    ASSERT_EQ(importNode->targets.size(), 1);
+    EXPECT_EQ(importNode->targets[0].type, "@Element");
+    ASSERT_TRUE(importNode->targets[0].name.has_value());
+    EXPECT_EQ(importNode->targets[0].name.value(), "MyElement");
+    EXPECT_EQ(importNode->path, "\"./elements.chtl\"");
+    ASSERT_TRUE(importNode->alias.has_value());
+    EXPECT_EQ(importNode->alias.value(), "MyAlias");
 }
