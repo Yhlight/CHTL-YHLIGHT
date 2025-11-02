@@ -20,9 +20,9 @@ This document outlines the development roadmap for the CHTL project.
   - [x] Integrate Google Test
   - [x] Write initial Lexer tests
 
-- [ ] **Parser Implementation**
-  - [ ] Define AST Node hierarchy (`BaseNode`, `ElementNode`, `TextNode`, etc.)
-  - [ ] Implement basic recursive descent parser
+- [x] **Parser Implementation**
+  - [x] Define AST Node hierarchy (`BaseNode`, `ElementNode`, `TextNode`, etc.)
+  - [x] Implement basic recursive descent parser
   - [ ] Parse simple element structures
 
 - [ ] **Generator Implementation**
@@ -32,7 +32,7 @@ This document outlines the development roadmap for the CHTL project.
 ## Phase 2: Language Features
 
 - [x] Comments (`//`, `/**/`, `#`)
-- [ ] Text Nodes (`text {}` and `text:` attribute)
+- [x] Text Nodes (`text {}` and `text:` attribute)
 - [ ] Unquoted Literals
 - [ ] Element Attributes
 - [ ] Local Style Blocks (`style {}`)

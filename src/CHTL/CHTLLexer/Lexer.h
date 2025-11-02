@@ -25,6 +25,7 @@ private:
     void addToken(TokenType type);
     void addToken(TokenType type, std::string_view lexeme);
     void scanToken();
+    TokenType identifierType();
     void identifier();
     void number();
     void string();

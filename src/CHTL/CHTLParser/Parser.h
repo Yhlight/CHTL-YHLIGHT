@@ -1,0 +1,29 @@
+#pragma once
+
+#include "CHTL/CHTLLexer/Token.h"
+#include "CHTL/CHTLNode/ASTNode.h"
+#include <vector>
+#include <memory>
+
+namespace CHTL {
+
+class Parser {
+public:
+    Parser(const std::vector<Token>& tokens);
+    std::unique_ptr<ASTNode> parse();
+
+private:
+    const std::vector<Token>& m_tokens;
+    int m_current = 0;
+
+    const Token& peek();
+    const Token& previous();
+    bool isAtEnd();
+    const Token& advance();
+    bool check(TokenType type);
+    const Token& consume(TokenType type, const std::string& message);
+
+    std::unique_ptr<ASTNode> parseText();
+};
+
+} // namespace CHTL

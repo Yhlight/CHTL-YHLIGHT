@@ -8,6 +8,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(run_tests
   main.cpp
   LexerTest.cpp
+  ParserTest.cpp
 )
 
 target_link_libraries(run_tests

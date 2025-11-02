@@ -41,7 +41,8 @@ enum class TokenType {
     BlockComment,
     GeneratorComment,
 
-    // Keywords (will be added as needed)
+    // Keywords
+    Text,
 };
 
 struct Token {
