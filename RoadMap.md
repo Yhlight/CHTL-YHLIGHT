@@ -4,19 +4,19 @@ This document outlines the development roadmap for the CHTL project.
 
 ## Phase 1: Core Compiler Infrastructure
 
-- [ ] **Project Setup**
+- [x] **Project Setup**
   - [x] Create `RoadMap.md`
   - [x] Set up `.gitignore`
   - [x] Create `build.py` script for CMake automation
   - [x] Establish basic project structure (`src`, `tests`, `Module`)
   - [x] Configure root `CMakeLists.txt`
 
-- [ ] **Lexer Implementation**
+- [x] **Lexer Implementation**
   - [x] Define `Token` structure
   - [x] Implement `Lexer` class
-  - [ ] Tokenize basic keywords, identifiers, and literals
+  - [x] Tokenize basic keywords, identifiers, and literals
 
-- [ ] **Testing Framework**
+- [x] **Testing Framework**
   - [x] Integrate Google Test
   - [x] Write initial Lexer tests
 
@@ -26,8 +26,11 @@ This document outlines the development roadmap for the CHTL project.
   - [x] Parse simple element structures
 
 - [ ] **Generator Implementation**
-  - [ ] Implement `Generator` class
-  - [ ] Traverse AST and generate basic HTML output
+  - [ ] Create `Generator` class structure
+  - [ ] Implement visitor for `ProgramNode`
+  - [ ] Implement visitor for `ElementNode` (handles tags, attributes, and children)
+  - [ ] Implement visitor for `TextNode`
+  - [ ] Implement visitor for `OriginNode` (preserves raw content)
 
 ## Phase 2: Language Features
 
