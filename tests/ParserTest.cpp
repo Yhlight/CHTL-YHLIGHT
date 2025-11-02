@@ -7,6 +7,7 @@
 #include "CHTL/CHTLNode/StyleNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/TemplateNode.h"
+#include "CHTL/CHTLNode/CustomTemplateNode.h"
 
 TEST(ParserTest, ParsesUnquotedTextBlock) {
     std::string source = "text { hello world }";
@@ -266,4 +267,46 @@ TEST(ParserTest, ParsesElementTemplate) {
     EXPECT_EQ(templateNode->templateType, CHTL::TemplateType::Element);
     EXPECT_EQ(templateNode->name, "MyElement");
     ASSERT_EQ(templateNode->children.size(), 1);
+}
+
+TEST(ParserTest, ParsesCustomStyleTemplate) {
+    std::string source = "[Custom] @Style MyStyle { color: red; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ASTNode* customTemplateNodeBase = programNode->children[0].get();
+    ASSERT_EQ(customTemplateNodeBase->getType(), CHTL::ASTNodeType::CustomTemplate);
+
+    CHTL::CustomTemplateNode* customTemplateNode = static_cast<CHTL::CustomTemplateNode*>(customTemplateNodeBase);
+    EXPECT_EQ(customTemplateNode->templateType, CHTL::TemplateType::Style);
+    EXPECT_EQ(customTemplateNode->name, "MyStyle");
+    ASSERT_EQ(customTemplateNode->children.size(), 1);
+}
+
+TEST(ParserTest, ParsesStylePlaceholder) {
+    std::string source = "[Custom] @Style MyStyle { color; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::CustomTemplateNode* customTemplateNode = static_cast<CHTL::CustomTemplateNode*>(programNode->children[0].get());
+    ASSERT_EQ(customTemplateNode->children.size(), 1);
+
+    CHTL::StyleNode* styleNode = static_cast<CHTL::StyleNode*>(customTemplateNode->children[0].get());
+    ASSERT_EQ(styleNode->properties.size(), 1);
+
+    CHTL::StylePropertyNode* propNode = styleNode->properties[0].get();
+    EXPECT_EQ(propNode->name, "color");
+    EXPECT_FALSE(propNode->value.has_value());
 }

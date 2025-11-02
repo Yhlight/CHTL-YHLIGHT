@@ -5,6 +5,7 @@
 #include "CHTL/CHTLNode/StyleNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/TemplateNode.h"
+#include "CHTL/CHTLNode/CustomTemplateNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -78,7 +79,12 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseStyle();
     }
     if (check(TokenType::BlockKeyword)) {
-        return parseTemplate();
+        if (peek().lexeme == "[Template]") {
+            return parseTemplate();
+        }
+        if (peek().lexeme == "[Custom]") {
+            return parseCustomTemplate();
+        }
     }
     // For now, just advance to avoid infinite loops on unknown tokens
     advance();
@@ -101,13 +107,16 @@ void Parser::parseStyleProperties(StyleNode& styleNode) {
     while (!check(TokenType::RightBrace) && !isAtEnd()) {
         auto propNode = std::make_unique<StylePropertyNode>();
         propNode->name = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
-        consume(TokenType::Colon, "Expect ':' after property name.");
 
-        std::string value = "";
-        while (!check(TokenType::Semicolon) && !isAtEnd()) {
-            value += advance().lexeme;
+        if (check(TokenType::Colon)) {
+            consume(TokenType::Colon, "Expect ':' after property name.");
+
+            std::string value = "";
+            while (!check(TokenType::Semicolon) && !isAtEnd()) {
+                value += advance().lexeme;
+            }
+            propNode->value = value;
         }
-        propNode->value = value;
 
         consume(TokenType::Semicolon, "Expect ';' after property value.");
         styleNode.properties.push_back(std::move(propNode));
@@ -173,6 +182,40 @@ std::unique_ptr<ASTNode> Parser::parseTemplate() {
     consume(TokenType::RightBrace, "Expect '}' after template block.");
 
     return templateNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseCustomTemplate() {
+    consume(TokenType::BlockKeyword, "Expect block keyword.");
+    auto customTemplateNode = std::make_unique<CustomTemplateNode>();
+
+    if (check(TokenType::AtStyle)) {
+        customTemplateNode->templateType = TemplateType::Style;
+    } else if (check(TokenType::AtElement)) {
+        customTemplateNode->templateType = TemplateType::Element;
+    } else if (check(TokenType::AtVar)) {
+        customTemplateNode->templateType = TemplateType::Var;
+    } else {
+        throw std::runtime_error("Expect '@Style', '@Element', or '@Var' after '[Custom]'.");
+    }
+    advance(); // consume @keyword
+
+    customTemplateNode->name = std::string(consume(TokenType::Identifier, "Expect template name.").lexeme);
+
+    consume(TokenType::LeftBrace, "Expect '{' after template name.");
+
+    if (customTemplateNode->templateType == TemplateType::Style) {
+        auto styleNode = std::make_unique<StyleNode>();
+        parseStyleProperties(*styleNode);
+        customTemplateNode->children.push_back(std::move(styleNode));
+    } else {
+        while (!check(TokenType::RightBrace) && !isAtEnd()) {
+            customTemplateNode->children.push_back(parseStatement());
+        }
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after template block.");
+
+    return customTemplateNode;
 }
 
 } // namespace CHTL

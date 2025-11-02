@@ -2,6 +2,7 @@
 
 #include "ASTNode.h"
 #include <string>
+#include <optional>
 
 namespace CHTL {
 
@@ -10,7 +11,7 @@ public:
     ASTNodeType getType() const override { return ASTNodeType::StyleProperty; }
 
     std::string name;
-    std::string value;
+    std::optional<std::string> value;
 };
 
 }
