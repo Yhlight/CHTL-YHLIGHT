@@ -8,9 +8,10 @@ add_executable(runTests
     main.cpp
     LexerTest.cpp
     ParserTest.cpp
+    GeneratorTest.cpp
 )
 
-target_link_libraries(runTests PRIVATE CHTLLexer CHTLParser)
+target_link_libraries(runTests PRIVATE CHTLLexer CHTLParser CHTLGenerator)
 
 # Since CHTLLexer is in a sibling directory, I need to tell CMake where to find it.
 # The main CMakeLists.txt already handles the add_subdirectory, so linking should be fine.

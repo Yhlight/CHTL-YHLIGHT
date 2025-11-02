@@ -21,3 +21,10 @@ add_library(CHTLParser
 
 target_link_libraries(CHTLParser PRIVATE CHTLLexer)
 target_include_directories(CHTLParser PUBLIC ./)
+
+add_library(CHTLGenerator
+    CHTLGenerator/Generator.cpp
+)
+
+target_link_libraries(CHTLGenerator PRIVATE CHTLParser)
+target_include_directories(CHTLGenerator PUBLIC ./)

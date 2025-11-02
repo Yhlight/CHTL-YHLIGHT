@@ -13,7 +13,7 @@ This document outlines the development roadmap for the CHTL project. The project
    - [X] Parsing of core language features (elements, attributes, text)
    - [X] Support for all grammatical constructs in `CHTL.md`
 - **[ ] Generator:** Implement the code generator to produce HTML from the AST.
-  - [ ] Basic HTML generation
+   - [X] Basic HTML generation
   - [ ] Generation of all CHTL features into corresponding HTML and CSS
 
 ## Phase 2: Advanced Language Features

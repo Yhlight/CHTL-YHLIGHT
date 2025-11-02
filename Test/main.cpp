@@ -22,10 +22,12 @@ void run_tests() {
 
 void LexerTests();
 void ParserTests();
+void GeneratorTests();
 
 int main() {
     LexerTests();
     ParserTests();
+    GeneratorTests();
     run_tests();
     return 0;
 }
