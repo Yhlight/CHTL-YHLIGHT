@@ -41,3 +41,9 @@ TEST(GeneratorTest, GeneratesOriginBlock) {
     std::string expected = " <div>raw</div> ";
     EXPECT_EQ(compile(source), expected);
 }
+
+TEST(GeneratorTest, GeneratesElementWithInlineStyle) {
+    std::string source = "div { style { color: red; font-size: 16px; } }";
+    std::string expected = "<div style=\"color: red;font-size: 16px;\">\n</div>\n";
+    EXPECT_EQ(compile(source), expected);
+}

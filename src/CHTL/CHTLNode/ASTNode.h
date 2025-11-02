@@ -15,6 +15,7 @@ enum class ASTNodeType {
     CustomTemplate,
     Origin,
     Import,
+    Namespace,
 };
 
 class ASTNode {

@@ -10,6 +10,7 @@
 #include "CHTL/CHTLNode/CustomTemplateNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
 #include "CHTL/CHTLNode/ImportNode.h"
+#include "CHTL/CHTLNode/NamespaceNode.h"
 
 TEST(ParserTest, ParsesUnquotedTextBlock) {
     std::string source = "text { hello world }";
@@ -391,4 +392,61 @@ TEST(ParserTest, ParsesImportWithAlias) {
     EXPECT_EQ(importNode->path, "\"./elements.chtl\"");
     ASSERT_TRUE(importNode->alias.has_value());
     EXPECT_EQ(importNode->alias.value(), "MyAlias");
+}
+
+TEST(ParserTest, ParsesMultiTokenStyleValue) {
+    std::string source = "style { font-family: \"Times New Roman\", serif; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::StyleNode* styleNode = static_cast<CHTL::StyleNode*>(programNode->children[0].get());
+    ASSERT_EQ(styleNode->properties.size(), 1);
+
+    CHTL::StylePropertyNode* prop = styleNode->properties[0].get();
+    EXPECT_EQ(prop->name, "font-family");
+    EXPECT_EQ(prop->value.value(), "\"Times New Roman\", serif");
+}
+
+TEST(ParserTest, ParsesMultiTokenAttributeValue) {
+    std::string source = "div { class: \"btn btn-primary\"; }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ElementNode* elementNode = static_cast<CHTL::ElementNode*>(programNode->children[0].get());
+    ASSERT_EQ(elementNode->attributes.size(), 1);
+    EXPECT_EQ(elementNode->attributes["class"], "\"btn btn-primary\"");
+}
+
+TEST(ParserTest, ParsesNamespaceBlock) {
+    std::string source = "[Namespace] my_space { div {} }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::ASTNode* namespaceNodeBase = programNode->children[0].get();
+    ASSERT_EQ(namespaceNodeBase->getType(), CHTL::ASTNodeType::Namespace);
+
+    CHTL::NamespaceNode* namespaceNode = static_cast<CHTL::NamespaceNode*>(namespaceNodeBase);
+    EXPECT_EQ(namespaceNode->name, "my_space");
+    ASSERT_EQ(namespaceNode->children.size(), 1);
+
+    CHTL::ElementNode* elementNode = static_cast<CHTL::ElementNode*>(namespaceNode->children[0].get());
+    EXPECT_EQ(elementNode->tagName, "div");
 }

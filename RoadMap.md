@@ -25,12 +25,12 @@ This document outlines the development roadmap for the CHTL project.
   - [x] Implement basic recursive descent parser
   - [x] Parse simple element structures
 
-- [ ] **Generator Implementation**
-  - [ ] Create `Generator` class structure
-  - [ ] Implement visitor for `ProgramNode`
-  - [ ] Implement visitor for `ElementNode` (handles tags, attributes, and children)
-  - [ ] Implement visitor for `TextNode`
-  - [ ] Implement visitor for `OriginNode` (preserves raw content)
+- [x] **Generator Implementation**
+  - [x] Create `Generator` class structure
+  - [x] Implement visitor for `ProgramNode`
+  - [x] Implement visitor for `ElementNode` (handles tags, attributes, and children)
+  - [x] Implement visitor for `TextNode`
+  - [x] Implement visitor for `OriginNode` (preserves raw content)
 
 ## Phase 2: Language Features
 
@@ -39,11 +39,11 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Unquoted Literals
 - [x] Element Attributes
 - [x] Local Style Blocks (`style {}`)
-- [x] Templates (`[Template]`)
-- [x] Custom Templates (`[Custom]`)
+- [ ] Templates (`[Template]`)
+- [ ] Custom Templates (`[Custom]`)
 - [x] Origin Blocks (`[Origin]`)
-- [x] Imports (`[Import]`)
-- [ ] Namespaces (`[Namespace]`)
+- [ ] Imports (`[Import]`)
+- [x] Namespaces (`[Namespace]`)
 - [ ] Configuration (`[Configuration]`)
 
 ## Phase 3: CHTL JS Integration

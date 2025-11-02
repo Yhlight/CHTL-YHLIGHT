@@ -10,6 +10,8 @@ class ProgramNode;
 class ElementNode;
 class TextNode;
 class OriginNode;
+class NamespaceNode;
+class StyleNode;
 
 class Generator {
 public:
@@ -26,6 +28,7 @@ private:
     void visitElementNode(ElementNode* node);
     void visitTextNode(TextNode* node);
     void visitOriginNode(OriginNode* node);
+    void visitNamespaceNode(NamespaceNode* node);
 };
 
 } // namespace CHTL

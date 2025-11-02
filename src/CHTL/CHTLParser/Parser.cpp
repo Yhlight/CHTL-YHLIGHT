@@ -8,6 +8,7 @@
 #include "CHTL/CHTLNode/CustomTemplateNode.h"
 #include "CHTL/CHTLNode/OriginNode.h"
 #include "CHTL/CHTLNode/ImportNode.h"
+#include "CHTL/CHTLNode/NamespaceNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -100,6 +101,9 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         if (peek().lexeme == "[Import]") {
             return parseImport();
         }
+        if (peek().lexeme == "[Namespace]") {
+            return parseNamespace();
+        }
     }
     // For now, just advance to avoid infinite loops on unknown tokens
     throw std::runtime_error("Unexpected token.");
@@ -125,11 +129,24 @@ void Parser::parseStyleProperties(StyleNode& styleNode) {
         if (check(TokenType::Colon)) {
             consume(TokenType::Colon, "Expect ':' after property name.");
 
-            std::string value = "";
-            while (!check(TokenType::Semicolon) && !isAtEnd()) {
-                value += advance().lexeme;
+            const Token& valueStartToken = peek();
+            int startPos = valueStartToken.start_pos;
+
+            int lookahead = m_current;
+            while (m_tokens[lookahead].type != TokenType::Semicolon && m_tokens[lookahead].type != TokenType::Eof) {
+                lookahead++;
             }
-            propNode->value = value;
+
+            if (m_tokens[lookahead].type == TokenType::Eof) {
+                throw std::runtime_error("Unterminated style property. Expected ';'.");
+            }
+
+            const Token& valueEndToken = m_tokens[lookahead - 1];
+            int endPos = valueEndToken.start_pos + valueEndToken.lexeme.length();
+
+            propNode->value = m_source.substr(startPos, endPos - startPos);
+
+            m_current = lookahead;
         }
 
         consume(TokenType::Semicolon, "Expect ';' after property value.");
@@ -158,9 +175,27 @@ void Parser::parseAttributes(ElementNode& element) {
     while (check(TokenType::Identifier) && (m_tokens[m_current + 1].type == TokenType::Colon || m_tokens[m_current + 1].type == TokenType::Equals)) {
         std::string name(advance().lexeme);
         advance(); // consume ':' or '='
-        std::string value(advance().lexeme);
+
+        const Token& valueStartToken = peek();
+        int startPos = valueStartToken.start_pos;
+
+        int lookahead = m_current;
+        while (m_tokens[lookahead].type != TokenType::Semicolon && m_tokens[lookahead].type != TokenType::Eof) {
+            lookahead++;
+        }
+
+        if (m_tokens[lookahead].type == TokenType::Eof) {
+            throw std::runtime_error("Unterminated attribute. Expected ';'.");
+        }
+
+        const Token& valueEndToken = m_tokens[lookahead - 1];
+        int endPos = valueEndToken.start_pos + valueEndToken.lexeme.length();
+
+        element.attributes[name] = m_source.substr(startPos, endPos - startPos);
+
+        m_current = lookahead;
+
         consume(TokenType::Semicolon, "Expect ';' after attribute value.");
-        element.attributes[name] = value;
     }
 }
 
@@ -294,6 +329,23 @@ std::unique_ptr<ASTNode> Parser::parseImport() {
     }
 
     return importNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseNamespace() {
+    consume(TokenType::BlockKeyword, "Expect block keyword.");
+    auto namespaceNode = std::make_unique<NamespaceNode>();
+
+    namespaceNode->name = std::string(consume(TokenType::Identifier, "Expect namespace name.").lexeme);
+
+    if (check(TokenType::LeftBrace)) {
+        consume(TokenType::LeftBrace, "Expect '{' after namespace name.");
+        while (!check(TokenType::RightBrace) && !isAtEnd()) {
+            namespaceNode->children.push_back(parseStatement());
+        }
+        consume(TokenType::RightBrace, "Expect '}' after namespace block.");
+    }
+
+    return namespaceNode;
 }
 
 } // namespace CHTL
