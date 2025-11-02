@@ -10,6 +10,7 @@ add_executable(run_tests
   LexerTest.cpp
   ParserTest.cpp
   GeneratorTest.cpp
+    AnalyserTest.cpp
 )
 
 target_link_libraries(run_tests

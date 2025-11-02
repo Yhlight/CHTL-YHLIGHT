@@ -6,13 +6,11 @@
 
 namespace CHTL {
 
-class StylePropertyNode;
-
 class StyleNode : public ASTNode {
 public:
     ASTNodeType getType() const override { return ASTNodeType::StyleBlock; }
 
-    std::vector<std::unique_ptr<StylePropertyNode>> properties;
+    std::vector<std::unique_ptr<ASTNode>> properties;
 };
 
 }

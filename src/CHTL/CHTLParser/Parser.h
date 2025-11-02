@@ -32,7 +32,7 @@ private:
     std::unique_ptr<ASTNode> parseElement();
     void parseAttributes(ElementNode& element);
     std::unique_ptr<ASTNode> parseStyle();
-    void parseStyleProperties(StyleNode& styleNode);
+    void parseStyleBody(StyleNode& styleNode);
     std::unique_ptr<ASTNode> parseTemplate();
     std::unique_ptr<ASTNode> parseCustomTemplate();
     std::unique_ptr<ASTNode> parseOrigin();

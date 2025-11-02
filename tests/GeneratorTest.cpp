@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "CHTL/CHTLLexer/Lexer.h"
 #include "CHTL/CHTLParser/Parser.h"
+#include "CHTL/CHTLAnalyser/Analyser.h"
 #include "CHTL/CHTLGenerator/Generator.h"
 
 std::string compile(const std::string& source) {
@@ -8,6 +9,8 @@ std::string compile(const std::string& source) {
     auto tokens = lexer.scanTokens();
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
+    CHTL::Analyser analyser(*ast);
+    analyser.analyse();
     CHTL::Generator generator(*ast);
     return generator.generate();
 }
@@ -45,5 +48,19 @@ TEST(GeneratorTest, GeneratesOriginBlock) {
 TEST(GeneratorTest, GeneratesElementWithInlineStyle) {
     std::string source = "div { style { color: red; font-size: 16px; } }";
     std::string expected = "<div style=\"color: red;font-size: 16px;\">\n</div>\n";
+    EXPECT_EQ(compile(source), expected);
+}
+
+TEST(GeneratorTest, GeneratesElementWithStyleTemplate) {
+    std::string source =
+        "[Template] @Style MyTheme {"
+        "    color: blue;"
+        "}"
+        "div {"
+        "    style {"
+        "        @Style MyTheme;"
+        "    }"
+        "}";
+    std::string expected = "<div style=\"color: blue;\">\n</div>\n";
     EXPECT_EQ(compile(source), expected);
 }

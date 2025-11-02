@@ -9,6 +9,7 @@
 #include "CHTL/CHTLNode/OriginNode.h"
 #include "CHTL/CHTLNode/ImportNode.h"
 #include "CHTL/CHTLNode/NamespaceNode.h"
+#include "CHTL/CHTLNode/TemplateUsageNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -114,43 +115,51 @@ std::unique_ptr<ASTNode> Parser::parseStyle() {
     consume(TokenType::LeftBrace, "Expect '{' after 'style' keyword.");
 
     auto styleNode = std::make_unique<StyleNode>();
-    parseStyleProperties(*styleNode);
+    parseStyleBody(*styleNode);
 
     consume(TokenType::RightBrace, "Expect '}' after style block.");
 
     return styleNode;
 }
 
-void Parser::parseStyleProperties(StyleNode& styleNode) {
+void Parser::parseStyleBody(StyleNode& styleNode) {
     while (!check(TokenType::RightBrace) && !isAtEnd()) {
-        auto propNode = std::make_unique<StylePropertyNode>();
-        propNode->name = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
+        if (check(TokenType::AtStyle)) {
+            advance(); // Consume @Style
+            auto templateUsageNode = std::make_unique<TemplateUsageNode>();
+            templateUsageNode->name = std::string(consume(TokenType::Identifier, "Expect template name.").lexeme);
+            consume(TokenType::Semicolon, "Expect ';' after template usage.");
+            styleNode.properties.push_back(std::move(templateUsageNode));
+        } else {
+            auto propNode = std::make_unique<StylePropertyNode>();
+            propNode->name = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
 
-        if (check(TokenType::Colon)) {
-            consume(TokenType::Colon, "Expect ':' after property name.");
+            if (check(TokenType::Colon)) {
+                consume(TokenType::Colon, "Expect ':' after property name.");
 
-            const Token& valueStartToken = peek();
-            int startPos = valueStartToken.start_pos;
+                const Token& valueStartToken = peek();
+                int startPos = valueStartToken.start_pos;
 
-            int lookahead = m_current;
-            while (m_tokens[lookahead].type != TokenType::Semicolon && m_tokens[lookahead].type != TokenType::Eof) {
-                lookahead++;
+                int lookahead = m_current;
+                while (m_tokens[lookahead].type != TokenType::Semicolon && m_tokens[lookahead].type != TokenType::Eof) {
+                    lookahead++;
+                }
+
+                if (m_tokens[lookahead].type == TokenType::Eof) {
+                    throw std::runtime_error("Unterminated style property. Expected ';'.");
+                }
+
+                const Token& valueEndToken = m_tokens[lookahead - 1];
+                int endPos = valueEndToken.start_pos + valueEndToken.lexeme.length();
+
+                propNode->value = m_source.substr(startPos, endPos - startPos);
+
+                m_current = lookahead;
             }
 
-            if (m_tokens[lookahead].type == TokenType::Eof) {
-                throw std::runtime_error("Unterminated style property. Expected ';'.");
-            }
-
-            const Token& valueEndToken = m_tokens[lookahead - 1];
-            int endPos = valueEndToken.start_pos + valueEndToken.lexeme.length();
-
-            propNode->value = m_source.substr(startPos, endPos - startPos);
-
-            m_current = lookahead;
+            consume(TokenType::Semicolon, "Expect ';' after property value.");
+            styleNode.properties.push_back(std::move(propNode));
         }
-
-        consume(TokenType::Semicolon, "Expect ';' after property value.");
-        styleNode.properties.push_back(std::move(propNode));
     }
 }
 
@@ -220,7 +229,7 @@ std::unique_ptr<ASTNode> Parser::parseTemplate() {
 
     if (templateNode->templateType == TemplateType::Style) {
         auto styleNode = std::make_unique<StyleNode>();
-        parseStyleProperties(*styleNode);
+        parseStyleBody(*styleNode);
         templateNode->children.push_back(std::move(styleNode));
     } else {
         while (!check(TokenType::RightBrace) && !isAtEnd()) {
@@ -254,7 +263,7 @@ std::unique_ptr<ASTNode> Parser::parseCustomTemplate() {
 
     if (customTemplateNode->templateType == TemplateType::Style) {
         auto styleNode = std::make_unique<StyleNode>();
-        parseStyleProperties(*styleNode);
+        parseStyleBody(*styleNode);
         customTemplateNode->children.push_back(std::move(styleNode));
     } else {
         while (!check(TokenType::RightBrace) && !isAtEnd()) {

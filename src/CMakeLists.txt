@@ -5,6 +5,7 @@ target_sources(libchtl
     CHTL/CHTLLexer/Lexer.cpp
     CHTL/CHTLParser/Parser.cpp
     CHTL/CHTLGenerator/Generator.cpp
+    CHTL/CHTLAnalyser/Analyser.cpp
 )
 
 target_include_directories(libchtl

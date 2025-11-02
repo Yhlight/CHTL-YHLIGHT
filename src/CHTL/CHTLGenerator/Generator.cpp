@@ -58,7 +58,10 @@ void Generator::visitElementNode(ElementNode* node) {
         if (child->getType() == ASTNodeType::StyleBlock) {
             StyleNode* styleNode = static_cast<StyleNode*>(child.get());
             for (const auto& prop : styleNode->properties) {
-                style_ss << prop->name << ": " << prop->value.value_or("") << ";";
+                if (prop->getType() == ASTNodeType::StyleProperty) {
+                    StylePropertyNode* propNode = static_cast<StylePropertyNode*>(prop.get());
+                    style_ss << propNode->name << ": " << propNode->value.value_or("") << ";";
+                }
             }
         }
     }
