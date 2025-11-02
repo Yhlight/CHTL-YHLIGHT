@@ -5,16 +5,16 @@
 #include <cassert>
 
 Test CHTLJSGeneratorTest = {
-    "CHTLJSGenerator: Generate Enhanced Selector",
+    "CHTLJSGenerator: Generate Member Call Expression with Arguments",
     []() {
-        std::string source = "{{.box}}{{#button}}";
+        std::string source = "{{box}}->setAttribute(\"id\", \"main-box\")";
         CHTLJSLexer lexer(source);
         std::vector<CHTLJSToken> tokens = lexer.tokenize();
         CHTLJSParser parser(tokens);
         std::unique_ptr<CHTLJSBaseNode> node = parser.parse();
         CHTLJSGenerator generator;
-        std::string result = generator.generate(node);
-        assert(result == "document.querySelector('.box');\ndocument.querySelector('#button');\n");
+        std::string result = generator.generate(node.get());
+        assert(result == "document.querySelector('box').setAttribute(\"id\", \"main-box\");\n");
     }
 };
 

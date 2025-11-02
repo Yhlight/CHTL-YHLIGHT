@@ -3,24 +3,34 @@
 #include "../CHTLJS/CHTLJSParser/Parser.h"
 #include "../CHTLJS/CHTLJSNode/EnhancedSelectorNode.h"
 #include "../CHTLJS/CHTLJSNode/ProgramNode.h"
+#include "../CHTLJS/CHTLJSNode/CallExpressionNode.h"
+#include "../CHTLJS/CHTLJSNode/MemberExpressionNode.h"
+#include "../CHTLJS/CHTLJSNode/IdentifierNode.h"
+#include "../CHTLJS/CHTLJSNode/StringLiteralNode.h"
 #include <cassert>
 
 Test CHTLJSParserTest = {
-    "CHTLJSParser: Parse Enhanced Selector",
+    "CHTLJSParser: Parse Member Call Expression with Arguments",
     []() {
-        std::string source = "{{.box}}{{#button}}";
+        std::string source = "{{box}}->setAttribute(\"id\", \"main-box\")";
         CHTLJSLexer lexer(source);
         std::vector<CHTLJSToken> tokens = lexer.tokenize();
         CHTLJSParser parser(tokens);
-        std::unique_ptr<ProgramNode> node = parser.parse();
-        assert(node != nullptr);
-        assert(node->children.size() == 2);
-        EnhancedSelectorNode* selectorNode1 = dynamic_cast<EnhancedSelectorNode*>(node->children[0].get());
-        assert(selectorNode1 != nullptr);
-        assert(selectorNode1->selector == ".box");
-        EnhancedSelectorNode* selectorNode2 = dynamic_cast<EnhancedSelectorNode*>(node->children[1].get());
-        assert(selectorNode2 != nullptr);
-        assert(selectorNode2->selector == "#button");
+        std::unique_ptr<ProgramNode> program = parser.parse();
+        assert(program != nullptr);
+        assert(program->children.size() == 1);
+
+        CallExpressionNode* callExpr = dynamic_cast<CallExpressionNode*>(program->children[0].get());
+        assert(callExpr != nullptr);
+        assert(callExpr->arguments.size() == 2);
+
+        StringLiteralNode* arg1 = dynamic_cast<StringLiteralNode*>(callExpr->arguments[0].get());
+        assert(arg1 != nullptr);
+        assert(arg1->value == "id");
+
+        StringLiteralNode* arg2 = dynamic_cast<StringLiteralNode*>(callExpr->arguments[1].get());
+        assert(arg2 != nullptr);
+        assert(arg2->value == "main-box");
     }
 };
 

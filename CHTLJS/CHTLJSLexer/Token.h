@@ -6,6 +6,11 @@
 enum class CHTLJSTokenType {
     EnhancedSelector,
     Identifier,
+    ArrowOperator,
+    OpenParen,
+    CloseParen,
+    Comma,
+    StringLiteral,
     // ... other token types
 };
 

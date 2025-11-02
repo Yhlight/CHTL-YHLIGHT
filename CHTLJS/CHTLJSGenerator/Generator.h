@@ -7,5 +7,5 @@
 class CHTLJSGenerator {
 public:
     CHTLJSGenerator();
-    std::string generate(const std::unique_ptr<CHTLJSBaseNode>& node);
+    std::string generate(CHTLJSBaseNode* node);
 };
