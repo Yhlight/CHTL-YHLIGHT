@@ -1,3 +1,10 @@
+add_library(CHTLPreprocessor
+    CHTLPreprocessor/Preprocessor.cpp
+)
+
+target_link_libraries(CHTLPreprocessor PRIVATE CHTLLexer)
+target_include_directories(CHTLPreprocessor PUBLIC ./)
+
 add_library(CHTLLexer
     CHTLLexer/Lexer.cpp
 )
@@ -30,5 +37,5 @@ add_library(CHTLGenerator
     CHTLGenerator/Generator.cpp
 )
 
-target_link_libraries(CHTLGenerator PRIVATE CHTLParser CHTLJSLexer CHTLJSParser CHTLJSNode CHTLJSGenerator)
+target_link_libraries(CHTLGenerator PRIVATE CHTLParser CHTLJSLexer CHTLJSParser CHTLJSNode CHTLJSGenerator CHTLPreprocessor SaltBridge)
 target_include_directories(CHTLGenerator PUBLIC ./ ../)

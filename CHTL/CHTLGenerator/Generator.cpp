@@ -8,6 +8,8 @@
 #include "CHTLNode/StyleContentNode.h"
 #include "CHTLNode/ElementDirectiveNode.h"
 #include "CHTLNode/CustomNode.h"
+#include "CHTLPreprocessor/Preprocessor.h"
+#include "Shared/SaltBridge/SaltBridge.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -107,16 +109,9 @@ void Generator::visitStyle(StyleNode* node) {
 }
 
 void Generator::visitScript(ScriptNode* node) {
-    if (node->content.find("{{") != std::string::npos || node->content.find("->") != std::string::npos) {
-        CHTLJSLexer lexer(node->content);
-        std::vector<CHTLJSToken> tokens = lexer.tokenize();
-        CHTLJSParser parser(tokens);
-        std::unique_ptr<ProgramNode> program = parser.parse();
-        CHTLJSGenerator generator;
-        js_output += generator.generate(program.get());
-    } else {
-        js_output += node->content;
-    }
+    CHTLPreprocessor preprocessor(node->content);
+    std::string processed_script = preprocessor.preprocess();
+    js_output += SaltBridge::compileScript(processed_script);
 }
 
 void Generator::visitTemplate(TemplateNode* node) {

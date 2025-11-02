@@ -153,8 +153,18 @@ Token Lexer::nextToken() {
     }
 
     switch (c) {
-        case '{': return {TokenType::OpenBrace, "{", line, col, start_pos};
-        case '}': return {TokenType::CloseBrace, "}", line, col, start_pos};
+        case '{':
+            if (peek() == '{') {
+                advance();
+                return {TokenType::OpenBrace, "{{", line, col, start_pos};
+            }
+            return {TokenType::OpenBrace, "{", line, col, start_pos};
+        case '}':
+            if (peek() == '}') {
+                advance();
+                return {TokenType::CloseBrace, "}}", line, col, start_pos};
+            }
+            return {TokenType::CloseBrace, "}", line, col, start_pos};
         case '(': return {TokenType::OpenParen, "(", line, col, start_pos};
         case ')': return {TokenType::CloseParen, ")", line, col, start_pos};
         case ';': return {TokenType::Semicolon, ";", line, col, start_pos};
