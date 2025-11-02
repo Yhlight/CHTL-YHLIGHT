@@ -3,6 +3,7 @@
 #include "CHTL/CHTLParser/Parser.h"
 #include "CHTL/CHTLAnalyser/Analyser.h"
 #include "CHTL/CHTLGenerator/Generator.h"
+#include "SharedCore/CHTLContext.h"
 
 std::string compile(const std::string& source) {
     CHTL::Lexer lexer(source);
@@ -10,7 +11,8 @@ std::string compile(const std::string& source) {
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
     std::vector<std::string> importStack;
-    CHTL::Analyser analyser(*ast, "test.chtl", importStack);
+    auto context = std::make_shared<CHTL::CHTLContext>();
+    CHTL::Analyser analyser(*ast, "test.chtl", importStack, context);
     analyser.analyse();
     CHTL::Generator generator(*ast);
     return generator.generate();

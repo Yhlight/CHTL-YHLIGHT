@@ -15,8 +15,8 @@
 
 namespace CHTL {
 
-Analyser::Analyser(ASTNode& root, const std::string& filePath, std::vector<std::string>& importStack)
-    : m_root(root), m_filePath(filePath), m_importStack(importStack) {}
+Analyser::Analyser(ASTNode& root, const std::string& filePath, std::vector<std::string>& importStack, std::shared_ptr<CHTLContext> context)
+    : m_root(root), m_filePath(filePath), m_importStack(importStack), m_context(context) {}
 
 void Analyser::analyse() {
     if (m_root.getType() == ASTNodeType::Program) {
@@ -31,7 +31,7 @@ void Analyser::collect(std::vector<std::unique_ptr<ASTNode>>& nodes) {
         if ((*it)->getType() == ASTNodeType::Template || (*it)->getType() == ASTNodeType::CustomTemplate) {
             TemplateNode* templateNode = static_cast<TemplateNode*>((*it).get()); // Works for both
             if (templateNode->templateType == TemplateType::Style) {
-                m_symbolTable.insertStyleTemplate(templateNode->name, templateNode);
+                m_context->symbolTable.insertStyleTemplate(templateNode->name, templateNode);
                 m_ownedTemplates.push_back(std::move(*it));
             }
             it = nodes.erase(it);
@@ -89,12 +89,8 @@ void Analyser::resolve(ASTNode* node) {
             Parser parser(tokens, content);
             auto ast = parser.parse();
 
-            Analyser subAnalyser(*ast, canonical_path, m_importStack);
+            Analyser subAnalyser(*ast, canonical_path, m_importStack, m_context);
             subAnalyser.analyse();
-
-            for (auto const& [key, val] : subAnalyser.m_symbolTable.getStyleTemplates()) {
-                m_symbolTable.insertStyleTemplate(key, val);
-            }
 
             auto owned = subAnalyser.getOwnedTemplates();
             m_ownedTemplates.insert(m_ownedTemplates.end(), std::make_move_iterator(owned.begin()), std::make_move_iterator(owned.end()));
@@ -118,7 +114,7 @@ void Analyser::resolve(StyleNode* node) {
     for (auto& prop : node->properties) {
         if (prop->getType() == ASTNodeType::TemplateUsage) {
             TemplateUsageNode* usageNode = static_cast<TemplateUsageNode*>(prop.get());
-            TemplateNode* templateNode = m_symbolTable.lookupStyleTemplate(usageNode->name);
+            TemplateNode* templateNode = m_context->symbolTable.lookupStyleTemplate(usageNode->name);
             if (templateNode) {
                 StyleNode* templateStyleNode = static_cast<StyleNode*>(templateNode->children[0].get());
 
@@ -158,10 +154,10 @@ void Analyser::resolve(StyleNode* node) {
 
 void Analyser::resolve(ConfigurationNode* node) {
     for (const auto& [key, value] : node->settings) {
-        m_config[key] = value;
+        m_context->config[key] = value;
     }
     for (const auto& [key, value] : node->nameGroup) {
-        m_config[key] = value;
+        m_context->config[key] = value;
     }
 }
 

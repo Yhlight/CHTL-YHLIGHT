@@ -13,3 +13,10 @@ target_include_directories(libchtl
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+add_subdirectory(SharedCore)
+
+target_link_libraries(libchtl
+    PRIVATE
+        libsharedcore
+)

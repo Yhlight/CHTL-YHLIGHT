@@ -9,6 +9,7 @@
 #include "CHTL/CHTLNode/StyleNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/TemplateUsageNode.h"
+#include "SharedCore/CHTLContext.h"
 
 TEST(AnalyserTest, ResolvesStyleTemplate) {
     std::string source =
@@ -25,7 +26,8 @@ TEST(AnalyserTest, ResolvesStyleTemplate) {
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
     std::vector<std::string> importStack;
-    CHTL::Analyser analyser(*ast, "test.chtl", importStack);
+    auto context = std::make_shared<CHTL::CHTLContext>();
+    CHTL::Analyser analyser(*ast, "test.chtl", importStack, context);
     analyser.analyse();
 
     CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
@@ -63,7 +65,8 @@ TEST(AnalyserTest, ResolvesCustomStyleTemplateWithSpecialization) {
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
     std::vector<std::string> importStack;
-    CHTL::Analyser analyser(*ast, "test.chtl", importStack);
+    auto context = std::make_shared<CHTL::CHTLContext>();
+    CHTL::Analyser analyser(*ast, "test.chtl", importStack, context);
     analyser.analyse();
 
     CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
@@ -101,7 +104,8 @@ TEST(AnalyserTest, ResolvesImportedStyleTemplate) {
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
     std::vector<std::string> importStack;
-    CHTL::Analyser analyser(*ast, "test.chtl", importStack);
+    auto context = std::make_shared<CHTL::CHTLContext>();
+    CHTL::Analyser analyser(*ast, "test.chtl", importStack, context);
     analyser.analyse();
 
     CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
@@ -135,7 +139,8 @@ TEST(AnalyserTest, DetectsCircularImports) {
     CHTL::Parser parser(tokens, source);
     auto ast = parser.parse();
     std::vector<std::string> importStack;
-    CHTL::Analyser analyser(*ast, "test.chtl", importStack);
+    auto context = std::make_shared<CHTL::CHTLContext>();
+    CHTL::Analyser analyser(*ast, "test.chtl", importStack, context);
 
     EXPECT_THROW(analyser.analyse(), std::runtime_error);
 
