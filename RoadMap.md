@@ -21,10 +21,10 @@ This document outlines the development roadmap for the CHTL project. The project
 
 ## Phase 2: Advanced Language Features
 
-- **[ ] CHTL JS Support:** Implement the necessary components to support CHTL JS.
+- **[ ] CHTL JS Support:** Implement the necessary components to support CHTL JS. (In Progress)
   - [ ] Salt bridge for communication between CHTL and CHTL JS compilers
   - [ ] CHTL JS preprocessor
-  - [ ] CHTL JS parser and generator
+  - [X] CHTL JS parser and generator
 - **[ ] Module System:** Implement the CMOD and CJMOD module systems.
   - [ ] CMOD packaging and unpacking
   - [ ] CJMOD support
