@@ -15,6 +15,7 @@ add_executable(run_tests
     Parser/ConfigurationTest.cpp
     Analyser/ConfigurationTest.cpp
     CHTLJS/LexerTest.cpp
+    CHTLJS/ParserTest.cpp
 )
 
 target_link_libraries(run_tests
