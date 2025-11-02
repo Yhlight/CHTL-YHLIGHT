@@ -14,7 +14,11 @@ private:
     size_t current = 0;
 
     AstNode parseElement();
+    AstNode parseStyleBlock();
+    AstNode parseScriptBlock();
+    AstNode parseComment();
     Token advance();
     Token peek();
+    Token peekNext();
     bool isAtEnd();
 };

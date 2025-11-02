@@ -9,6 +9,9 @@ add_library(CHTLParser
     CHTLNode/BaseNode.h
     CHTLNode/ElementNode.h
     CHTLNode/TextNode.h
+    CHTLNode/StyleNode.h
+    CHTLNode/ScriptNode.h
+    CHTLNode/CommentNode.h
 )
 
 target_link_libraries(CHTLParser PRIVATE CHTLLexer)

@@ -9,8 +9,8 @@ This document outlines the development roadmap for the CHTL project. The project
   - [X] Comment handling (`//`, `/**/`, `#`)
   - [X] Support for all specified token types in `CHTL.md`
 - **[ ] Parser:** Implement the parser to build an Abstract Syntax Tree (AST) from the token stream.
-  - [ ] Basic AST structure
-  - [ ] Parsing of core language features (elements, attributes, text)
+   - [X] Basic AST structure
+   - [X] Parsing of core language features (elements, attributes, text)
   - [ ] Support for all grammatical constructs in `CHTL.md`
 - **[ ] Generator:** Implement the code generator to produce HTML from the AST.
   - [ ] Basic HTML generation
