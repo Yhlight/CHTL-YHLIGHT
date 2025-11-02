@@ -24,7 +24,9 @@ private:
     bool check(TokenType type);
     const Token& consume(TokenType type, const std::string& message);
 
+    std::unique_ptr<ASTNode> parseStatement();
     std::unique_ptr<ASTNode> parseText();
+    std::unique_ptr<ASTNode> parseElement();
 };
 
 } // namespace CHTL

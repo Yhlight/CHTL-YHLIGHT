@@ -23,7 +23,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] **Parser Implementation**
   - [x] Define AST Node hierarchy (`BaseNode`, `ElementNode`, `TextNode`, etc.)
   - [x] Implement basic recursive descent parser
-  - [ ] Parse simple element structures
+  - [x] Parse simple element structures
 
 - [ ] **Generator Implementation**
   - [ ] Implement `Generator` class

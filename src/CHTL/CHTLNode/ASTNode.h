@@ -8,6 +8,7 @@ namespace CHTL {
 enum class ASTNodeType {
     Program,
     Text,
+    Element,
 };
 
 class ASTNode {

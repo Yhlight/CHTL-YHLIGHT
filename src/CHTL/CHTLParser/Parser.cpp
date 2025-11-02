@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
+#include "CHTL/CHTLNode/ElementNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -10,12 +11,7 @@ Parser::Parser(const std::vector<Token>& tokens, std::string_view source) : m_to
 std::unique_ptr<ASTNode> Parser::parse() {
     auto programNode = std::make_unique<ProgramNode>();
     while (!isAtEnd()) {
-        if (check(TokenType::Text)) {
-            programNode->children.push_back(parseText());
-        } else {
-            // For now, just advance to avoid infinite loops on unknown tokens
-            advance();
-        }
+        programNode->children.push_back(parseStatement());
     }
     return programNode;
 }
@@ -66,6 +62,33 @@ std::unique_ptr<ASTNode> Parser::parseText() {
     consume(TokenType::RightBrace, "Expect '}' after text block.");
 
     return textNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseStatement() {
+    if (check(TokenType::Text)) {
+        return parseText();
+    }
+    if (check(TokenType::Identifier)) {
+        return parseElement();
+    }
+    // For now, just advance to avoid infinite loops on unknown tokens
+    advance();
+    return nullptr;
+}
+
+std::unique_ptr<ASTNode> Parser::parseElement() {
+    auto elementNode = std::make_unique<ElementNode>();
+    elementNode->tagName = advance().lexeme;
+
+    consume(TokenType::LeftBrace, "Expect '{' after element tag.");
+
+    while (!check(TokenType::RightBrace) && !isAtEnd()) {
+        elementNode->children.push_back(parseStatement());
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after element block.");
+
+    return elementNode;
 }
 
 } // namespace CHTL
