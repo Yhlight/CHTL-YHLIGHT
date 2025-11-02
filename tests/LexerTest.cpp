@@ -1,0 +1,60 @@
+#include <gtest/gtest.h>
+#include "CHTL/CHTLLexer/Lexer.h"
+
+TEST(LexerTest, TokenizesPunctuation) {
+    CHTL::Lexer lexer("(){}[],.:;=+-*/%");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 17);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::LeftParen);
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::RightParen);
+    EXPECT_EQ(tokens[2].type, CHTL::TokenType::LeftBrace);
+    EXPECT_EQ(tokens[3].type, CHTL::TokenType::RightBrace);
+    EXPECT_EQ(tokens[4].type, CHTL::TokenType::LeftBracket);
+    EXPECT_EQ(tokens[5].type, CHTL::TokenType::RightBracket);
+    EXPECT_EQ(tokens[6].type, CHTL::TokenType::Comma);
+    EXPECT_EQ(tokens[7].type, CHTL::TokenType::Dot);
+    EXPECT_EQ(tokens[8].type, CHTL::TokenType::Colon);
+    EXPECT_EQ(tokens[9].type, CHTL::TokenType::Semicolon);
+    EXPECT_EQ(tokens[10].type, CHTL::TokenType::Equals);
+    EXPECT_EQ(tokens[11].type, CHTL::TokenType::Plus);
+    EXPECT_EQ(tokens[12].type, CHTL::TokenType::Minus);
+    EXPECT_EQ(tokens[13].type, CHTL::TokenType::Star);
+    EXPECT_EQ(tokens[14].type, CHTL::TokenType::Slash);
+    EXPECT_EQ(tokens[15].type, CHTL::TokenType::Percent);
+    EXPECT_EQ(tokens[16].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, TokenizesIdentifiers) {
+    CHTL::Lexer lexer("hello world");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 3);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(tokens[0].lexeme, "hello");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Identifier);
+    EXPECT_EQ(tokens[1].lexeme, "world");
+    EXPECT_EQ(tokens[2].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, TokenizesNumbers) {
+    CHTL::Lexer lexer("123 456.789");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 3);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::Number);
+    EXPECT_EQ(tokens[0].lexeme, "123");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Number);
+    EXPECT_EQ(tokens[1].lexeme, "456.789");
+    EXPECT_EQ(tokens[2].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, TokenizesStrings) {
+    CHTL::Lexer lexer("\"hello world\"");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::String);
+    EXPECT_EQ(tokens[0].lexeme, "\"hello world\"");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}

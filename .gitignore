@@ -1,1 +1,22 @@
-third-party/
+# CMake
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Other
+*.log
+*.tmp
