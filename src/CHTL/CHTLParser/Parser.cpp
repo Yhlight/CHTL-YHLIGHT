@@ -128,7 +128,17 @@ void Parser::parseStyleBody(StyleNode& styleNode) {
             advance(); // Consume @Style
             auto templateUsageNode = std::make_unique<TemplateUsageNode>();
             templateUsageNode->name = std::string(consume(TokenType::Identifier, "Expect template name.").lexeme);
-            consume(TokenType::Semicolon, "Expect ';' after template usage.");
+
+            if (check(TokenType::LeftBrace)) {
+                consume(TokenType::LeftBrace, "Expect '{' after template name.");
+                auto specializationNode = std::make_unique<StyleNode>();
+                parseStyleBody(*specializationNode);
+                templateUsageNode->specialization = std::move(specializationNode);
+                consume(TokenType::RightBrace, "Expect '}' after specialization block.");
+            } else {
+                consume(TokenType::Semicolon, "Expect ';' after template usage.");
+            }
+
             styleNode.properties.push_back(std::move(templateUsageNode));
         } else {
             auto propNode = std::make_unique<StylePropertyNode>();

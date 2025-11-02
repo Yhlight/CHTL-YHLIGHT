@@ -64,3 +64,20 @@ TEST(GeneratorTest, GeneratesElementWithStyleTemplate) {
     std::string expected = "<div style=\"color: blue;\">\n</div>\n";
     EXPECT_EQ(compile(source), expected);
 }
+
+TEST(GeneratorTest, GeneratesElementWithCustomStyleTemplate) {
+    std::string source =
+        "[Custom] @Style MyTheme {"
+        "    color;"
+        "    font-size: 16px;"
+        "}"
+        "div {"
+        "    style {"
+        "        @Style MyTheme {"
+        "            color: green;"
+        "        }"
+        "    }"
+        "}";
+    std::string expected = "<div style=\"color: green;font-size: 16px;\">\n</div>\n";
+    EXPECT_EQ(compile(source), expected);
+}

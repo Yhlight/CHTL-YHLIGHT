@@ -472,3 +472,30 @@ TEST(ParserTest, ParsesStyleTemplateUsage) {
     CHTL::TemplateUsageNode* templateUsageNode = static_cast<CHTL::TemplateUsageNode*>(templateUsageBase);
     EXPECT_EQ(templateUsageNode->name, "MyTheme");
 }
+
+TEST(ParserTest, ParsesStyleTemplateUsageWithSpecialization) {
+    std::string source = "style { @Style MyTheme { color: red; } }";
+    CHTL::Lexer lexer(source);
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+    CHTL::Parser parser(tokens, source);
+    std::unique_ptr<CHTL::ASTNode> ast = parser.parse();
+
+    ASSERT_NE(ast, nullptr);
+    CHTL::ProgramNode* programNode = static_cast<CHTL::ProgramNode*>(ast.get());
+    ASSERT_EQ(programNode->children.size(), 1);
+
+    CHTL::StyleNode* styleNode = static_cast<CHTL::StyleNode*>(programNode->children[0].get());
+    ASSERT_EQ(styleNode->properties.size(), 1);
+
+    CHTL::ASTNode* templateUsageBase = styleNode->properties[0].get();
+    ASSERT_EQ(templateUsageBase->getType(), CHTL::ASTNodeType::TemplateUsage);
+
+    CHTL::TemplateUsageNode* templateUsageNode = static_cast<CHTL::TemplateUsageNode*>(templateUsageBase);
+    EXPECT_EQ(templateUsageNode->name, "MyTheme");
+    ASSERT_NE(templateUsageNode->specialization, nullptr);
+    ASSERT_EQ(templateUsageNode->specialization->properties.size(), 1);
+
+    CHTL::StylePropertyNode* propNode = static_cast<CHTL::StylePropertyNode*>(templateUsageNode->specialization->properties[0].get());
+    EXPECT_EQ(propNode->name, "color");
+    EXPECT_EQ(propNode->value, "red");
+}
