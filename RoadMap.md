@@ -31,7 +31,7 @@ This document outlines the development roadmap for the CHTL project.
 
 ## Phase 2: Language Features
 
-- [ ] Comments (`//`, `/**/`, `#`)
+- [x] Comments (`//`, `/**/`, `#`)
 - [ ] Text Nodes (`text {}` and `text:` attribute)
 - [ ] Unquoted Literals
 - [ ] Element Attributes

@@ -58,3 +58,42 @@ TEST(LexerTest, TokenizesStrings) {
     EXPECT_EQ(tokens[0].lexeme, "\"hello world\"");
     EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
 }
+
+TEST(LexerTest, TokenizesLineComments) {
+    CHTL::Lexer lexer("// this is a comment");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::LineComment);
+    EXPECT_EQ(tokens[0].lexeme, "// this is a comment");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, TokenizesBlockComments) {
+    CHTL::Lexer lexer("/* this is a block comment */");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::BlockComment);
+    EXPECT_EQ(tokens[0].lexeme, "/* this is a block comment */");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, TokenizesGeneratorComments) {
+    CHTL::Lexer lexer("# this is a generator comment");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::GeneratorComment);
+    EXPECT_EQ(tokens[0].lexeme, "# this is a generator comment");
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}
+
+TEST(LexerTest, HandlesUnterminatedBlockComment) {
+    CHTL::Lexer lexer("/* this is an unterminated block comment");
+    std::vector<CHTL::Token> tokens = lexer.scanTokens();
+
+    ASSERT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, CHTL::TokenType::Unexpected);
+    EXPECT_EQ(tokens[1].type, CHTL::TokenType::Eof);
+}

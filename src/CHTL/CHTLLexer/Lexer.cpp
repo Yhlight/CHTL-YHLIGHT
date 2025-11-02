@@ -84,7 +84,29 @@ void Lexer::scanToken() {
         addToken(TokenType::Colon);
         break;
     case '/':
-        addToken(TokenType::Slash);
+        if (peek() == '/') {
+            while (peek() != '\n' && !isAtEnd()) advance();
+            addToken(TokenType::LineComment);
+        } else if (peek() == '*') {
+            advance(); // consume '*'
+            while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
+                if (peek() == '\n') m_line++;
+                advance();
+            }
+            if (isAtEnd()) {
+                addToken(TokenType::Unexpected, "Unterminated block comment.");
+            } else {
+                advance(); // consume '*'
+                advance(); // consume '/'
+                addToken(TokenType::BlockComment);
+            }
+        } else {
+            addToken(TokenType::Slash);
+        }
+        break;
+    case '#':
+        while (peek() != '\n' && !isAtEnd()) advance();
+        addToken(TokenType::GeneratorComment);
         break;
     case '%':
         addToken(TokenType::Percent);
