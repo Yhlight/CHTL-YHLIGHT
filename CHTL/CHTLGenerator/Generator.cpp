@@ -8,6 +8,7 @@
 #include "CHTLNode/StyleContentNode.h"
 #include "CHTLNode/ElementDirectiveNode.h"
 #include "CHTLNode/CustomNode.h"
+#include "Util/FileUtil.h"
 #include <iostream>
 
 Generator::Generator(AstNodeList ast) : ast(std::move(ast)) {}
@@ -47,6 +48,8 @@ void Generator::visit(BaseNode* node) {
         visitOrigin(originNode);
     } else if (auto importNode = dynamic_cast<ImportNode*>(node)) {
         visitImport(importNode);
+    } else if (auto originDirectiveNode = dynamic_cast<OriginDirectiveNode*>(node)) {
+        visitOriginDirective(originDirectiveNode);
     }
 }
 
@@ -141,16 +144,43 @@ void Generator::visitCustom(CustomNode* node) {
 }
 
 void Generator::visitOrigin(OriginNode* node) {
-    if (node->type == "@Html") {
-        html_output += node->content;
-    } else if (node->type == "@Style") {
-        css_output += node->content;
-    } else if (node->type == "@JavaScript") {
-        js_output += node->content;
+    if (!node->name.empty()) {
+        auto newNode = std::make_unique<OriginNode>();
+        newNode->type = node->type;
+        newNode->name = node->name;
+        newNode->content = node->content;
+        named_origin_blocks[node->name] = std::move(newNode);
+    } else {
+        if (node->type == "@Html") {
+            html_output += node->content;
+        } else if (node->type == "@Style") {
+            css_output += node->content;
+        } else if (node->type == "@JavaScript") {
+            js_output += node->content;
+        }
     }
 }
 
 void Generator::visitImport(ImportNode* node) {
-    // For now, this is a placeholder.
-    // In the future, this will handle file loading and parsing.
+    if (node->type == "@Html") {
+        std::string content = FileUtil::readFile(node->file_path);
+        auto originNode = std::make_unique<OriginNode>();
+        originNode->type = "@Html";
+        originNode->name = node->as_name;
+        originNode->content = content;
+        named_origin_blocks[node->as_name] = std::move(originNode);
+    }
+}
+
+void Generator::visitOriginDirective(OriginDirectiveNode* node) {
+    if (named_origin_blocks.count(node->name)) {
+        OriginNode* originNode = named_origin_blocks[node->name].get();
+        if (originNode->type == "@Html") {
+            html_output += originNode->content;
+        } else if (originNode->type == "@Style") {
+            css_output += originNode->content;
+        } else if (originNode->type == "@JavaScript") {
+            js_output += originNode->content;
+        }
+    }
 }

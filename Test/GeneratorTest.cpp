@@ -163,9 +163,12 @@ void GeneratorTests() {
         ASSERT(result == expected);
     }});
 
-    tests.push_back({"Test Import Statement", []() {
+    tests.push_back({"Test Named Origin Block", []() {
         std::string source = R"(
-            [Import] @Chtl from "my.chtl"
+            [Origin] @Html myBlock {
+                <p>This is a named block.</p>
+            }
+            [Origin] @Html myBlock;
         )";
 
         Lexer lexer(source);
@@ -173,7 +176,22 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = "<html><head><style></style></head><body><script></script></body></html>";
+        std::string expected = "<html><head><style></style></head><body><p>This is a named block.</p><script></script></body></html>";
+        ASSERT(result == expected);
+    }});
+
+    tests.push_back({"Test Import Html", []() {
+        std::string source = R"(
+            [Import] @Html from "Test/test.html" as myFile
+            [Origin] @Html myFile;
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<html><head><style></style></head><body><h1>This is an imported HTML file.</h1>\n<script></script></body></html>";
         ASSERT(result == expected);
     }});
 }

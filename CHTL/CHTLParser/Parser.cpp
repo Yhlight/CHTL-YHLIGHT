@@ -9,6 +9,7 @@
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
+#include "CHTLNode/OriginDirectiveNode.h"
 #include "Util/StringUtil.h"
 #include "StyleParser.h"
 #include "CHTLLexer/Lexer.h"
@@ -139,16 +140,22 @@ AstNode Parser::parseCustom() {
 
 AstNode Parser::parseOrigin() {
     advance(); // consume [Origin]
-    auto node = std::make_unique<OriginNode>();
 
+    std::string type;
     if (peek().type == TokenType::HtmlSpecifier || peek().type == TokenType::StyleSpecifier || peek().type == TokenType::JavaScriptSpecifier) {
-        node->type = advance().value;
+        type = advance().value;
     }
+
+    std::string name;
     if (peek().type == TokenType::Identifier) {
-        node->name = advance().value;
+        name = advance().value;
     }
+
     if (peek().type == TokenType::OpenBrace) {
         advance(); // consume '{'
+        auto node = std::make_unique<OriginNode>();
+        node->type = type;
+        node->name = name;
         size_t start = peek().pos;
         while (peek().type != TokenType::CloseBrace && !isAtEnd()) {
             advance();
@@ -161,8 +168,16 @@ AstNode Parser::parseOrigin() {
         if (peek().type == TokenType::CloseBrace) {
             advance(); // consume '}'
         }
+        return node;
+    } else if (peek().type == TokenType::Semicolon) {
+        advance(); // consume ';'
+        auto node = std::make_unique<OriginDirectiveNode>();
+        node->type = type;
+        node->name = name;
+        return node;
     }
-    return node;
+
+    return nullptr;
 }
 
 AstNode Parser::parseImport() {

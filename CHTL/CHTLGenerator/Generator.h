@@ -8,8 +8,10 @@
 #include "CHTLNode/CustomNode.h"
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/ImportNode.h"
+#include "CHTLNode/OriginDirectiveNode.h"
 #include <string>
 #include <map>
+#include <memory>
 
 class Generator {
 public:
@@ -25,6 +27,7 @@ private:
     std::map<std::string, TemplateNode*> element_templates;
     std::map<std::string, std::map<std::string, std::string>> variable_templates;
     std::map<std::string, CustomNode*> custom_style_templates;
+    std::map<std::string, std::unique_ptr<OriginNode>> named_origin_blocks;
 
     void visit(BaseNode* node);
     void visitElement(class ElementNode* node);
@@ -37,4 +40,5 @@ private:
     void visitCustom(class CustomNode* node);
     void visitOrigin(class OriginNode* node);
     void visitImport(class ImportNode* node);
+    void visitOriginDirective(class OriginDirectiveNode* node);
 };

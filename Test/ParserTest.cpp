@@ -13,6 +13,7 @@
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
+#include "CHTLNode/OriginDirectiveNode.h"
 
 #define ASSERT(condition) \
     if (!(condition)) { \
@@ -151,5 +152,22 @@ void ParserTests() {
         ASSERT(p != nullptr);
         ASSERT(p->tag_name == "p");
         ASSERT(dynamic_cast<ElementNode*>(ast[5].get()) != nullptr);
+    }});
+
+    tests.push_back({"Test Origin Directive Parsing", []() {
+        std::string source = R"(
+            [Origin] @Html myBlock;
+        )";
+
+        Lexer lexer(source);
+        std::vector<Token> tokens = lexer.tokenize();
+        Parser parser(tokens, source);
+        AstNodeList ast = parser.parse();
+
+        ASSERT(ast.size() == 1);
+        OriginDirectiveNode* directive = dynamic_cast<OriginDirectiveNode*>(ast[0].get());
+        ASSERT(directive != nullptr);
+        ASSERT(directive->type == "@Html");
+        ASSERT(directive->name == "myBlock");
     }});
 }

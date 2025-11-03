@@ -19,6 +19,7 @@ This document outlines the development roadmap for the CHTL project. The project
   - [X] Custom Style Groups
   - [ ] Generation of all CHTL features into corresponding HTML and CSS
     - [X] `[Origin]` blocks
+    - [X] Named `[Origin]` block support
 
 ## Phase 2: Advanced Language Features
 
@@ -28,9 +29,9 @@ This document outlines the development roadmap for the CHTL project. The project
   - [ ] CHTL JS parser and generator
 - **[ ] Module System:** Implement the CMOD and CJMOD module systems.
   - [X] Parsing of `[Import]` statements
+  - [X] Module import and resolution logic for `@Html`
   - [ ] CMOD packaging and unpacking
   - [ ] CJMOD support
-  - [ ] Module import and resolution logic
 - **[ ] CLI and Tooling:** Develop the command-line interface and other development tools.
   - [ ] Basic compiler CLI
   - [ ] File watching and recompilation

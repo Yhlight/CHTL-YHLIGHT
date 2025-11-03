@@ -21,6 +21,8 @@ add_library(CHTLParser
     CHTLNode/OriginNode.h
     CHTLNode/ImportNode.h
     CHTLNode/NamespaceNode.h
+    CHTLNode/OriginDirectiveNode.h
+    ../Util/FileUtil.h
 )
 
 target_link_libraries(CHTLParser PRIVATE CHTLLexer)
@@ -31,4 +33,4 @@ add_library(CHTLGenerator
 )
 
 target_link_libraries(CHTLGenerator PRIVATE CHTLParser)
-target_include_directories(CHTLGenerator PUBLIC ./)
+target_include_directories(CHTLGenerator PUBLIC ./ ../)
