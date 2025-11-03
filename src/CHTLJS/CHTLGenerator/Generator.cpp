@@ -5,19 +5,25 @@
 #include "../CHTLNode/ListenNode.h"
 #include "../CHTLNode/DelegateNode.h"
 #include "../CHTLNode/AnimateNode.h"
+#include "../CHTLNode/VirNode.h"
+#include "../CHTLNode/IdentifierNode.h"
+#include "../CHTLNode/ProgramNode.h"
+#include "../CHTLNode/VirUsageNode.h"
 #include <stdexcept>
 #include <sstream>
 
 namespace CHTLJS {
 
-Generator::Generator(ExprNode& root) : m_root(root) {}
+Generator::Generator(ASTNode& root, Analyser& analyser) : m_root(root), m_analyser(analyser) {}
 
 std::string Generator::generate() {
     return visit(&m_root);
 }
 
-std::string Generator::visit(ExprNode* node) {
+std::string Generator::visit(ASTNode* node) {
     switch (node->getType()) {
+        case ASTNodeType::Program:
+            return visitProgramNode(static_cast<ProgramNode*>(node));
         case ASTNodeType::BinaryExpr:
             return visitBinaryExpr(static_cast<BinaryExprNode*>(node));
         case ASTNodeType::Literal:
@@ -30,9 +36,66 @@ std::string Generator::visit(ExprNode* node) {
             return visitDelegateNode(static_cast<DelegateNode*>(node));
         case ASTNodeType::Animate:
             return visitAnimateNode(static_cast<AnimateNode*>(node));
+        case ASTNodeType::Vir:
+            return visitVirNode(static_cast<VirNode*>(node));
+        case ASTNodeType::Identifier:
+            return visitIdentifierNode(static_cast<IdentifierNode*>(node));
+        case ASTNodeType::VirUsage:
+            return visitVirUsageNode(static_cast<VirUsageNode*>(node));
         default:
             throw std::runtime_error("Unknown node type");
     }
+}
+
+std::string Generator::visitVirUsageNode(VirUsageNode* node) {
+    const VirNode* vir = m_analyser.getVir(node->vir->getName());
+    if (vir) {
+        auto cloned_expr = vir->getExpression()->clone_expr();
+        switch (cloned_expr->getType()) {
+            case ASTNodeType::Listen: {
+                auto* listenNode = static_cast<ListenNode*>(cloned_expr.get());
+                listenNode->selector = std::unique_ptr<SelectorExprNode>(static_cast<SelectorExprNode*>(node->selector->clone_expr().release()));
+                break;
+            }
+            case ASTNodeType::Delegate: {
+                auto* delegateNode = static_cast<DelegateNode*>(cloned_expr.get());
+                delegateNode->parentSelector = std::unique_ptr<SelectorExprNode>(static_cast<SelectorExprNode*>(node->selector->clone_expr().release()));
+                break;
+            }
+            case ASTNodeType::Animate: {
+                auto* animateNode = static_cast<AnimateNode*>(cloned_expr.get());
+                animateNode->target = std::unique_ptr<SelectorExprNode>(static_cast<SelectorExprNode*>(node->selector->clone_expr().release()));
+                break;
+            }
+            default:
+                break;
+        }
+        return visit(cloned_expr.get());
+    }
+    throw std::runtime_error("Undeclared virtual object: " + node->vir->getName());
+}
+
+std::string Generator::visitIdentifierNode(IdentifierNode* node) {
+    const VirNode* vir = m_analyser.getVir(node->getName());
+    if (vir) {
+        return visit(const_cast<ExprNode*>(vir->getExpression()));
+    }
+    return node->getName();
+}
+
+std::string Generator::visitVirNode(VirNode* node) {
+    return "";
+}
+
+std::string Generator::visitProgramNode(ProgramNode* node) {
+    std::stringstream ss;
+    for (const auto& stmt : node->statements) {
+        std::string generated = visit(stmt.get());
+        if (!generated.empty()) {
+            ss << generated << ";\n";
+        }
+    }
+    return ss.str();
 }
 
 std::string Generator::visitBinaryExpr(BinaryExprNode* node) {

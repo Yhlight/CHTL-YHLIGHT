@@ -16,6 +16,14 @@ public:
         : at(at), properties(std::move(properties)) {}
 
     ASTNodeType getType() const override { return ASTNodeType::Keyframe; }
+
+    std::unique_ptr<ASTNode> clone() const override {
+        std::vector<std::unique_ptr<CssPropertyNode>> newProperties;
+        for (const auto& prop : properties) {
+            newProperties.push_back(std::unique_ptr<CssPropertyNode>(static_cast<CssPropertyNode*>(prop->clone().release())));
+        }
+        return std::make_unique<KeyframeNode>(at, std::move(newProperties));
+    }
 };
 
 } // namespace CHTLJS

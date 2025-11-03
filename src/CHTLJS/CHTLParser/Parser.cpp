@@ -5,6 +5,9 @@
 #include "../CHTLNode/ListenNode.h"
 #include "../CHTLNode/DelegateNode.h"
 #include "../CHTLNode/AnimateNode.h"
+#include "../CHTLNode/IdentifierNode.h"
+#include "../CHTLNode/ProgramNode.h"
+#include "../CHTLNode/VirUsageNode.h"
 #include <stdexcept>
 #include <vector>
 #include <string>
@@ -13,12 +16,15 @@ namespace CHTLJS {
 
 Parser::Parser(const std::vector<Token>& tokens) : m_tokens(tokens) {}
 
-std::unique_ptr<ExprNode> Parser::parse() {
-    try {
-        return expression();
-    } catch (const std::runtime_error& e) {
-        return nullptr;
+std::unique_ptr<ProgramNode> Parser::parse() {
+    std::vector<std::unique_ptr<ExprNode>> statements;
+    while (!isAtEnd()) {
+        statements.push_back(expression());
+        if (check(TokenType::Semicolon)) {
+            advance();
+        }
     }
+    return std::make_unique<ProgramNode>(std::move(statements));
 }
 
 const Token& Parser::peek() { return m_tokens[m_current]; }
@@ -51,11 +57,27 @@ std::unique_ptr<ExprNode> Parser::expression() {
         advance();
         return parseAnimateExpression();
     }
+    if (check(TokenType::Vir)) {
+        advance();
+        return parseVirExpression();
+    }
     return eventDispatch();
+}
+
+std::unique_ptr<VirNode> Parser::parseVirExpression() {
+    std::string name = std::string(consume(TokenType::Identifier, "Expect virtual object name.").lexeme);
+    consume(TokenType::Equal, "Expect '=' after virtual object name.");
+    auto expression = this->expression();
+    return std::make_unique<VirNode>(name, std::move(expression));
 }
 
 std::unique_ptr<ExprNode> Parser::eventDispatch() {
     auto expr = equality();
+
+    if (check(TokenType::Identifier)) {
+        auto identifier = std::make_unique<IdentifierNode>(std::string(advance().lexeme));
+        return std::make_unique<VirUsageNode>(std::move(expr), std::move(identifier));
+    }
 
     if (check(TokenType::Listen)) {
         advance();
@@ -285,6 +307,10 @@ std::unique_ptr<ExprNode> Parser::primary() {
         auto literalNode = std::make_unique<LiteralNode>();
         literalNode->value = std::string(advance().lexeme);
         return literalNode;
+    }
+
+    if (check(TokenType::Identifier)) {
+        return std::make_unique<IdentifierNode>(std::string(advance().lexeme));
     }
 
     if (check(TokenType::LeftDoubleBrace)) {

@@ -3,6 +3,7 @@
 #include "ExprNode.h"
 #include <string>
 #include <optional>
+#include <memory>
 
 namespace CHTLJS {
 

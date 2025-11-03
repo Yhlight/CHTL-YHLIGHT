@@ -6,6 +6,9 @@
 #include "../CHTLNode/ListenNode.h"
 #include "../CHTLNode/DelegateNode.h"
 #include "../CHTLNode/AnimateNode.h"
+#include "../CHTLNode/VirNode.h"
+#include "../CHTLNode/ProgramNode.h"
+#include "../CHTLNode/VirUsageNode.h"
 #include <vector>
 #include <memory>
 
@@ -14,7 +17,7 @@ namespace CHTLJS {
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    std::unique_ptr<ExprNode> parse();
+    std::unique_ptr<ProgramNode> parse();
 
 private:
     const std::vector<Token>& m_tokens;
@@ -40,6 +43,7 @@ private:
     std::unique_ptr<ListenNode> parseListenExpression(std::unique_ptr<ExprNode> selector);
     std::unique_ptr<DelegateNode> parseDelegateExpression(std::unique_ptr<ExprNode> selector);
     std::unique_ptr<AnimateNode> parseAnimateExpression();
+	std::unique_ptr<VirNode> parseVirExpression();
     std::vector<std::unique_ptr<CssPropertyNode>> parseCssProperties();
 };
 

@@ -16,12 +16,16 @@ enum class ASTNodeType {
     Animate,
     Keyframe,
     CssProperty,
+    Vir,
+    Identifier,
+    VirUsage,
 };
 
 class ASTNode {
 public:
     virtual ~ASTNode() = default;
     virtual ASTNodeType getType() const = 0;
+    virtual std::unique_ptr<ASTNode> clone() const = 0;
 };
 
 } // namespace CHTLJS

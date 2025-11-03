@@ -1,9 +1,5 @@
 #include "gtest/gtest.h"
-#include "CHTLJS/CHTLLexer/Lexer.h"
-#include "CHTLJS/CHTLParser/Parser.h"
-#include "CHTLJS/CHTLGenerator/Generator.h"
-#include "CHTLJS/CHTLNode/AnimateNode.h"
-#include <vector>
+#include "CHTLJS/TestHelper.h"
 #include <string>
 
 using namespace CHTLJS;
@@ -21,13 +17,7 @@ TEST(CHTLJSAnimateTest, AnimateExpression) {
                          "delay: 500,"
                          "callback: onAnimationEnd"
                          "}";
-    Lexer lexer(source);
-    std::vector<Token> tokens = lexer.scanTokens();
-    Parser parser(tokens);
-    auto ast = parser.parse();
-    ASSERT_NE(ast, nullptr);
-    Generator generator(*ast);
-    std::string result = generator.generate();
+    std::string result = compileCHTLJS(source);
     std::string expected = "const anim = document.getElementById(\"myDiv\").animate([\n"
                          "  {\n"
                          "      opacity: \"0\"\n"
