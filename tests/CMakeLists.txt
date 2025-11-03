@@ -17,7 +17,10 @@ add_executable(run_tests
     CHTLJS/LexerTest.cpp
     CHTLJS/ParserTest.cpp
     CHTLJS/GeneratorTest.cpp
+    CHTLJSEventTest.cpp
 )
+
+target_include_directories(run_tests PRIVATE ../src)
 
 target_link_libraries(run_tests
   PRIVATE

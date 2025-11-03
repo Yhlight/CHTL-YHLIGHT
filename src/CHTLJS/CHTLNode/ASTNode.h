@@ -10,6 +10,9 @@ enum class ASTNodeType {
     BinaryExpr,
     Literal,
     SelectorExpr,
+    Listen,
+    EventHandler,
+    Delegate,
 };
 
 class ASTNode {

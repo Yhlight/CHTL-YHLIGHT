@@ -8,7 +8,7 @@ namespace CHTLJS {
 enum class TokenType {
     // Single-character tokens.
     LeftParen, RightParen, LeftBrace, RightBrace, LeftBracket, RightBracket,
-    Comma, Dot, Minus, Plus, Semicolon, Slash, Star,
+    Comma, Dot, Minus, Plus, Semicolon, Slash, Star, Colon,
 
     // One or two character tokens.
     Bang, BangEqual,
@@ -26,6 +26,7 @@ enum class TokenType {
     // Keywords.
     And, Class, Else, False, Fun, For, If, Nil, Or,
     Print, Return, Super, This, True, Var, While,
+    Listen, Delegate,
 
     Eof
 };

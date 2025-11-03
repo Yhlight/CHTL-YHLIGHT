@@ -3,6 +3,8 @@
 #include "../CHTLLexer/Token.h"
 #include "../CHTLNode/ASTNode.h"
 #include "../CHTLNode/ExprNode.h"
+#include "../CHTLNode/ListenNode.h"
+#include "../CHTLNode/DelegateNode.h"
 #include <vector>
 #include <memory>
 
@@ -25,12 +27,16 @@ private:
     const Token& consume(TokenType type, const std::string& message);
 
     std::unique_ptr<ExprNode> expression();
+    std::unique_ptr<ExprNode> eventDispatch();
     std::unique_ptr<ExprNode> equality();
     std::unique_ptr<ExprNode> comparison();
     std::unique_ptr<ExprNode> term();
     std::unique_ptr<ExprNode> factor();
     std::unique_ptr<ExprNode> unary();
     std::unique_ptr<ExprNode> primary();
+
+    std::unique_ptr<ListenNode> parseListenExpression(std::unique_ptr<ExprNode> selector);
+    std::unique_ptr<DelegateNode> parseDelegateExpression(std::unique_ptr<ExprNode> selector);
 };
 
 } // namespace CHTLJS

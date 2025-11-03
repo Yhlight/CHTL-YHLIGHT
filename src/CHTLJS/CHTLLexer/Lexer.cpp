@@ -50,6 +50,7 @@ void Lexer::scanToken() {
         case ')': addToken(TokenType::RightParen); break;
         case '[': addToken(TokenType::LeftBracket); break;
         case ']': addToken(TokenType::RightBracket); break;
+        case ':': addToken(TokenType::Colon); break;
         case '{':
             if (match('{')) {
                 addToken(TokenType::LeftDoubleBrace);
@@ -126,6 +127,8 @@ void Lexer::identifier() {
         {"true",   TokenType::True},
         {"var",    TokenType::Var},
         {"while",  TokenType::While},
+        {"Listen", TokenType::Listen},
+        {"Delegate", TokenType::Delegate},
     };
     while (isalnum(peek()) || peek() == '_') advance();
     std::string text = std::string(m_source.substr(m_start, m_current - m_start));

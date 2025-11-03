@@ -2,6 +2,8 @@
 #include "../CHTLNode/BinaryExprNode.h"
 #include "../CHTLNode/LiteralNode.h"
 #include "../CHTLNode/SelectorExprNode.h"
+#include "../CHTLNode/ListenNode.h"
+#include "../CHTLNode/DelegateNode.h"
 #include <stdexcept>
 
 namespace CHTLJS {
@@ -37,10 +39,93 @@ const Token& Parser::consume(TokenType type, const std::string& message) {
     throw std::runtime_error(message);
 }
 
-// Pratt parser implementation will go here in the next step
-
 std::unique_ptr<ExprNode> Parser::expression() {
-    return equality();
+    return eventDispatch();
+}
+
+std::unique_ptr<ExprNode> Parser::eventDispatch() {
+    auto expr = equality();
+
+    if (check(TokenType::Listen)) {
+        advance();
+        return parseListenExpression(std::move(expr));
+    }
+
+    if (check(TokenType::Delegate)) {
+        advance();
+        return parseDelegateExpression(std::move(expr));
+    }
+
+    return expr;
+}
+
+std::unique_ptr<ListenNode> Parser::parseListenExpression(std::unique_ptr<ExprNode> selector) {
+    consume(TokenType::LeftBrace, "Expect '{' after Listen.");
+    std::vector<std::unique_ptr<EventHandlerNode>> handlers;
+
+    while (!check(TokenType::RightBrace)) {
+        std::string eventName = std::string(consume(TokenType::Identifier, "Expect event name.").lexeme);
+        consume(TokenType::Colon, "Expect ':' after event name.");
+        std::string handlerBody = std::string(consume(TokenType::String, "Expect event handler body.").lexeme);
+        handlers.emplace_back(std::make_unique<EventHandlerNode>(eventName, handlerBody));
+
+        if (check(TokenType::Comma)) {
+            advance();
+        } else {
+            break;
+        }
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after Listen block.");
+    auto selectorNode = dynamic_cast<SelectorExprNode*>(selector.release());
+    if (!selectorNode) {
+        throw std::runtime_error("Expected a selector expression for Listen.");
+    }
+    return std::make_unique<ListenNode>(
+        std::unique_ptr<SelectorExprNode>(selectorNode),
+        std::move(handlers)
+    );
+}
+
+std::unique_ptr<DelegateNode> Parser::parseDelegateExpression(std::unique_ptr<ExprNode> selector) {
+    consume(TokenType::LeftBrace, "Expect '{' after Delegate.");
+
+    if (consume(TokenType::Identifier, "Expect 'target' keyword.").lexeme != "target") {
+        throw std::runtime_error("Expect 'target' keyword.");
+    }
+    consume(TokenType::Colon, "Expect ':' after 'target'.");
+    auto targetSelector = primary();
+
+    consume(TokenType::Comma, "Expect ',' after target selector.");
+
+    std::vector<std::unique_ptr<EventHandlerNode>> handlers;
+    while (!check(TokenType::RightBrace)) {
+        std::string eventName = std::string(consume(TokenType::Identifier, "Expect event name.").lexeme);
+        consume(TokenType::Colon, "Expect ':' after event name.");
+        std::string handlerBody = std::string(consume(TokenType::String, "Expect event handler body.").lexeme);
+        handlers.emplace_back(std::make_unique<EventHandlerNode>(eventName, handlerBody));
+
+        if (check(TokenType::Comma)) {
+            advance();
+        } else {
+            break;
+        }
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after Delegate block.");
+    auto parentSelectorNode = dynamic_cast<SelectorExprNode*>(selector.release());
+    if (!parentSelectorNode) {
+        throw std::runtime_error("Expected a selector expression for Delegate parent.");
+    }
+    auto targetSelectorNode = dynamic_cast<SelectorExprNode*>(targetSelector.release());
+    if (!targetSelectorNode) {
+        throw std::runtime_error("Expected a selector expression for Delegate target.");
+    }
+    return std::make_unique<DelegateNode>(
+        std::unique_ptr<SelectorExprNode>(parentSelectorNode),
+        std::unique_ptr<SelectorExprNode>(targetSelectorNode),
+        std::move(handlers)
+    );
 }
 
 std::unique_ptr<ExprNode> Parser::equality() {
@@ -103,8 +188,6 @@ std::unique_ptr<ExprNode> Parser::unary() {
     if (check(TokenType::Bang) || check(TokenType::Minus)) {
         Token op = advance();
         auto right = unary();
-        // This is not quite right for a pratt parser, but it will work for now.
-        // A proper implementation would use prefix parselets.
     }
     return primary();
 }
@@ -117,10 +200,10 @@ std::unique_ptr<ExprNode> Parser::primary() {
     }
 
     if (check(TokenType::LeftDoubleBrace)) {
-        advance(); // consume {{
+        advance();
         auto selectorNode = std::make_unique<SelectorExprNode>();
         if (check(TokenType::Dot)) {
-            advance(); // consume .
+            advance();
             selectorNode->type = SelectorType::Class;
             selectorNode->baseName = std::string(consume(TokenType::Identifier, "Expect class name.").lexeme);
         } else if (check(TokenType::Identifier) && peek().lexeme[0] == '#') {
@@ -137,7 +220,7 @@ std::unique_ptr<ExprNode> Parser::primary() {
         }
 
         if (check(TokenType::LeftBracket)) {
-            advance(); // consume [
+            advance();
             selectorNode->index = std::stoi(std::string(consume(TokenType::Number, "Expect index.").lexeme));
             consume(TokenType::RightBracket, "Expect ']' after index.");
         }
@@ -150,4 +233,4 @@ std::unique_ptr<ExprNode> Parser::primary() {
 }
 
 
-} // namespace CHTLJS
+}
