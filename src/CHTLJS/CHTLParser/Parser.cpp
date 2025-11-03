@@ -8,6 +8,7 @@
 #include "../CHTLNode/IdentifierNode.h"
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
+#include "../CHTLNode/RouterNode.h"
 #include <stdexcept>
 #include <vector>
 #include <string>
@@ -61,6 +62,10 @@ std::unique_ptr<ExprNode> Parser::expression() {
         advance();
         return parseVirExpression();
     }
+    if (check(TokenType::Router)) {
+        advance();
+        return parseRouterExpression();
+    }
     return eventDispatch();
 }
 
@@ -69,6 +74,38 @@ std::unique_ptr<VirNode> Parser::parseVirExpression() {
     consume(TokenType::Equal, "Expect '=' after virtual object name.");
     auto expression = this->expression();
     return std::make_unique<VirNode>(name, std::move(expression));
+}
+
+std::unique_ptr<RouterNode> Parser::parseRouterExpression() {
+    consume(TokenType::LeftBrace, "Expect '{' after Router.");
+    auto routerNode = std::make_unique<RouterNode>();
+
+    while (peek().type != TokenType::RightBrace && !isAtEnd()) {
+        std::string key = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
+        consume(TokenType::Colon, "Expect ':' after property name.");
+
+        if (key == "url") {
+            routerNode->routes.push_back({consumeString("Expect URL."), nullptr});
+        } else if (key == "page") {
+            if (routerNode->routes.empty()) {
+                throw std::runtime_error("Cannot assign page before URL.");
+            }
+            routerNode->routes.back().page = std::unique_ptr<SelectorExprNode>(static_cast<SelectorExprNode*>(primary().release()));
+        } else if (key == "root") {
+            if (check(TokenType::String)) {
+                routerNode->root_path = consumeString("Expect root path.");
+            } else {
+                routerNode->root_container = std::unique_ptr<SelectorExprNode>(static_cast<SelectorExprNode*>(primary().release()));
+            }
+        } else if (key == "mode") {
+            routerNode->mode = consumeString("Expect mode.");
+        }
+
+        if (check(TokenType::Comma)) advance();
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after Router block.");
+    return routerNode;
 }
 
 std::unique_ptr<ExprNode> Parser::eventDispatch() {

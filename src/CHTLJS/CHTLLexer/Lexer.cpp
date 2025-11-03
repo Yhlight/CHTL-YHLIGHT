@@ -131,6 +131,7 @@ void Lexer::identifier() {
         {"Delegate", TokenType::Delegate},
         {"Animate", TokenType::Animate},
 		{"Vir", TokenType::Vir},
+		{"Router", TokenType::Router},
     };
     while (isalnum(peek()) || peek() == '_') advance();
     std::string text = std::string(m_source.substr(m_start, m_current - m_start));

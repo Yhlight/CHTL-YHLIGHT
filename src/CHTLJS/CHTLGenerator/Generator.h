@@ -8,6 +8,7 @@
 #include "../CHTLNode/IdentifierNode.h"
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
+#include "../CHTLNode/RouterNode.h"
 #include "../CHTLAnalyser/Analyser.h"
 #include <string>
 
@@ -30,6 +31,7 @@ private:
 	std::string visitVirNode(class VirNode* node);
 	std::string visitIdentifierNode(class IdentifierNode* node);
 	std::string visitVirUsageNode(class VirUsageNode* node);
+    std::string visitRouterNode(class RouterNode* node);
 
     std::string getSelectorString(class SelectorExprNode* node);
 

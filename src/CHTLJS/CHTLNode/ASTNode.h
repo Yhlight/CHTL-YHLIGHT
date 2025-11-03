@@ -19,6 +19,7 @@ enum class ASTNodeType {
     Vir,
     Identifier,
     VirUsage,
+    Router,
 };
 
 class ASTNode {

@@ -56,7 +56,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Event Handling (`Listen`, `&->`, `Delegate`)
 - [x] Animations (`Animate`)
 - [x] Virtual Objects (`Vir`)
-- [ ] Routing (`Router`)
+- [x] Routing (`Router`)
 
 ## Phase 4: Tooling and Ecosystem
 

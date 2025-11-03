@@ -9,6 +9,7 @@
 #include "../CHTLNode/VirNode.h"
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
+#include "../CHTLNode/RouterNode.h"
 #include <vector>
 #include <memory>
 
@@ -44,6 +45,7 @@ private:
     std::unique_ptr<DelegateNode> parseDelegateExpression(std::unique_ptr<ExprNode> selector);
     std::unique_ptr<AnimateNode> parseAnimateExpression();
 	std::unique_ptr<VirNode> parseVirExpression();
+    std::unique_ptr<RouterNode> parseRouterExpression();
     std::vector<std::unique_ptr<CssPropertyNode>> parseCssProperties();
 };
 

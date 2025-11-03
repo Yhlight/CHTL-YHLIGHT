@@ -9,6 +9,7 @@
 #include "../CHTLNode/IdentifierNode.h"
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
+#include "../CHTLNode/RouterNode.h"
 #include <stdexcept>
 #include <sstream>
 
@@ -42,6 +43,8 @@ std::string Generator::visit(ASTNode* node) {
             return visitIdentifierNode(static_cast<IdentifierNode*>(node));
         case ASTNodeType::VirUsage:
             return visitVirUsageNode(static_cast<VirUsageNode*>(node));
+        case ASTNodeType::Router:
+            return visitRouterNode(static_cast<RouterNode*>(node));
         default:
             throw std::runtime_error("Unknown node type");
     }
@@ -95,6 +98,32 @@ std::string Generator::visitProgramNode(ProgramNode* node) {
             ss << generated << ";\n";
         }
     }
+    return ss.str();
+}
+
+std::string Generator::visitRouterNode(RouterNode* node) {
+    std::stringstream ss;
+    ss << "const routes = {\n";
+    for (const auto& route : node->routes) {
+        ss << "  '" << route.url << "': " << visit(route.page.get()) << ",\n";
+    }
+    ss << "};\n";
+
+    if (node->root_container.has_value()) {
+        ss << "const rootContainer = " << visit(node->root_container.value().get()) << ";\n";
+    }
+
+    ss << "const router = () => {\n";
+    ss << "  const path = window.location.hash.slice(1) || '/';\n";
+    ss << "  const page = routes[path];\n";
+    ss << "  if (page) {\n";
+    ss << "    Object.values(routes).forEach(p => p.style.display = 'none');\n";
+    ss << "    page.style.display = 'block';\n";
+    ss << "  }\n";
+    ss << "};\n";
+    ss << "window.addEventListener('hashchange', router);\n";
+    ss << "window.addEventListener('load', router);\n";
+
     return ss.str();
 }
 

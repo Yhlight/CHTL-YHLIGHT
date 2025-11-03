@@ -20,6 +20,7 @@ add_executable(run_tests
     CHTLJSEventTest.cpp
     CHTLJSAnimateTest.cpp
     CHTLJSTest/VirTest.cpp
+    CHTLJSTest/RouterTest.cpp
 )
 
 target_include_directories(run_tests PRIVATE ../src ${CMAKE_CURRENT_SOURCE_DIR})
