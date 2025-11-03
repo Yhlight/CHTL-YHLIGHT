@@ -5,6 +5,7 @@
 #include "../CHTLNode/ExprNode.h"
 #include "../CHTLNode/ListenNode.h"
 #include "../CHTLNode/DelegateNode.h"
+#include "../CHTLNode/AnimateNode.h"
 #include <vector>
 #include <memory>
 
@@ -25,6 +26,7 @@ private:
     const Token& advance();
     bool check(TokenType type);
     const Token& consume(TokenType type, const std::string& message);
+    std::string consumeString(const std::string& message);
 
     std::unique_ptr<ExprNode> expression();
     std::unique_ptr<ExprNode> eventDispatch();
@@ -37,6 +39,8 @@ private:
 
     std::unique_ptr<ListenNode> parseListenExpression(std::unique_ptr<ExprNode> selector);
     std::unique_ptr<DelegateNode> parseDelegateExpression(std::unique_ptr<ExprNode> selector);
+    std::unique_ptr<AnimateNode> parseAnimateExpression();
+    std::vector<std::unique_ptr<CssPropertyNode>> parseCssProperties();
 };
 
 } // namespace CHTLJS

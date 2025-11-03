@@ -53,8 +53,8 @@ This document outlines the development roadmap for the CHTL project.
 - [x] CHTL JS Parser
 - [x] CHTL JS Generator
 - [x] Enhanced Selectors (`{{...}}`)
-- [ ] Event Handling (`Listen`, `&->`, `Delegate`)
-- [ ] Animations (`Animate`)
+- [x] Event Handling (`Listen`, `&->`, `Delegate`)
+- [x] Animations (`Animate`)
 - [ ] Virtual Objects (`Vir`)
 - [ ] Routing (`Router`)
 

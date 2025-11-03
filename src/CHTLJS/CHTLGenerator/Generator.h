@@ -4,6 +4,7 @@
 #include "../CHTLNode/ExprNode.h"
 #include "../CHTLNode/ListenNode.h"
 #include "../CHTLNode/DelegateNode.h"
+#include "../CHTLNode/AnimateNode.h"
 #include <string>
 
 namespace CHTLJS {
@@ -20,6 +21,9 @@ private:
     std::string visitSelectorExpr(class SelectorExprNode* node);
     std::string visitListenNode(class ListenNode* node);
     std::string visitDelegateNode(class DelegateNode* node);
+    std::string visitAnimateNode(class AnimateNode* node);
+
+    std::string getSelectorString(class SelectorExprNode* node);
 
     ExprNode& m_root;
 };

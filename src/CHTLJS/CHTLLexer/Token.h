@@ -26,7 +26,7 @@ enum class TokenType {
     // Keywords.
     And, Class, Else, False, Fun, For, If, Nil, Or,
     Print, Return, Super, This, True, Var, While,
-    Listen, Delegate,
+    Listen, Delegate, Animate,
 
     Eof
 };

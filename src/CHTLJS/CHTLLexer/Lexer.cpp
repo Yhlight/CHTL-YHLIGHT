@@ -129,6 +129,7 @@ void Lexer::identifier() {
         {"while",  TokenType::While},
         {"Listen", TokenType::Listen},
         {"Delegate", TokenType::Delegate},
+        {"Animate", TokenType::Animate},
     };
     while (isalnum(peek()) || peek() == '_') advance();
     std::string text = std::string(m_source.substr(m_start, m_current - m_start));

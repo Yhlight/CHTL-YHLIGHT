@@ -13,6 +13,9 @@ enum class ASTNodeType {
     Listen,
     EventHandler,
     Delegate,
+    Animate,
+    Keyframe,
+    CssProperty,
 };
 
 class ASTNode {

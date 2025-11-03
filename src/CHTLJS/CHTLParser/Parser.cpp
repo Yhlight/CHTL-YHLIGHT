@@ -4,7 +4,10 @@
 #include "../CHTLNode/SelectorExprNode.h"
 #include "../CHTLNode/ListenNode.h"
 #include "../CHTLNode/DelegateNode.h"
+#include "../CHTLNode/AnimateNode.h"
 #include <stdexcept>
+#include <vector>
+#include <string>
 
 namespace CHTLJS {
 
@@ -38,8 +41,16 @@ const Token& Parser::consume(TokenType type, const std::string& message) {
     if (check(type)) return advance();
     throw std::runtime_error(message);
 }
+std::string Parser::consumeString(const std::string& message) {
+    const Token& token = consume(TokenType::String, message);
+    return std::string(token.lexeme.substr(1, token.lexeme.length() - 2));
+}
 
 std::unique_ptr<ExprNode> Parser::expression() {
+    if (check(TokenType::Animate)) {
+        advance();
+        return parseAnimateExpression();
+    }
     return eventDispatch();
 }
 
@@ -66,7 +77,7 @@ std::unique_ptr<ListenNode> Parser::parseListenExpression(std::unique_ptr<ExprNo
     while (!check(TokenType::RightBrace)) {
         std::string eventName = std::string(consume(TokenType::Identifier, "Expect event name.").lexeme);
         consume(TokenType::Colon, "Expect ':' after event name.");
-        std::string handlerBody = std::string(consume(TokenType::String, "Expect event handler body.").lexeme);
+        std::string handlerBody = consumeString("Expect event handler body.");
         handlers.emplace_back(std::make_unique<EventHandlerNode>(eventName, handlerBody));
 
         if (check(TokenType::Comma)) {
@@ -86,7 +97,6 @@ std::unique_ptr<ListenNode> Parser::parseListenExpression(std::unique_ptr<ExprNo
         std::move(handlers)
     );
 }
-
 std::unique_ptr<DelegateNode> Parser::parseDelegateExpression(std::unique_ptr<ExprNode> selector) {
     consume(TokenType::LeftBrace, "Expect '{' after Delegate.");
 
@@ -102,7 +112,7 @@ std::unique_ptr<DelegateNode> Parser::parseDelegateExpression(std::unique_ptr<Ex
     while (!check(TokenType::RightBrace)) {
         std::string eventName = std::string(consume(TokenType::Identifier, "Expect event name.").lexeme);
         consume(TokenType::Colon, "Expect ':' after event name.");
-        std::string handlerBody = std::string(consume(TokenType::String, "Expect event handler body.").lexeme);
+        std::string handlerBody = consumeString("Expect event handler body.");
         handlers.emplace_back(std::make_unique<EventHandlerNode>(eventName, handlerBody));
 
         if (check(TokenType::Comma)) {
@@ -127,6 +137,84 @@ std::unique_ptr<DelegateNode> Parser::parseDelegateExpression(std::unique_ptr<Ex
         std::move(handlers)
     );
 }
+
+std::vector<std::unique_ptr<CssPropertyNode>> Parser::parseCssProperties() {
+    consume(TokenType::LeftBrace, "Expect '{' after property block.");
+    std::vector<std::unique_ptr<CssPropertyNode>> properties;
+    while (!check(TokenType::RightBrace)) {
+        std::string name = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
+        consume(TokenType::Colon, "Expect ':' after property name.");
+        std::string value = consumeString("Expect property value.");
+        properties.emplace_back(std::make_unique<CssPropertyNode>(name, value));
+        if (check(TokenType::Comma)) {
+            advance();
+        }
+    }
+    consume(TokenType::RightBrace, "Expect '}' after property block.");
+    return properties;
+}
+
+
+std::unique_ptr<AnimateNode> Parser::parseAnimateExpression() {
+    consume(TokenType::LeftBrace, "Expect '{' after Animate.");
+    std::unique_ptr<SelectorExprNode> target;
+    int duration = 0;
+    std::string easing;
+     auto animateNode = std::make_unique<AnimateNode>(nullptr, 0, "");
+
+    while(peek().type != TokenType::RightBrace && !isAtEnd()) {
+        std::string key = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
+        consume(TokenType::Colon, "Expect ':' after property name.");
+
+        if (key == "target") {
+            animateNode->target = std::unique_ptr<SelectorExprNode>(dynamic_cast<SelectorExprNode*>(primary().release()));
+        } else if (key == "duration") {
+            animateNode->duration = std::stoi(std::string(consume(TokenType::Number, "Expect duration.").lexeme));
+        } else if (key == "easing") {
+            animateNode->easing = consumeString("Expect easing value.");
+        } else if (key == "begin") {
+            animateNode->begin = parseCssProperties();
+        } else if (key == "end") {
+            animateNode->end = parseCssProperties();
+        } else if (key == "loop") {
+            animateNode->loop = std::stoi(std::string(consume(TokenType::Number, "Expect loop count.").lexeme));
+        } else if (key == "direction") {
+            animateNode->direction = consumeString("Expect direction.");
+        } else if (key == "delay") {
+            animateNode->delay = std::stoi(std::string(consume(TokenType::Number, "Expect delay.").lexeme));
+        } else if (key == "callback") {
+            animateNode->callback = std::string(consume(TokenType::Identifier, "Expect callback name.").lexeme);
+        }
+        else if (key == "when") {
+            consume(TokenType::LeftBracket, "Expect '[' after when.");
+            while(!check(TokenType::RightBracket)) {
+                consume(TokenType::LeftBrace, "Expect '{' after at.");
+                consume(TokenType::Identifier, "Expect at.");
+                 consume(TokenType::Colon, "Expect ':' after at.");
+                double at = std::stod(std::string(consume(TokenType::Number, "Expect at value.").lexeme));
+                consume(TokenType::Comma, "Expect ',' after at.");
+                std::vector<std::unique_ptr<CssPropertyNode>> properties;
+                while(!check(TokenType::RightBrace)) {
+                    std::string name = std::string(consume(TokenType::Identifier, "Expect property name.").lexeme);
+                    consume(TokenType::Colon, "Expect ':' after property name.");
+                    std::string value = consumeString("Expect property value.");
+                    properties.emplace_back(std::make_unique<CssPropertyNode>(name, value));
+                    if(check(TokenType::Comma)) advance();
+                }
+                consume(TokenType::RightBrace, "Expect '}' after keyframe properties.");
+                animateNode->when.emplace_back(std::make_unique<KeyframeNode>(at, std::move(properties)));
+                 if(check(TokenType::Comma)) advance();
+            }
+            consume(TokenType::RightBracket, "Expect ']' after when.");
+        }
+        if (check(TokenType::Comma)) advance();
+    }
+
+    consume(TokenType::RightBrace, "Expect '}' after Animate block.");
+    return animateNode;
+}
+
+
 
 std::unique_ptr<ExprNode> Parser::equality() {
     auto expr = comparison();
