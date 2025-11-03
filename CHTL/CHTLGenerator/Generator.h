@@ -6,6 +6,7 @@
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/ElementDirectiveNode.h"
 #include "CHTLNode/CustomNode.h"
+#include "CHTLNode/OriginNode.h"
 #include <string>
 #include <map>
 
@@ -33,4 +34,5 @@ private:
     void visitTemplate(class TemplateNode* node);
     void visitElementDirective(class ElementDirectiveNode* node);
     void visitCustom(class CustomNode* node);
+    void visitOrigin(class OriginNode* node);
 };

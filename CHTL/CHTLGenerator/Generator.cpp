@@ -16,7 +16,14 @@ std::string Generator::generate() {
     for (const auto& node : ast) {
         visit(node.get());
     }
-    return html_output;
+
+    std::string final_output;
+    if (html_output.find("<body") != std::string::npos) {
+        final_output = "<html><head><style>" + css_output + "</style></head>" + html_output + "<script>" + js_output + "</script></html>";
+    } else {
+        final_output = "<html><head><style>" + css_output + "</style></head><body>" + html_output + "<script>" + js_output + "</script></body></html>";
+    }
+    return final_output;
 }
 
 void Generator::visit(BaseNode* node) {
@@ -36,6 +43,8 @@ void Generator::visit(BaseNode* node) {
         visitElementDirective(elementDirectiveNode);
     } else if (auto customNode = dynamic_cast<CustomNode*>(node)) {
         visitCustom(customNode);
+    } else if (auto originNode = dynamic_cast<OriginNode*>(node)) {
+        visitOrigin(originNode);
     }
 }
 
@@ -62,7 +71,6 @@ void Generator::visitComment(CommentNode* node) {
 }
 
 void Generator::visitStyle(StyleNode* node) {
-    html_output += "<style>";
     for (const auto& content_node : node->content) {
         if (auto rawNode = dynamic_cast<RawStyleContentNode*>(content_node.get())) {
             std::string css = rawNode->raw_css;
@@ -79,25 +87,24 @@ void Generator::visitStyle(StyleNode* node) {
                     }
                 }
             }
-            html_output += css;
+            css_output += css;
         } else if (auto directiveNode = dynamic_cast<StyleDirectiveNode*>(content_node.get())) {
             if (style_templates.count(directiveNode->template_name)) {
-                html_output += style_templates[directiveNode->template_name];
+                css_output += style_templates[directiveNode->template_name];
             } else if (custom_style_templates.count(directiveNode->template_name)) {
                 CustomNode* customNode = custom_style_templates[directiveNode->template_name];
                 for (const auto& prop : customNode->valueless_properties) {
                     if (directiveNode->properties.count(prop)) {
-                        html_output += prop + ": " + directiveNode->properties[prop] + ";";
+                        css_output += prop + ": " + directiveNode->properties[prop] + ";";
                     }
                 }
             }
         }
     }
-    html_output += "</style>";
 }
 
 void Generator::visitScript(ScriptNode* node) {
-    html_output += "<script>" + node->content + "</script>";
+    js_output += node->content;
 }
 
 void Generator::visitTemplate(TemplateNode* node) {
@@ -128,5 +135,15 @@ void Generator::visitElementDirective(ElementDirectiveNode* node) {
 void Generator::visitCustom(CustomNode* node) {
     if (node->type == "@Style") {
         custom_style_templates[node->name] = node;
+    }
+}
+
+void Generator::visitOrigin(OriginNode* node) {
+    if (node->type == "@Html") {
+        html_output += node->content;
+    } else if (node->type == "@Style") {
+        css_output += node->content;
+    } else if (node->type == "@JavaScript") {
+        js_output += node->content;
     }
 }

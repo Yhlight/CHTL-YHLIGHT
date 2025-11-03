@@ -24,7 +24,7 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = R"(<div id="main">Hello, CHTL!</div>)";
+        std::string expected = R"(<html><head><style></style></head><body><div id="main">Hello, CHTL!</div><script></script></body></html>)";
         ASSERT(result == expected);
     }});
 
@@ -48,7 +48,7 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = R"(<!-- This is a comment --><div id="main"><style>color: "red";</style><script>console.log('Hello');</script>Hello, CHTL!</div>)";
+        std::string expected = R"(<html><head><style>color: "red";</style></head><body><!-- This is a comment --><div id="main">Hello, CHTL!</div><script>console.log('Hello');</script></body></html>)";
         ASSERT(result == expected);
     }});
 
@@ -71,8 +71,8 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = R"(<div><style>color: "black";
-                line-height: 1.6;</style></div>)";
+        std::string expected = R"(<html><head><style>color: "black";
+                line-height: 1.6;</style></head><body><div></div><script></script></body></html>)";
         ASSERT(result == expected);
     }});
 
@@ -94,7 +94,7 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = R"(<body><span>This is a box.</span></body>)";
+        std::string expected = R"(<html><head><style></style></head><body><span>This is a box.</span></body><script></script></html>)";
         ASSERT(result == expected);
     }});
 
@@ -116,7 +116,7 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = "<div><style>background-color: \"rgb(255, 192, 203)\";</style></div>";
+        std::string expected = "<html><head><style>background-color: \"rgb(255, 192, 203)\";</style></head><body><div></div><script></script></body></html>";
         ASSERT(result == expected);
     }});
 
@@ -142,7 +142,24 @@ void GeneratorTests() {
         Generator generator(parser.parse());
         std::string result = generator.generate();
 
-        std::string expected = "<div><style>color: red;font-size: 16px;</style></div>";
+        std::string expected = "<html><head><style>color: red;font-size: 16px;</style></head><body><div></div><script></script></body></html>";
+        ASSERT(result == expected);
+    }});
+
+    tests.push_back({"Test Origin Block", []() {
+        std::string source = R"(
+            [Origin] @Html
+            {
+                <h1>This is a raw HTML block</h1>
+            }
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<html><head><style></style></head><body><h1>This is a raw HTML block</h1><script></script></body></html>";
         ASSERT(result == expected);
     }});
 }

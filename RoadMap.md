@@ -18,6 +18,7 @@ This document outlines the development roadmap for the CHTL project. The project
   - [X] Variable Templates
   - [X] Custom Style Groups
   - [ ] Generation of all CHTL features into corresponding HTML and CSS
+    - [X] `[Origin]` blocks
 
 ## Phase 2: Advanced Language Features
 
