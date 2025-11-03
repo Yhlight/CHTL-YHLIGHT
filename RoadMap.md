@@ -29,7 +29,7 @@ This document outlines the development roadmap for the CHTL project. The project
   - [ ] CHTL JS parser and generator
 - **[ ] Module System:** Implement the CMOD and CJMOD module systems.
   - [X] Parsing of `[Import]` statements
-  - [X] Module import and resolution logic for `@Html`
+  - [X] Module import and resolution logic for `@Html`, `@Style`, and `@JavaScript`
   - [ ] CMOD packaging and unpacking
   - [ ] CJMOD support
 - **[ ] CLI and Tooling:** Develop the command-line interface and other development tools.

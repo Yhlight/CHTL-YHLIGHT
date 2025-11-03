@@ -162,10 +162,10 @@ void Generator::visitOrigin(OriginNode* node) {
 }
 
 void Generator::visitImport(ImportNode* node) {
-    if (node->type == "@Html") {
+    if (node->type == "@Html" || node->type == "@Style" || node->type == "@JavaScript") {
         std::string content = FileUtil::readFile(node->file_path);
         auto originNode = std::make_unique<OriginNode>();
-        originNode->type = "@Html";
+        originNode->type = node->type;
         originNode->name = node->as_name;
         originNode->content = content;
         named_origin_blocks[node->as_name] = std::move(originNode);

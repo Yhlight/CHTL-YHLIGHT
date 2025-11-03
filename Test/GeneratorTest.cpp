@@ -194,4 +194,34 @@ void GeneratorTests() {
         std::string expected = "<html><head><style></style></head><body><h1>This is an imported HTML file.</h1>\n<script></script></body></html>";
         ASSERT(result == expected);
     }});
+
+    tests.push_back({"Test Import Style", []() {
+        std::string source = R"(
+            [Import] @Style from "Test/test.css" as myFile
+            [Origin] @Style myFile;
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<html><head><style>body {\n    color: red;\n}\n</style></head><body><script></script></body></html>";
+        ASSERT(result == expected);
+    }});
+
+    tests.push_back({"Test Import JavaScript", []() {
+        std::string source = R"(
+            [Import] @JavaScript from "Test/test.js" as myFile
+            [Origin] @JavaScript myFile;
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<html><head><style></style></head><body><script>console.log(\"This is an imported JavaScript file.\");\n</script></body></html>";
+        ASSERT(result == expected);
+    }});
 }
