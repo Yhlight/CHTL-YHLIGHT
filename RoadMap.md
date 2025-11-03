@@ -55,7 +55,7 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Enhanced Selectors (`{{...}}`)
 - [x] Event Handling (`Listen`, `&->`, `Delegate`)
 - [x] Animations (`Animate`)
-- [ ] Virtual Objects (`Vir`)
+- [x] Virtual Objects (`Vir`)
 - [ ] Routing (`Router`)
 
 ## Phase 4: Tooling and Ecosystem
