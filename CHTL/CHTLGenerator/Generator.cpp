@@ -45,6 +45,8 @@ void Generator::visit(BaseNode* node) {
         visitCustom(customNode);
     } else if (auto originNode = dynamic_cast<OriginNode*>(node)) {
         visitOrigin(originNode);
+    } else if (auto importNode = dynamic_cast<ImportNode*>(node)) {
+        visitImport(importNode);
     }
 }
 
@@ -146,4 +148,9 @@ void Generator::visitOrigin(OriginNode* node) {
     } else if (node->type == "@JavaScript") {
         js_output += node->content;
     }
+}
+
+void Generator::visitImport(ImportNode* node) {
+    // For now, this is a placeholder.
+    // In the future, this will handle file loading and parsing.
 }

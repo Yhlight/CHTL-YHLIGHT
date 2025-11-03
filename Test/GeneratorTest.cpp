@@ -162,4 +162,18 @@ void GeneratorTests() {
         std::string expected = "<html><head><style></style></head><body><h1>This is a raw HTML block</h1><script></script></body></html>";
         ASSERT(result == expected);
     }});
+
+    tests.push_back({"Test Import Statement", []() {
+        std::string source = R"(
+            [Import] @Chtl from "my.chtl"
+        )";
+
+        Lexer lexer(source);
+        Parser parser(lexer.tokenize(), source);
+        Generator generator(parser.parse());
+        std::string result = generator.generate();
+
+        std::string expected = "<html><head><style></style></head><body><script></script></body></html>";
+        ASSERT(result == expected);
+    }});
 }
