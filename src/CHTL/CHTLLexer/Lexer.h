@@ -9,6 +9,7 @@ class Lexer {
 public:
     Lexer(std::string_view source);
     Token scanToken();
+    Token peekToken();
 
 private:
     bool isAtEnd() const;

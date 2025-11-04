@@ -6,6 +6,11 @@ namespace CHTL {
 Lexer::Lexer(std::string_view source)
     : source_(source) {}
 
+Token Lexer::peekToken() {
+    Lexer tempLexer = *this;
+    return tempLexer.scanToken();
+}
+
 Token Lexer::scanToken() {
     skipWhitespace();
     start_ = current_;
