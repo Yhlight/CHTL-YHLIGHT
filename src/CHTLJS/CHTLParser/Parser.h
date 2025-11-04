@@ -10,6 +10,7 @@
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
 #include "../CHTLNode/RouterNode.h"
+#include "../CHTLNode/MemberExprNode.h"
 #include <vector>
 #include <memory>
 
@@ -39,6 +40,7 @@ private:
     std::unique_ptr<ExprNode> term();
     std::unique_ptr<ExprNode> factor();
     std::unique_ptr<ExprNode> unary();
+    std::unique_ptr<ExprNode> call();
     std::unique_ptr<ExprNode> primary();
 
     std::unique_ptr<ListenNode> parseListenExpression(std::unique_ptr<ExprNode> selector);

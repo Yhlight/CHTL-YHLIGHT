@@ -10,6 +10,7 @@
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
 #include "../CHTLNode/RouterNode.h"
+#include "../CHTLNode/MemberExprNode.h"
 #include <stdexcept>
 #include <sstream>
 
@@ -45,9 +46,15 @@ std::string Generator::visit(ASTNode* node) {
             return visitVirUsageNode(static_cast<VirUsageNode*>(node));
         case ASTNodeType::Router:
             return visitRouterNode(static_cast<RouterNode*>(node));
+        case ASTNodeType::MemberExpr:
+            return visitMemberExprNode(static_cast<MemberExprNode*>(node));
         default:
             throw std::runtime_error("Unknown node type");
     }
+}
+
+std::string Generator::visitMemberExprNode(MemberExprNode* node) {
+    return visit(node->object.get()) + "." + visit(node->property.get());
 }
 
 std::string Generator::visitVirUsageNode(VirUsageNode* node) {

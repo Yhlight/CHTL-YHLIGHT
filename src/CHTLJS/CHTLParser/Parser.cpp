@@ -9,6 +9,7 @@
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/VirUsageNode.h"
 #include "../CHTLNode/RouterNode.h"
+#include "../CHTLNode/MemberExprNode.h"
 #include <stdexcept>
 #include <vector>
 #include <string>
@@ -336,7 +337,34 @@ std::unique_ptr<ExprNode> Parser::unary() {
         Token op = advance();
         auto right = unary();
     }
-    return primary();
+    return call();
+}
+
+std::unique_ptr<ExprNode> Parser::call() {
+    auto expr = primary();
+
+    while (true) {
+        if (check(TokenType::ArrowDash)) {
+            advance();
+
+            if (expr->getType() == ASTNodeType::SelectorExpr) {
+                auto* selector = static_cast<SelectorExprNode*>(expr.get());
+                if (selector->type != SelectorType::Id && !selector->index.has_value()) {
+                    selector->index = 0;
+                }
+            }
+
+            auto property = primary();
+            auto memberExpr = std::make_unique<MemberExprNode>();
+            memberExpr->object = std::move(expr);
+            memberExpr->property = std::move(property);
+            expr = std::move(memberExpr);
+        } else {
+            break;
+        }
+    }
+
+    return expr;
 }
 
 std::unique_ptr<ExprNode> Parser::primary() {

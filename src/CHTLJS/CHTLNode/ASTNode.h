@@ -20,6 +20,7 @@ enum class ASTNodeType {
     Identifier,
     VirUsage,
     Router,
+    MemberExpr,
 };
 
 class ASTNode {

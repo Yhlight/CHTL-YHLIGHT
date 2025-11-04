@@ -2,60 +2,63 @@
 #include "CHTLJS/CHTLLexer/Lexer.h"
 #include "CHTLJS/CHTLParser/Parser.h"
 #include "CHTLJS/CHTLGenerator/Generator.h"
+#include "CHTLJS/CHTLAnalyser/Analyser.h"
 
 std::string compileCHTLJS(const std::string& source) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
     auto ast = parser.parse();
-    CHTLJS::Generator generator(*ast);
+    CHTLJS::Analyser analyser(*ast);
+    analyser.analyse();
+    CHTLJS::Generator generator(*ast, analyser);
     return generator.generate();
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesLiteral) {
-    std::string source = "123";
-    std::string expected = "123";
+    std::string source = "123;";
+    std::string expected = "123;\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesTagSelector) {
-    std::string source = "{{mySelector}}";
-    std::string expected = "document.querySelectorAll(\"mySelector\")";
+    std::string source = "{{mySelector}};";
+    std::string expected = "document.querySelectorAll(\"mySelector\");\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesIdSelector) {
-    std::string source = "{{#myId}}";
-    std::string expected = "document.getElementById(\"myId\")";
+    std::string source = "{{#myId}};";
+    std::string expected = "document.getElementById(\"myId\");\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesClassSelector) {
-    std::string source = "{{.myClass}}";
-    std::string expected = "document.querySelectorAll(\".myClass\")";
+    std::string source = "{{.myClass}};";
+    std::string expected = "document.querySelectorAll(\".myClass\");\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesCompoundSelector) {
-    std::string source = "{{.myClass myDescendant}}";
-    std::string expected = "document.querySelectorAll(\".myClass myDescendant\")";
+    std::string source = "{{.myClass myDescendant}};";
+    std::string expected = "document.querySelectorAll(\".myClass myDescendant\");\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesIndexedSelector) {
-    std::string source = "{{myTag[0]}}";
-    std::string expected = "document.querySelectorAll(\"myTag\")[0]";
+    std::string source = "{{myTag[0]}};";
+    std::string expected = "document.querySelectorAll(\"myTag\")[0];\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, GeneratesBinaryExpression) {
-    std::string source = "1 + 2";
-    std::string expected = "1 + 2";
+    std::string source = "1 + 2;";
+    std::string expected = "1 + 2;\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
 
 TEST(CHTLJSGeneratorTest, HandlesPrecedence) {
-    std::string source = "1 + 2 * 3";
-    std::string expected = "1 + 2 * 3";
+    std::string source = "1 + 2 * 3;";
+    std::string expected = "1 + 2 * 3;\n";
     EXPECT_EQ(compileCHTLJS(source), expected);
 }
