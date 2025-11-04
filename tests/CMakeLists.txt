@@ -12,6 +12,7 @@ target_sources(run_tests PRIVATE
     InitialTest.cpp
     CHTL/LexerTest.cpp
     CHTL/ParserTest.cpp
+    CHTL/GeneratorTest.cpp
 )
 
 target_include_directories(run_tests PRIVATE
