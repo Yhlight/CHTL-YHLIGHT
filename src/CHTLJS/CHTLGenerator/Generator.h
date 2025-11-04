@@ -35,7 +35,7 @@ private:
 
     std::string getSelectorString(class SelectorExprNode* node);
 
-    ExprNode& m_root;
+    ASTNode& m_root;
 	Analyser& m_analyser;
 };
 

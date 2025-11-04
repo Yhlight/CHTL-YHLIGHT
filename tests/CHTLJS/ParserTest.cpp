@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "CHTLJS/CHTLLexer/Lexer.h"
 #include "CHTLJS/CHTLParser/Parser.h"
+#include "CHTLJS/CHTLNode/ProgramNode.h"
 #include "CHTLJS/CHTLNode/BinaryExprNode.h"
 #include "CHTLJS/CHTLNode/LiteralNode.h"
 #include "CHTLJS/CHTLNode/SelectorExprNode.h"
@@ -10,9 +11,11 @@ TEST(CHTLJSParserTest, ParsesLiteral) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::Literal);
     auto literal = static_cast<CHTLJS::LiteralNode*>(expr.get());
     EXPECT_EQ(literal->value, "123");
@@ -23,9 +26,11 @@ TEST(CHTLJSParserTest, ParsesTagSelector) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
     auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
     EXPECT_EQ(selector->type, CHTLJS::SelectorType::Tag);
@@ -37,9 +42,11 @@ TEST(CHTLJSParserTest, ParsesIdSelector) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
     auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
     EXPECT_EQ(selector->type, CHTLJS::SelectorType::Id);
@@ -51,9 +58,11 @@ TEST(CHTLJSParserTest, ParsesClassSelector) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
     auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
     EXPECT_EQ(selector->type, CHTLJS::SelectorType::Class);
@@ -65,9 +74,11 @@ TEST(CHTLJSParserTest, ParsesCompoundSelector) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
     auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
     EXPECT_EQ(selector->type, CHTLJS::SelectorType::Compound);
@@ -80,9 +91,11 @@ TEST(CHTLJSParserTest, ParsesIndexedSelector) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::SelectorExpr);
     auto selector = static_cast<CHTLJS::SelectorExprNode*>(expr.get());
     EXPECT_EQ(selector->type, CHTLJS::SelectorType::Tag);
@@ -96,9 +109,11 @@ TEST(CHTLJSParserTest, ParsesBinaryExpression) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::BinaryExpr);
     auto binaryExpr = static_cast<CHTLJS::BinaryExprNode*>(expr.get());
     EXPECT_EQ(binaryExpr->op.type, CHTLJS::TokenType::Plus);
@@ -117,9 +132,11 @@ TEST(CHTLJSParserTest, HandlesPrecedence) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
-    auto expr = parser.parse();
+    auto program = parser.parse();
 
-    ASSERT_NE(expr, nullptr);
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+    auto& expr = program->statements[0];
     ASSERT_EQ(expr->getType(), CHTLJS::ASTNodeType::BinaryExpr);
     auto topExpr = static_cast<CHTLJS::BinaryExprNode*>(expr.get());
     EXPECT_EQ(topExpr->op.type, CHTLJS::TokenType::Plus);

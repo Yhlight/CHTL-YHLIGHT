@@ -2,13 +2,16 @@
 #include "CHTLJS/CHTLLexer/Lexer.h"
 #include "CHTLJS/CHTLParser/Parser.h"
 #include "CHTLJS/CHTLGenerator/Generator.h"
+#include "CHTLJS/CHTLAnalyser/Analyser.h"
 
 std::string compileCHTLJS(const std::string& source) {
     CHTLJS::Lexer lexer(source);
     auto tokens = lexer.scanTokens();
     CHTLJS::Parser parser(tokens);
     auto ast = parser.parse();
-    CHTLJS::Generator generator(*ast);
+    CHTLJS::Analyser analyser(*ast);
+    analyser.analyse();
+    CHTLJS::Generator generator(*ast, analyser);
     return generator.generate();
 }
 

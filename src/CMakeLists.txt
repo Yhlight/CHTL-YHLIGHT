@@ -21,3 +21,23 @@ target_link_libraries(libchtl
     PRIVATE
         libsharedcore
 )
+
+add_library(libcli STATIC CLI/CLILib.cpp)
+
+target_include_directories(libcli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_executable(chtl
+    CLI/main.cpp
+)
+
+target_link_libraries(chtl
+    PRIVATE
+        libcli
+)
+
+target_link_libraries(chtl
+    PRIVATE
+        libchtl
+        libchtljs
+        libsharedcore
+)

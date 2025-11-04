@@ -21,6 +21,7 @@ add_executable(run_tests
     CHTLJSAnimateTest.cpp
     CHTLJSTest/VirTest.cpp
     CHTLJSTest/RouterTest.cpp
+    CLI/CLITest.cpp
 )
 
 target_include_directories(run_tests PRIVATE ../src ${CMAKE_CURRENT_SOURCE_DIR})
@@ -29,6 +30,7 @@ target_link_libraries(run_tests
   PRIVATE
   libchtl
   libchtljs
+  libcli
   GTest::gtest
 )
 

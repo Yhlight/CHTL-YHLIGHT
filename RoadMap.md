@@ -60,7 +60,7 @@ This document outlines the development roadmap for the CHTL project.
 
 ## Phase 4: Tooling and Ecosystem
 
-- [ ] CLI (Command-Line Interface)
+- [x] CLI (Command-Line Interface)
 - [ ] VSCode Extension
 - [ ] CMOD/CJMOD Module System
 - [ ] Official Modules (Chtholly, Yuigahama)
