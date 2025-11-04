@@ -5,7 +5,7 @@ This document outlines the development roadmap for the CHTL project.
 ## Phase 1: Core Language Features
 
 - [x] Initial project setup
-- [ ] Lexer implementation
+- [ ] Lexer implementation (In Progress)
 - [ ] Parser implementation
 - [ ] AST implementation
 - [ ] Generator implementation

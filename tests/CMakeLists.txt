@@ -10,6 +10,7 @@ add_executable(run_tests)
 
 target_sources(run_tests PRIVATE
     InitialTest.cpp
+    CHTL/LexerTest.cpp
 )
 
 target_include_directories(run_tests PRIVATE
