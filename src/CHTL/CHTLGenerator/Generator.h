@@ -16,10 +16,12 @@ class StyleNode;
 class Generator {
 public:
     Generator(ASTNode& root);
-    std::string generate();
+    std::string generate(bool default_struct = false, bool inline_output = false);
 
 private:
     ASTNode& m_root;
+    bool m_default_struct = false;
+    bool m_inline_output = false;
     std::stringstream m_output;
     int m_indent = 0;
 

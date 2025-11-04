@@ -21,3 +21,12 @@ target_link_libraries(libchtl
     PRIVATE
         libsharedcore
 )
+
+add_executable(chtl
+    CHTLCLI/main.cpp
+)
+
+target_link_libraries(chtl
+    PRIVATE
+        libchtl
+)
