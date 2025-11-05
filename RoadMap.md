@@ -8,8 +8,8 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Lexer implementation
 - [x] Parser implementation
 - [x] AST implementation
-- [ ] Generator implementation (In Progress)
-- [ ] Template system
+- [x] Generator implementation
+- [ ] Template system (In Progress)
 - [ ] Import system
 - [ ] Origin blocks
 - [ ] Namespace blocks

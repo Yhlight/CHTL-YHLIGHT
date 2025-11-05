@@ -4,6 +4,7 @@
 #include "../CHTLNode/TextNode.h"
 #include "../CHTLNode/StyleNode.h"
 #include "../CHTLNode/ScriptNode.h"
+#include "../CHTLNode/StylePropertyNode.h"
 
 namespace CHTL {
 
@@ -31,6 +32,15 @@ void Generator::visit(ASTNode* node) {
         case ASTNodeType::Script:
             visitScriptNode(node);
             break;
+        case ASTNodeType::StyleProperty:
+            visitStylePropertyNode(node);
+            break;
+        case ASTNodeType::Template:
+            // Templates are handled by the analyser, so the generator should ignore them.
+            break;
+        case ASTNodeType::TemplateUsage:
+            // Template usages are handled by the analyser, so the generator should ignore them.
+            break;
     }
 }
 
@@ -48,15 +58,20 @@ void Generator::visitElementNode(ASTNode* node) {
         output_ << " " << attr.first << "=\"" << attr.second << "\"";
     }
 
-    std::string style;
+    std::stringstream styleStream;
     for (const auto& child : element->children) {
         if (child->getType() == ASTNodeType::Style) {
-            style += static_cast<StyleNode*>(child.get())->content;
+            for (const auto& styleChild : child->children) {
+                if (styleChild->getType() == ASTNodeType::StyleProperty) {
+                    auto prop = static_cast<StylePropertyNode*>(styleChild.get());
+                    styleStream << prop->name << ":" << prop->value << ";";
+                }
+            }
         }
     }
 
-    if (!style.empty()) {
-        output_ << " style=\"" << style << "\"";
+    if (styleStream.tellp() > 0) {
+        output_ << " style=\"" << styleStream.str() << "\"";
     }
 
     output_ << ">";
@@ -76,6 +91,9 @@ void Generator::visitTextNode(ASTNode* node) {
 }
 
 void Generator::visitStyleNode(ASTNode* node) {
+}
+
+void Generator::visitStylePropertyNode(ASTNode* node) {
 }
 
 void Generator::visitScriptNode(ASTNode* node) {

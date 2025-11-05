@@ -12,6 +12,9 @@ class ElementNode;
 class TextNode;
 class StyleNode;
 class ScriptNode;
+class TemplateNode;
+class TemplateUsageNode;
+class StylePropertyNode;
 
 class Parser {
 public:
@@ -32,6 +35,7 @@ private:
     std::unique_ptr<TextNode> parseText();
     std::unique_ptr<StyleNode> parseStyle();
     std::unique_ptr<ScriptNode> parseScript();
+    std::unique_ptr<TemplateNode> parseTemplate();
 
     std::string_view source_;
     Lexer lexer_;

@@ -11,6 +11,9 @@ enum class ASTNodeType {
     Text,
     Style,
     Script,
+    Template,
+    TemplateUsage,
+    StyleProperty,
 };
 
 class ASTNode {

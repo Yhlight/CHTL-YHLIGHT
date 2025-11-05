@@ -3,7 +3,11 @@
 #include "../CHTLNode/TextNode.h"
 #include "../CHTLNode/StyleNode.h"
 #include "../CHTLNode/ScriptNode.h"
+#include "../CHTLNode/TemplateNode.h"
+#include "../CHTLNode/TemplateUsageNode.h"
+#include "../CHTLNode/StylePropertyNode.h"
 #include <stdexcept>
+#include <iostream>
 
 namespace CHTL {
 
@@ -63,6 +67,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseScript();
     } else if (check(TokenType::IDENTIFIER)) {
         return parseElement();
+    } else if (check(TokenType::BLOCK_TEMPLATE)) {
+        return parseTemplate();
     }
     throw std::runtime_error("Expected a statement.");
 }
@@ -71,15 +77,64 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
     consume(TokenType::STYLE, "Expect 'style' keyword.");
     consume(TokenType::LEFT_BRACE, "Expect '{' after 'style' keyword.");
 
-    size_t start = previousToken_.start_pos + previousToken_.lexeme.length();
+    auto styleNode = std::make_unique<StyleNode>();
+
     while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        advance();
+        if (check(TokenType::AT)) {
+            advance(); // consume '@'
+            consume(TokenType::IDENTIFIER, "Expect template type.");
+            std::string type = std::string(previous().lexeme);
+            consume(TokenType::IDENTIFIER, "Expect template name.");
+            std::string name = std::string(previous().lexeme);
+            consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+            styleNode->children.push_back(std::make_unique<TemplateUsageNode>(type, name));
+        } else {
+            consume(TokenType::IDENTIFIER, "Expect property name.");
+            std::string name = std::string(previous().lexeme);
+            consume(TokenType::COLON, "Expect ':' after property name.");
+            std::string value;
+            while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
+                value += currentToken_.lexeme;
+                advance();
+            }
+            consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+            styleNode->children.push_back(std::make_unique<StylePropertyNode>(name, value));
+        }
     }
-    size_t end = currentToken_.start_pos;
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after style block.");
 
-    return std::make_unique<StyleNode>(std::string(source_.substr(start, end - start)));
+    return styleNode;
+}
+
+std::unique_ptr<TemplateNode> Parser::parseTemplate() {
+    consume(TokenType::BLOCK_TEMPLATE, "Expect '[Template]' keyword.");
+    consume(TokenType::AT, "Expect '@' after '[Template]'.");
+    consume(TokenType::IDENTIFIER, "Expect template type.");
+    std::string type = std::string(previous().lexeme);
+    consume(TokenType::IDENTIFIER, "Expect template name.");
+    std::string name = std::string(previous().lexeme);
+
+    auto templateNode = std::make_unique<TemplateNode>(type, name);
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' after template name.");
+
+    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+        consume(TokenType::IDENTIFIER, "Expect property name.");
+        std::string propName = std::string(previous().lexeme);
+        consume(TokenType::COLON, "Expect ':' after property name.");
+        std::string propValue;
+        while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
+            propValue += currentToken_.lexeme;
+            advance();
+        }
+        consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+        templateNode->children.push_back(std::make_unique<StylePropertyNode>(propName, propValue));
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after template block.");
+
+    return templateNode;
 }
 
 std::unique_ptr<ScriptNode> Parser::parseScript() {

@@ -17,6 +17,7 @@ private:
     void visitElementNode(ASTNode* node);
     void visitTextNode(ASTNode* node);
     void visitStyleNode(ASTNode* node);
+    void visitStylePropertyNode(ASTNode* node);
     void visitScriptNode(ASTNode* node);
 
     std::stringstream output_;

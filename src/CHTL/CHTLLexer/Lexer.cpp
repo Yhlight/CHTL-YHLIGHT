@@ -116,7 +116,7 @@ Token Lexer::number() {
 }
 
 Token Lexer::identifier() {
-    while (std::isalnum(peek()) || peek() == '_') advance();
+    while (std::isalnum(peek()) || peek() == '_' || peek() == '-') advance();
     return makeToken(identifierType());
 }
 

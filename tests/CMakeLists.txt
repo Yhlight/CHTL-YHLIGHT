@@ -9,10 +9,12 @@ FetchContent_MakeAvailable(googletest)
 add_executable(run_tests)
 
 target_sources(run_tests PRIVATE
+    main.cpp
     InitialTest.cpp
     CHTL/LexerTest.cpp
     CHTL/ParserTest.cpp
     CHTL/GeneratorTest.cpp
+    CHTL/TemplateTest.cpp
 )
 
 target_include_directories(run_tests PRIVATE
@@ -25,7 +27,6 @@ target_link_libraries(run_tests PRIVATE
     libchtljs
     libsharedcore
     GTest::gtest
-    GTest::gtest_main
 )
 
 include(GoogleTest)

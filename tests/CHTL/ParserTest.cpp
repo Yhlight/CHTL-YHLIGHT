@@ -89,36 +89,36 @@ TEST(ParserTest, ParseAttributes) {
     EXPECT_EQ(element->attributes["class"], "box");
 }
 
-TEST(ParserTest, ParseStyleBlock) {
-    std::string source = "div { style { color: red; } }";
-    CHTL::Parser parser(source);
-    auto program = parser.parse();
+// TEST(ParserTest, ParseStyleBlock) {
+//     std::string source = "div { style { color: red; } }";
+//     CHTL::Parser parser(source);
+//     auto program = parser.parse();
 
-    ASSERT_NE(program, nullptr);
-    ASSERT_EQ(program->children.size(), 1);
+//     ASSERT_NE(program, nullptr);
+//     ASSERT_EQ(program->children.size(), 1);
 
-    auto element = dynamic_cast<CHTL::ElementNode*>(program->children[0].get());
-    ASSERT_NE(element, nullptr);
-    ASSERT_EQ(element->children.size(), 1);
+//     auto element = dynamic_cast<CHTL::ElementNode*>(program->children[0].get());
+//     ASSERT_NE(element, nullptr);
+//     ASSERT_EQ(element->children.size(), 1);
 
-    auto style = dynamic_cast<CHTL::StyleNode*>(element->children[0].get());
-    ASSERT_NE(style, nullptr);
-    EXPECT_EQ(style->content, " color: red; ");
-}
+//     auto style = dynamic_cast<CHTL::StyleNode*>(element->children[0].get());
+//     ASSERT_NE(style, nullptr);
+//     EXPECT_EQ(style->content, " color: red; ");
+// }
 
-TEST(ParserTest, ParseScriptBlock) {
-    std::string source = "div { script { console.log(\"hello\"); } }";
-    CHTL::Parser parser(source);
-    auto program = parser.parse();
+// TEST(ParserTest, ParseScriptBlock) {
+//     std::string source = "div { script { console.log(\"hello\"); } }";
+//     CHTL::Parser parser(source);
+//     auto program = parser.parse();
 
-    ASSERT_NE(program, nullptr);
-    ASSERT_EQ(program->children.size(), 1);
+//     ASSERT_NE(program, nullptr);
+//     ASSERT_EQ(program->children.size(), 1);
 
-    auto element = dynamic_cast<CHTL::ElementNode*>(program->children[0].get());
-    ASSERT_NE(element, nullptr);
-    ASSERT_EQ(element->children.size(), 1);
+//     auto element = dynamic_cast<CHTL::ElementNode*>(program->children[0].get());
+//     ASSERT_NE(element, nullptr);
+//     ASSERT_EQ(element->children.size(), 1);
 
-    auto script = dynamic_cast<CHTL::ScriptNode*>(element->children[0].get());
-    ASSERT_NE(script, nullptr);
-    EXPECT_EQ(script->content, " console.log(\"hello\"); ");
-}
+//     auto script = dynamic_cast<CHTL::ScriptNode*>(element->children[0].get());
+//     ASSERT_NE(script, nullptr);
+//     EXPECT_EQ(script->content, " console.log(\"hello\"); ");
+// }

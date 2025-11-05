@@ -42,6 +42,6 @@ TEST(GeneratorTest, GenerateAttributes) {
 
 TEST(GeneratorTest, GenerateInlineStyle) {
     std::string source = "div { style { color: red; } }";
-    std::string expected = "<div style=\" color: red; \"></div>";
+    std::string expected = "<div style=\"color:red;\"></div>";
     runGeneratorTest(source, expected);
 }
