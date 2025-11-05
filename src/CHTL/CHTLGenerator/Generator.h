@@ -6,6 +6,7 @@
 
 class ElementNode;
 class TextNode;
+class StyleNode;
 
 class Generator {
 public:
@@ -18,5 +19,6 @@ private:
     void visit(const TextNode* node);
 
     const BaseNode& root;
-    std::stringstream output;
+    std::stringstream html_output;
+    std::stringstream css_output;
 };

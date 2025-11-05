@@ -18,9 +18,9 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
-        if (isalpha(current_char)) {
+        if (isalpha(current_char) || current_char == '-' || isdigit(current_char)) {
             std::string value;
-            while (current_pos < source.length() && (isalnum(source[current_pos]) || source[current_pos] == '_')) {
+            while (current_pos < source.length() && (isalnum(source[current_pos]) || source[current_pos] == '_' || source[current_pos] == '-' || source[current_pos] == '%')) {
                 value += source[current_pos];
                 current_pos++;
                 column++;

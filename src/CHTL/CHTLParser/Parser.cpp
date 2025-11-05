@@ -24,6 +24,11 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
             std::string key = current_token().value;
             advance(); // Consume the identifier
 
+            if (key == "style") {
+                node->children.push_back(parse_style());
+                continue;
+            }
+
             if (current_token().type != TokenType::Colon && current_token().type != TokenType::Equal) {
                 // Handle error: expected ':' or '='
                 return nullptr;
@@ -50,6 +55,54 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
             }
         } else {
             // Handle other children
+            advance();
+        }
+    }
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    return node;
+}
+
+std::unique_ptr<StyleNode> Parser::parse_style() {
+    auto node = std::make_unique<StyleNode>();
+    if (current_token().type != TokenType::OpenBrace) {
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    advance(); // Consume the '{'
+
+    while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+        if (current_token().type == TokenType::Identifier) {
+            std::string key = current_token().value;
+            advance(); // Consume the identifier
+
+            if (current_token().type != TokenType::Colon) {
+                // Handle error: expected ':'
+                return nullptr;
+            }
+            advance(); // Consume the ':'
+
+            if (current_token().type != TokenType::StringLiteral && current_token().type != TokenType::Identifier) {
+                // Handle error: expected a string literal or identifier
+                return nullptr;
+            }
+            std::string value = current_token().value;
+            advance(); // Consume the value
+
+            if (current_token().type != TokenType::Semicolon) {
+                // Handle error: expected ';'
+                return nullptr;
+            }
+            advance(); // Consume ';'
+
+            node->properties[key] = value;
+        } else {
+            // Handle other style content
             advance();
         }
     }

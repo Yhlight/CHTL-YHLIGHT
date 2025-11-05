@@ -4,6 +4,7 @@
 #include "BaseNode.h"
 #include "ElementNode.h"
 #include "TextNode.h"
+#include "StyleNode.h"
 #include <vector>
 #include <memory>
 
@@ -14,6 +15,7 @@ public:
 
 private:
     std::unique_ptr<ElementNode> parse_element();
+    std::unique_ptr<StyleNode> parse_style();
     Token current_token();
     void advance();
 

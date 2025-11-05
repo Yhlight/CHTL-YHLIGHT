@@ -2,6 +2,7 @@
 #include "Parser.h"
 #include "ElementNode.h"
 #include "TextNode.h"
+#include "StyleNode.h"
 #include "Lexer.h"
 
 TEST(ParserTest, EmptyInput) {
@@ -38,4 +39,21 @@ TEST(ParserTest, ElementWithAttributes) {
     EXPECT_EQ(element_node->attributes.size(), 2);
     EXPECT_EQ(element_node->attributes["id"], "main");
     EXPECT_EQ(element_node->attributes["class"], "container");
+}
+
+TEST(ParserTest, ElementWithInlineStyle) {
+    Lexer lexer("div { style { color: red; font-size: 16px; } }");
+    auto tokens = lexer.tokenize();
+    Parser parser(tokens);
+    auto ast = parser.parse();
+    ASSERT_NE(ast, nullptr);
+    EXPECT_EQ(ast->getType(), NodeType::Element);
+    auto element_node = static_cast<ElementNode*>(ast.get());
+    EXPECT_EQ(element_node->tag_name, "div");
+    ASSERT_EQ(element_node->children.size(), 1);
+    auto style_node = dynamic_cast<StyleNode*>(element_node->children[0].get());
+    ASSERT_NE(style_node, nullptr);
+    EXPECT_EQ(style_node->properties.size(), 2);
+    EXPECT_EQ(style_node->properties["color"], "red");
+    EXPECT_EQ(style_node->properties["font-size"], "16px");
 }
