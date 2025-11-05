@@ -1,0 +1,4 @@
+add_subdirectory(CHTLJSLexer)
+add_subdirectory(CHTLJSParser)
+add_subdirectory(CHTLJSNode)
+add_subdirectory(CHTLJSGenerator)
