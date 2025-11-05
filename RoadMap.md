@@ -1,43 +1,37 @@
 # CHTL Project Roadmap
 
-This document outlines the development roadmap for the CHTL project. The project will be developed following a Test-Driven Development (TDD) methodology to ensure stability and correctness.
+This document outlines the development roadmap for the CHTL project.
 
-## Phase 1: Core Compiler Implementation
+## Phase 1: Core Language Features
 
-- **[X] Lexer:** Implement the lexical analyzer to tokenize the CHTL source code.
-  - [X] Basic tokenization (keywords, identifiers, literals)
-  - [X] Comment handling (`//`, `/**/`, `#`)
-  - [X] Support for all specified token types in `CHTL.md`
- - **[X] Parser:** Implement the parser to build an Abstract Syntax Tree (AST) from the token stream.
-   - [X] Basic AST structure
-   - [X] Parsing of core language features (elements, attributes, text)
-   - [X] Support for all grammatical constructs in `CHTL.md`
-- **[ ] Generator:** Implement the code generator to produce HTML from the AST.
-  - [X] Basic HTML generation
-  - [X] Style Templates
-  - [X] Variable Templates
-  - [X] Custom Style Groups
-  - [ ] Generation of all CHTL features into corresponding HTML and CSS
-    - [X] `[Origin]` blocks
-    - [X] Named `[Origin]` block support
+- [x] Initial project setup
+- [x] Lexer implementation
+- [x] Parser implementation
+- [x] AST implementation
+- [x] Generator implementation
+- [x] Template system
+  - [x] @Style templates
+  - [x] @Element templates
+  - [x] @Var templates
+- [ ] Import system (In Progress)
+- [x] Origin blocks
+- [ ] Namespace blocks
+- [ ] Configuration blocks
 
-## Phase 2: Advanced Language Features
+## Phase 2: CHTLJS Extension
 
-- **[ ] CHTL JS Support:** Implement the necessary components to support CHTL JS.
-  - [ ] Salt bridge for communication between CHTL and CHTL JS compilers
-  - [ ] CHTL JS preprocessor
-  - [ ] CHTL JS parser and generator
-- **[ ] Module System:** Implement the CMOD and CJMOD module systems.
-  - [X] Parsing of `[Import]` statements
-  - [X] Module import and resolution logic for `@Html`, `@Style`, and `@JavaScript`
-  - [ ] CMOD packaging and unpacking
-  - [ ] CJMOD support
-- **[ ] CLI and Tooling:** Develop the command-line interface and other development tools.
-  - [ ] Basic compiler CLI
-  - [ ] File watching and recompilation
-  - [ ] VSCode extension support
+- [ ] CHTLJS Lexer
+- [ ] CHTLJS Parser
+- [ ] CHTLJS AST
+- [ ] CHTLJS Generator
+- [ ] Vir feature
+- [ ] Router feature
+- [ ] Event handling (Listen/Delegate)
+- [ ] Animation feature
 
-## Phase 3: Official Modules
+## Phase 3: Advanced Features & Tooling
 
-- **[ ] Chtholly Module:** Implement the official "Chtholly" module.
-- **[ ] Yuigahama Module:** Implement the official "Yuigahama" module.
+- [ ] Standard library
+- [ ] Debugger support
+- [ ] Language Server Protocol (LSP) implementation
+- [ ] VSCode extension

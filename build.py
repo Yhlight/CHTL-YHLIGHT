@@ -1,28 +1,48 @@
 import os
+import shutil
 import subprocess
+import argparse
 
-def run_command(command):
-    """Runs a command and checks for errors."""
-    try:
-        subprocess.run(command, check=True, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {e}")
-        exit(1)
+def configure():
+    """Configures the project."""
+    print("Configuring the project...")
+    os.makedirs("build", exist_ok=True)
+    subprocess.run(["cmake", "-S", ".", "-B", "build"], check=True)
+
+def build():
+    """Builds the project."""
+    print("Building the project...")
+    subprocess.run(["cmake", "--build", "build"], check=True)
+
+def test():
+    """Runs the tests."""
+    print("Running tests...")
+    subprocess.run(["ctest", "--test-dir", "build"], check=True)
+
+def clean():
+    """Cleans the build directory."""
+    print("Cleaning the build directory...")
+    if os.path.exists("build"):
+        shutil.rmtree("build")
 
 def main():
-    """Builds and tests the CHTL project."""
-    # Create build directory
-    if not os.path.exists("build"):
-        os.makedirs("build")
+    parser = argparse.ArgumentParser(description="Build script for the CHTL project.")
+    parser.add_argument("command", choices=["configure", "build", "test", "clean", "all"], help="The command to execute.")
 
-    # Configure CMake
-    run_command("cmake -B build -S .")
+    args = parser.parse_args()
 
-    # Build the project
-    run_command("cmake --build build")
-
-    # Run tests
-    run_command(os.path.join("build", "Test", "runTests"))
+    if args.command == "configure":
+        configure()
+    elif args.command == "build":
+        build()
+    elif args.command == "test":
+        test()
+    elif args.command == "clean":
+        clean()
+    elif args.command == "all":
+        configure()
+        build()
+        test()
 
 if __name__ == "__main__":
     main()
