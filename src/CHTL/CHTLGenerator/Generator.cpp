@@ -8,6 +8,7 @@
 #include "ScriptNode.h"
 #include "TemplateNode.h"
 #include "ElementDirectiveNode.h"
+#include "StyleDirectiveNode.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
 
@@ -27,6 +28,7 @@ std::string Generator::generate(bool full_document) {
 }
 
 void Generator::visit(const BaseNode* node) {
+    if (!node) return;
     switch (node->getType()) {
         case NodeType::Program:
             visit(static_cast<const ProgramNode*>(node));
@@ -49,6 +51,9 @@ void Generator::visit(const BaseNode* node) {
         case NodeType::ElementDirective:
             visit(static_cast<const ElementDirectiveNode*>(node));
             break;
+        case NodeType::StyleDirective:
+            visit(static_cast<const StyleDirectiveNode*>(node));
+            break;
     }
 }
 
@@ -66,7 +71,7 @@ void Generator::visit(const ElementNode* node) {
 
     std::stringstream style_attr;
     for (const auto& child : node->children) {
-        if (child->getType() == NodeType::Style) {
+        if (child && child->getType() == NodeType::Style) {
             auto style_node = static_cast<const StyleNode*>(child.get());
             for (const auto& style_content : style_node->children) {
                 if (style_content->getStyleContentType() == StyleContentType::Property) {
@@ -81,6 +86,15 @@ void Generator::visit(const ElementNode* node) {
                     }
                     css_output << "}";
                     html_output << " class=\"" << rule_node->selector << "\"";
+                } else if (style_content->getStyleContentType() == StyleContentType::Directive) {
+                    auto directive_node = static_cast<const StyleDirectiveNode*>(style_content.get());
+                    auto it = style_templates.find(directive_node->name);
+                    if (it != style_templates.end()) {
+                        for (const auto& prop : it->second->children) {
+                            auto prop_node = static_cast<const StylePropertyNode*>(prop.get());
+                            style_attr << prop_node->key << ":" << prop_node->value << ";";
+                        }
+                    }
                 }
             }
         }
@@ -92,7 +106,7 @@ void Generator::visit(const ElementNode* node) {
 
     html_output << ">";
     for (const auto& child : node->children) {
-        if (child->getType() != NodeType::Style) {
+        if (child && child->getType() != NodeType::Style) {
             visit(child.get());
         }
     }
@@ -110,6 +124,8 @@ void Generator::visit(const ScriptNode* node) {
 void Generator::visit(const TemplateNode* node) {
     if (node->type == TemplateType::Element) {
         element_templates[node->name] = node;
+    } else if (node->type == TemplateType::Style) {
+        style_templates[node->name] = node;
     }
 }
 
@@ -120,4 +136,8 @@ void Generator::visit(const ElementDirectiveNode* node) {
             visit(child.get());
         }
     }
+}
+
+void Generator::visit(const StyleDirectiveNode* node) {
+    // This is handled by the parent element
 }

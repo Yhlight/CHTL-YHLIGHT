@@ -19,7 +19,11 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
-        return parse_element_directive();
+        advance(); // Consume '@'
+        if (current_token().type == TokenType::Identifier && current_token().value == "Element") {
+            advance(); // Consume 'Element'
+            return parse_element_directive();
+        }
     }
     advance();
     return nullptr;
@@ -180,6 +184,15 @@ std::unique_ptr<StyleNode> Parser::parse_style() {
             advance(); // Consume ';'
 
             node->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+        } else if (current_token().type == TokenType::At) {
+            advance(); // Consume '@'
+            if (current_token().type == TokenType::Identifier && current_token().value == "Style") {
+                advance(); // Consume 'Style'
+                auto directive = parse_style_directive();
+                if (directive) {
+                    node->children.push_back(std::move(directive));
+                }
+            }
         } else {
             // Handle other style content
             advance();
@@ -270,9 +283,26 @@ std::unique_ptr<TemplateNode> Parser::parse_template() {
     advance(); // Consume the '{'
 
     while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
-        auto statement = parse_statement();
-        if (statement) {
-            node->children.push_back(std::move(statement));
+        if (type == TemplateType::Style) {
+            std::string key = current_token().value;
+            advance();
+            if (current_token().type != TokenType::Colon) {
+                // Handle error
+                return nullptr;
+            }
+            advance();
+            std::string value = current_token().value;
+            advance();
+            if (current_token().type != TokenType::Semicolon) {
+                return nullptr;
+            }
+            advance();
+            node->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+        } else {
+            auto statement = parse_statement();
+            if (statement) {
+                node->children.push_back(std::move(statement));
+            }
         }
     }
 
@@ -286,12 +316,6 @@ std::unique_ptr<TemplateNode> Parser::parse_template() {
 }
 
 std::unique_ptr<ElementDirectiveNode> Parser::parse_element_directive() {
-    advance(); // Consume '@'
-    if (current_token().type != TokenType::Identifier || current_token().value != "Element") {
-        // Handle error: expected 'Element'
-        return nullptr;
-    }
-    advance(); // Consume 'Element'
     if (current_token().type != TokenType::Identifier) {
         // Handle error: expected identifier
         return nullptr;
@@ -306,6 +330,23 @@ std::unique_ptr<ElementDirectiveNode> Parser::parse_element_directive() {
     advance(); // Consume ';'
 
     return std::make_unique<ElementDirectiveNode>(name);
+}
+
+std::unique_ptr<StyleDirectiveNode> Parser::parse_style_directive() {
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string name = current_token().value;
+    advance(); // Consume the name
+
+    if (current_token().type != TokenType::Semicolon) {
+        // Handle error: expected ';'
+        return nullptr;
+    }
+    advance(); // Consume ';'
+
+    return std::make_unique<StyleDirectiveNode>(name);
 }
 
 Token Parser::current_token() {

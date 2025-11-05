@@ -14,6 +14,7 @@ class StyleRuleNode;
 class ScriptNode;
 class TemplateNode;
 class ElementDirectiveNode;
+class StyleDirectiveNode;
 class ProgramNode;
 
 class Generator {
@@ -29,10 +30,12 @@ private:
     void visit(const ScriptNode* node);
     void visit(const TemplateNode* node);
     void visit(const ElementDirectiveNode* node);
+    void visit(const StyleDirectiveNode* node);
 
     const BaseNode& root;
     std::stringstream html_output;
     std::stringstream css_output;
     std::stringstream js_output;
     std::map<std::string, const TemplateNode*> element_templates;
+    std::map<std::string, const TemplateNode*> style_templates;
 };

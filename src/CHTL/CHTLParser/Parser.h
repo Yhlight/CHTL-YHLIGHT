@@ -10,6 +10,7 @@
 #include "ScriptNode.h"
 #include "TemplateNode.h"
 #include "ElementDirectiveNode.h"
+#include "StyleDirectiveNode.h"
 #include "ProgramNode.h"
 #include <vector>
 #include <memory>
@@ -27,6 +28,7 @@ private:
     std::unique_ptr<ScriptNode> parse_script();
     std::unique_ptr<TemplateNode> parse_template();
     std::unique_ptr<ElementDirectiveNode> parse_element_directive();
+    std::unique_ptr<StyleDirectiveNode> parse_style_directive();
     Token current_token();
     void advance();
 

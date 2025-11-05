@@ -9,6 +9,7 @@
 #include "ScriptNode.h"
 #include "TemplateNode.h"
 #include "ElementDirectiveNode.h"
+#include "StyleDirectiveNode.h"
 
 TEST(GeneratorTest, SimpleElement) {
     auto root = std::make_unique<ProgramNode>();
@@ -90,4 +91,19 @@ TEST(GeneratorTest, ElementTemplate) {
     Generator generator(*root);
     auto html = generator.generate();
     EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div><script></script></body></html>");
+}
+
+TEST(GeneratorTest, StyleTemplate) {
+    auto root = std::make_unique<ProgramNode>();
+    auto template_node = std::make_unique<TemplateNode>("MyStyle", TemplateType::Style);
+    template_node->children.push_back(std::make_unique<StylePropertyNode>("color", "red"));
+    root->children.push_back(std::move(template_node));
+    auto element = std::make_unique<ElementNode>("div");
+    auto style_node = std::make_unique<StyleNode>();
+    style_node->children.push_back(std::make_unique<StyleDirectiveNode>("MyStyle"));
+    element->children.push_back(std::move(style_node));
+    root->children.push_back(std::move(element));
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div><script></script></body></html>");
 }

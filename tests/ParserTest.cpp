@@ -9,6 +9,7 @@
 #include "ScriptNode.h"
 #include "TemplateNode.h"
 #include "ElementDirectiveNode.h"
+#include "StyleDirectiveNode.h"
 #include "Lexer.h"
 
 TEST(ParserTest, EmptyInput) {
@@ -130,4 +131,22 @@ TEST(ParserTest, ElementTemplate) {
     auto element_node = dynamic_cast<ElementNode*>(template_node->children[0].get());
     ASSERT_NE(element_node, nullptr);
     EXPECT_EQ(element_node->tag_name, "div");
+}
+
+TEST(ParserTest, StyleTemplate) {
+    std::string source = "[Template] @Style MyStyle { color: red; }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto template_node = dynamic_cast<TemplateNode*>(ast->children[0].get());
+    ASSERT_NE(template_node, nullptr);
+    EXPECT_EQ(template_node->name, "MyStyle");
+    EXPECT_EQ(template_node->type, TemplateType::Style);
+    ASSERT_EQ(template_node->children.size(), 1);
+    auto prop_node = dynamic_cast<StylePropertyNode*>(template_node->children[0].get());
+    ASSERT_NE(prop_node, nullptr);
+    EXPECT_EQ(prop_node->key, "color");
+    EXPECT_EQ(prop_node->value, "red");
 }

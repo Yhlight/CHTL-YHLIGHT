@@ -10,6 +10,7 @@ enum class NodeType {
     Script,
     Template,
     ElementDirective,
+    StyleDirective,
     Program,
     // Add other node types here
 };

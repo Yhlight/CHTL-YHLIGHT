@@ -5,6 +5,7 @@
 enum class StyleContentType {
     Property,
     Rule,
+    Directive,
 };
 
 class StyleContentNode : public BaseNode {
