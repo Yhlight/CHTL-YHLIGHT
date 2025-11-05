@@ -20,7 +20,7 @@
 - [x] Origin blocks
 - [x] Import statements
 - [x] Namespaces
-- [ ] Configurations
+- [x] Configurations
 
 ## Phase 3: CHTLJS Compiler
 

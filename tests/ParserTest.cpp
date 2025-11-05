@@ -15,7 +15,21 @@
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
 #include "NamespaceNode.h"
+#include "ConfigurationNode.h"
 #include "Lexer.h"
+
+TEST(ParserTest, ConfigurationBlock) {
+    std::string source = "[Configuration] { DISABLE_STYLE_AUTO_ADD_CLASS = true; }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto config_node = dynamic_cast<ConfigurationNode*>(ast->children[0].get());
+    ASSERT_NE(config_node, nullptr);
+    EXPECT_EQ(config_node->options.size(), 1);
+    EXPECT_EQ(config_node->options["DISABLE_STYLE_AUTO_ADD_CLASS"], "true");
+}
 
 TEST(ParserTest, NamespaceBlock) {
     std::string source = "[Namespace] my_space { [Template] @Element MyElement { div {} } }";

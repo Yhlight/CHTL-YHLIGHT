@@ -21,6 +21,12 @@ class OriginNode;
 class OriginDirectiveNode;
 class ImportNode;
 class NamespaceNode;
+class ConfigurationNode;
+
+struct GeneratorConfig {
+    bool auto_add_class = true;
+    bool auto_add_id = true;
+};
 
 class Generator {
 public:
@@ -41,8 +47,10 @@ private:
     void visit(const OriginDirectiveNode* node);
     void visit(const ImportNode* node);
     void visit(const NamespaceNode* node);
+    void visit(const ConfigurationNode* node);
 
     const BaseNode& root;
+    GeneratorConfig config;
     std::stringstream html_output;
     std::stringstream css_output;
     std::stringstream js_output;

@@ -15,6 +15,26 @@
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
 #include "NamespaceNode.h"
+#include "ConfigurationNode.h"
+
+TEST(GeneratorTest, ConfigurationBlock) {
+    auto root = std::make_unique<ProgramNode>();
+    auto config_node = std::make_unique<ConfigurationNode>();
+    config_node->options["DISABLE_STYLE_AUTO_ADD_CLASS"] = "true";
+    root->children.push_back(std::move(config_node));
+
+    auto element = std::make_unique<ElementNode>("div");
+    auto style_node = std::make_unique<StyleNode>();
+    auto rule_node = std::make_unique<StyleRuleNode>("my-class");
+    rule_node->children.push_back(std::make_unique<StylePropertyNode>("color", "red"));
+    style_node->children.push_back(std::move(rule_node));
+    element->children.push_back(std::move(style_node));
+    root->children.push_back(std::move(element));
+
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style>.my-class{color:red;}</style></head><body><div></div><script></script></body></html>");
+}
 
 TEST(GeneratorTest, Namespace) {
     auto root = std::make_unique<ProgramNode>();

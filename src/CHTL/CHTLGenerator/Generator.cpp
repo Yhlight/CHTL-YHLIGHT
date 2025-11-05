@@ -14,6 +14,7 @@
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
 #include "NamespaceNode.h"
+#include "ConfigurationNode.h"
 #include "FileUtil.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
@@ -75,6 +76,9 @@ void Generator::visit(const BaseNode* node) {
         case NodeType::Namespace:
             visit(static_cast<const NamespaceNode*>(node));
             break;
+        case NodeType::Configuration:
+            visit(static_cast<const ConfigurationNode*>(node));
+            break;
     }
 }
 
@@ -122,7 +126,9 @@ void Generator::visit(const ElementNode* node) {
                         css_output << prop_node->key << ":" << prop_node->value << ";";
                     }
                     css_output << "}";
-                    html_output << " class=\"" << rule_node->selector << "\"";
+                    if (config.auto_add_class) {
+                        html_output << " class=\"" << rule_node->selector << "\"";
+                    }
                 } else if (style_content->getStyleContentType() == StyleContentType::Directive) {
                     style_attr << visit(static_cast<const StyleDirectiveNode*>(style_content.get()));
                 }
@@ -141,6 +147,16 @@ void Generator::visit(const ElementNode* node) {
         }
     }
     html_output << "</" << node->tag_name << ">";
+}
+
+void Generator::visit(const ConfigurationNode* node) {
+    for (const auto& option : node->options) {
+        if (option.first == "DISABLE_STYLE_AUTO_ADD_CLASS") {
+            config.auto_add_class = (option.second != "true");
+        } else if (option.first == "DISABLE_STYLE_AUTO_ADD_ID") {
+            config.auto_add_id = (option.second != "true");
+        }
+    }
 }
 
 void Generator::visit(const NamespaceNode* node) {

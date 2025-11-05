@@ -18,6 +18,7 @@ enum class NodeType {
     OriginDirective,
     Import,
     Namespace,
+    Configuration,
     // Add other node types here
 };
 

@@ -17,6 +17,7 @@
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
 #include "NamespaceNode.h"
+#include "ConfigurationNode.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -36,6 +37,7 @@ private:
     std::unique_ptr<BaseNode> parse_origin();
     std::unique_ptr<ImportNode> parse_import();
     std::unique_ptr<NamespaceNode> parse_namespace();
+    std::unique_ptr<ConfigurationNode> parse_configuration();
     std::unique_ptr<ElementDirectiveNode> parse_element_directive();
     std::unique_ptr<StyleDirectiveNode> parse_style_directive();
     Token current_token();

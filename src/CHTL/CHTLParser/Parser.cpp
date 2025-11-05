@@ -24,6 +24,8 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
     return parse_import();
 } else if (current_token().type == TokenType::NamespaceKeyword) {
     return parse_namespace();
+} else if (current_token().type == TokenType::ConfigurationKeyword) {
+    return parse_configuration();
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
@@ -97,6 +99,55 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
             if (statement) {
                 node->children.push_back(std::move(statement));
             }
+        }
+    }
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    return node;
+}
+
+std::unique_ptr<ConfigurationNode> Parser::parse_configuration() {
+    advance(); // Consume '[Configuration]'
+    auto node = std::make_unique<ConfigurationNode>();
+
+    if (current_token().type != TokenType::OpenBrace) {
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    advance(); // Consume the '{'
+
+    while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+        if (current_token().type == TokenType::Identifier) {
+            std::string key = current_token().value;
+            advance(); // Consume the identifier
+
+            if (current_token().type != TokenType::Equal) {
+                // Handle error: expected '='
+                return nullptr;
+            }
+            advance(); // Consume the '='
+
+            if (current_token().type != TokenType::Identifier && current_token().type != TokenType::StringLiteral) {
+                // Handle error: expected identifier or string literal
+                return nullptr;
+            }
+            std::string value = current_token().value;
+            advance(); // Consume the value
+
+            if (current_token().type != TokenType::Semicolon) {
+                // Handle error: expected ';'
+                return nullptr;
+            }
+            advance(); // Consume ';'
+
+            node->options[key] = value;
+        } else {
+            advance();
         }
     }
 
