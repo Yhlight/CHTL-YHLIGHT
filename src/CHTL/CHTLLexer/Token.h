@@ -11,6 +11,8 @@ enum class TokenType {
     StringLiteral,
     Equal,
     Dot,
+    At,
+    TemplateKeyword,
     EndOfFile,
 };
 

@@ -8,6 +8,9 @@ enum class NodeType {
     Text,
     Style,
     Script,
+    Template,
+    ElementDirective,
+    Program,
     // Add other node types here
 };
 

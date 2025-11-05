@@ -34,3 +34,21 @@ TEST(LexerTest, Dot) {
     EXPECT_EQ(tokens[0].value, ".");
     EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
 }
+
+TEST(LexerTest, At) {
+    Lexer lexer("@");
+    auto tokens = lexer.tokenize();
+    EXPECT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, TokenType::At);
+    EXPECT_EQ(tokens[0].value, "@");
+    EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
+}
+
+TEST(LexerTest, TemplateKeyword) {
+    Lexer lexer("[Template]");
+    auto tokens = lexer.tokenize();
+    EXPECT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, TokenType::TemplateKeyword);
+    EXPECT_EQ(tokens[0].value, "[Template]");
+    EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
+}

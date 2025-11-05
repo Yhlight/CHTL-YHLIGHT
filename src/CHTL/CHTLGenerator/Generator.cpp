@@ -1,10 +1,13 @@
 #include "Generator.h"
+#include "ProgramNode.h"
 #include "ElementNode.h"
 #include "TextNode.h"
 #include "StyleNode.h"
 #include "StylePropertyNode.h"
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
+#include "TemplateNode.h"
+#include "ElementDirectiveNode.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
 
@@ -25,6 +28,9 @@ std::string Generator::generate(bool full_document) {
 
 void Generator::visit(const BaseNode* node) {
     switch (node->getType()) {
+        case NodeType::Program:
+            visit(static_cast<const ProgramNode*>(node));
+            break;
         case NodeType::Element:
             visit(static_cast<const ElementNode*>(node));
             break;
@@ -37,6 +43,18 @@ void Generator::visit(const BaseNode* node) {
         case NodeType::Script:
             visit(static_cast<const ScriptNode*>(node));
             break;
+        case NodeType::Template:
+            visit(static_cast<const TemplateNode*>(node));
+            break;
+        case NodeType::ElementDirective:
+            visit(static_cast<const ElementDirectiveNode*>(node));
+            break;
+    }
+}
+
+void Generator::visit(const ProgramNode* node) {
+    for (const auto& child : node->children) {
+        visit(child.get());
     }
 }
 
@@ -87,4 +105,19 @@ void Generator::visit(const TextNode* node) {
 
 void Generator::visit(const ScriptNode* node) {
     js_output << node->content;
+}
+
+void Generator::visit(const TemplateNode* node) {
+    if (node->type == TemplateType::Element) {
+        element_templates[node->name] = node;
+    }
+}
+
+void Generator::visit(const ElementDirectiveNode* node) {
+    auto it = element_templates.find(node->name);
+    if (it != element_templates.end()) {
+        for (const auto& child : it->second->children) {
+            visit(child.get());
+        }
+    }
 }

@@ -2,10 +2,26 @@
 
 Parser::Parser(const std::string& source, const std::vector<Token>& tokens) : source(source), tokens(tokens), current_token_index(0) {}
 
-std::unique_ptr<BaseNode> Parser::parse() {
-    if (current_token().type == TokenType::Identifier) {
-        return parse_element();
+std::unique_ptr<ProgramNode> Parser::parse() {
+    auto program = std::make_unique<ProgramNode>();
+    while (current_token().type != TokenType::EndOfFile) {
+        auto statement = parse_statement();
+        if (statement) {
+            program->children.push_back(std::move(statement));
+        }
     }
+    return program;
+}
+
+std::unique_ptr<BaseNode> Parser::parse_statement() {
+    if (current_token().type == TokenType::TemplateKeyword) {
+        return parse_template();
+    } else if (current_token().type == TokenType::Identifier) {
+        return parse_element();
+    } else if (current_token().type == TokenType::At) {
+        return parse_element_directive();
+    }
+    advance();
     return nullptr;
 }
 
@@ -25,12 +41,18 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
             advance(); // Consume the identifier
 
             if (key == "style") {
-                node->children.push_back(parse_style());
+                auto style_node = parse_style();
+                if (style_node) {
+                    node->children.push_back(std::move(style_node));
+                }
                 continue;
             }
 
             if (key == "script") {
-                node->children.push_back(parse_script());
+                auto script_node = parse_script();
+                if (script_node) {
+                    node->children.push_back(std::move(script_node));
+                }
                 continue;
             }
 
@@ -59,8 +81,10 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
                 node->attributes[key] = value;
             }
         } else {
-            // Handle other children
-            advance();
+            auto statement = parse_statement();
+            if (statement) {
+                node->children.push_back(std::move(statement));
+            }
         }
     }
 
@@ -203,6 +227,85 @@ std::unique_ptr<ScriptNode> Parser::parse_script() {
     content.erase(0, content.find_first_not_of(" \t\n\r\f\v"));
     content.erase(content.find_last_not_of(" \t\n\r\f\v") + 1);
     return std::make_unique<ScriptNode>(content);
+}
+
+std::unique_ptr<TemplateNode> Parser::parse_template() {
+    advance(); // Consume '[Template]'
+    if (current_token().type != TokenType::At) {
+        // Handle error: expected '@'
+        return nullptr;
+    }
+    advance(); // Consume '@'
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string type_str = current_token().value;
+    advance(); // Consume the type
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string name = current_token().value;
+    advance(); // Consume the name
+
+    TemplateType type;
+    if (type_str == "Element") {
+        type = TemplateType::Element;
+    } else if (type_str == "Style") {
+        type = TemplateType::Style;
+    } else if (type_str == "Var") {
+        type = TemplateType::Var;
+    } else {
+        // Handle error: unknown template type
+        return nullptr;
+    }
+
+    auto node = std::make_unique<TemplateNode>(name, type);
+
+    if (current_token().type != TokenType::OpenBrace) {
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    advance(); // Consume the '{'
+
+    while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+        auto statement = parse_statement();
+        if (statement) {
+            node->children.push_back(std::move(statement));
+        }
+    }
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    return node;
+}
+
+std::unique_ptr<ElementDirectiveNode> Parser::parse_element_directive() {
+    advance(); // Consume '@'
+    if (current_token().type != TokenType::Identifier || current_token().value != "Element") {
+        // Handle error: expected 'Element'
+        return nullptr;
+    }
+    advance(); // Consume 'Element'
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string name = current_token().value;
+    advance(); // Consume the name
+
+    if (current_token().type != TokenType::Semicolon) {
+        // Handle error: expected ';'
+        return nullptr;
+    }
+    advance(); // Consume ';'
+
+    return std::make_unique<ElementDirectiveNode>(name);
 }
 
 Token Parser::current_token() {

@@ -8,6 +8,9 @@
 #include "StylePropertyNode.h"
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
+#include "TemplateNode.h"
+#include "ElementDirectiveNode.h"
+#include "ProgramNode.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -15,12 +18,15 @@
 class Parser {
 public:
     Parser(const std::string& source, const std::vector<Token>& tokens);
-    std::unique_ptr<BaseNode> parse();
+    std::unique_ptr<ProgramNode> parse();
 
 private:
+    std::unique_ptr<BaseNode> parse_statement();
     std::unique_ptr<ElementNode> parse_element();
     std::unique_ptr<StyleNode> parse_style();
     std::unique_ptr<ScriptNode> parse_script();
+    std::unique_ptr<TemplateNode> parse_template();
+    std::unique_ptr<ElementDirectiveNode> parse_element_directive();
     Token current_token();
     void advance();
 

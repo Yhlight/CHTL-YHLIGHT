@@ -1,11 +1,14 @@
 #include "gtest/gtest.h"
 #include "Parser.h"
+#include "ProgramNode.h"
 #include "ElementNode.h"
 #include "TextNode.h"
 #include "StyleNode.h"
 #include "StylePropertyNode.h"
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
+#include "TemplateNode.h"
+#include "ElementDirectiveNode.h"
 #include "Lexer.h"
 
 TEST(ParserTest, EmptyInput) {
@@ -14,7 +17,7 @@ TEST(ParserTest, EmptyInput) {
     auto tokens = lexer.tokenize();
     Parser parser(source, tokens);
     auto ast = parser.parse();
-    EXPECT_EQ(ast, nullptr);
+    EXPECT_EQ(ast->children.size(), 0);
 }
 
 TEST(ParserTest, SimpleElement) {
@@ -23,9 +26,9 @@ TEST(ParserTest, SimpleElement) {
     auto tokens = lexer.tokenize();
     Parser parser(source, tokens);
     auto ast = parser.parse();
-    ASSERT_NE(ast, nullptr);
-    EXPECT_EQ(ast->getType(), NodeType::Element);
-    auto element_node = static_cast<ElementNode*>(ast.get());
+    ASSERT_EQ(ast->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(ast->children[0].get());
+    ASSERT_NE(element_node, nullptr);
     EXPECT_EQ(element_node->tag_name, "div");
     ASSERT_EQ(element_node->children.size(), 1);
     auto text_node = dynamic_cast<TextNode*>(element_node->children[0].get());
@@ -39,9 +42,9 @@ TEST(ParserTest, ElementWithAttributes) {
     auto tokens = lexer.tokenize();
     Parser parser(source, tokens);
     auto ast = parser.parse();
-    ASSERT_NE(ast, nullptr);
-    EXPECT_EQ(ast->getType(), NodeType::Element);
-    auto element_node = static_cast<ElementNode*>(ast.get());
+    ASSERT_EQ(ast->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(ast->children[0].get());
+    ASSERT_NE(element_node, nullptr);
     EXPECT_EQ(element_node->tag_name, "div");
     EXPECT_EQ(element_node->attributes.size(), 2);
     EXPECT_EQ(element_node->attributes["id"], "main");
@@ -54,9 +57,9 @@ TEST(ParserTest, ElementWithInlineStyle) {
     auto tokens = lexer.tokenize();
     Parser parser(source, tokens);
     auto ast = parser.parse();
-    ASSERT_NE(ast, nullptr);
-    EXPECT_EQ(ast->getType(), NodeType::Element);
-    auto element_node = static_cast<ElementNode*>(ast.get());
+    ASSERT_EQ(ast->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(ast->children[0].get());
+    ASSERT_NE(element_node, nullptr);
     EXPECT_EQ(element_node->tag_name, "div");
     ASSERT_EQ(element_node->children.size(), 1);
     auto style_node = dynamic_cast<StyleNode*>(element_node->children[0].get());
@@ -78,9 +81,9 @@ TEST(ParserTest, ElementWithGlobalStyle) {
     auto tokens = lexer.tokenize();
     Parser parser(source, tokens);
     auto ast = parser.parse();
-    ASSERT_NE(ast, nullptr);
-    EXPECT_EQ(ast->getType(), NodeType::Element);
-    auto element_node = static_cast<ElementNode*>(ast.get());
+    ASSERT_EQ(ast->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(ast->children[0].get());
+    ASSERT_NE(element_node, nullptr);
     EXPECT_EQ(element_node->tag_name, "div");
     ASSERT_EQ(element_node->children.size(), 1);
     auto style_node = dynamic_cast<StyleNode*>(element_node->children[0].get());
@@ -102,12 +105,29 @@ TEST(ParserTest, ElementWithScript) {
     auto tokens = lexer.tokenize();
     Parser parser(source, tokens);
     auto ast = parser.parse();
-    ASSERT_NE(ast, nullptr);
-    EXPECT_EQ(ast->getType(), NodeType::Element);
-    auto element_node = static_cast<ElementNode*>(ast.get());
+    ASSERT_EQ(ast->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(ast->children[0].get());
+    ASSERT_NE(element_node, nullptr);
     EXPECT_EQ(element_node->tag_name, "div");
     ASSERT_EQ(element_node->children.size(), 1);
     auto script_node = dynamic_cast<ScriptNode*>(element_node->children[0].get());
     ASSERT_NE(script_node, nullptr);
     EXPECT_EQ(script_node->content, "let x = 1;");
+}
+
+TEST(ParserTest, ElementTemplate) {
+    std::string source = "[Template] @Element MyElement { div { text: \"hello\"; } }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto template_node = dynamic_cast<TemplateNode*>(ast->children[0].get());
+    ASSERT_NE(template_node, nullptr);
+    EXPECT_EQ(template_node->name, "MyElement");
+    EXPECT_EQ(template_node->type, TemplateType::Element);
+    ASSERT_EQ(template_node->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(template_node->children[0].get());
+    ASSERT_NE(element_node, nullptr);
+    EXPECT_EQ(element_node->tag_name, "div");
 }

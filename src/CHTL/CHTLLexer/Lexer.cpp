@@ -20,6 +20,13 @@ std::vector<Token> Lexer::tokenize() {
 
         int start_pos = current_pos;
 
+        if (source.substr(current_pos, 10) == "[Template]") {
+            tokens.push_back({TokenType::TemplateKeyword, "[Template]", line, column, start_pos});
+            current_pos += 10;
+            column += 10;
+            continue;
+        }
+
         if (isalpha(current_char) || current_char == '-' || isdigit(current_char)) {
             std::string value;
             while (current_pos < source.length() && (isalnum(source[current_pos]) || source[current_pos] == '_' || source[current_pos] == '-' || source[current_pos] == '%')) {
@@ -68,6 +75,13 @@ std::vector<Token> Lexer::tokenize() {
 
         if (current_char == '.') {
             tokens.push_back({TokenType::Dot, ".", line, column, start_pos});
+            current_pos++;
+            column++;
+            continue;
+        }
+
+        if (current_char == '@') {
+            tokens.push_back({TokenType::At, "@", line, column, start_pos});
             current_pos++;
             column++;
             continue;
