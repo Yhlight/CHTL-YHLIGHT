@@ -7,7 +7,7 @@
 #include "../CHTLNode/StylePropertyNode.h"
 #include "../CHTLNode/ValueNode/ValueNode.h"
 #include "../CHTLNode/ValueNode/LiteralValueNode.h"
-#include "../CHTLNode/NamespaceNode.h"
+#include "../CHTLNode/OriginNode.h"
 
 namespace CHTL {
 
@@ -46,9 +46,6 @@ void Generator::visit(ASTNode* node) {
             break;
         case ASTNodeType::Origin:
             visitOriginNode(node);
-            break;
-        case ASTNodeType::Namespace:
-            visitNamespaceNode(node);
             break;
     }
 }
@@ -114,12 +111,6 @@ void Generator::visitScriptNode(ASTNode* node) {
 void Generator::visitOriginNode(ASTNode* node) {
     auto origin = static_cast<OriginNode*>(node);
     output_ << origin->content;
-}
-
-void Generator::visitNamespaceNode(ASTNode* node) {
-    for (const auto& child : node->children) {
-        visit(child.get());
-    }
 }
 
 } // namespace CHTL

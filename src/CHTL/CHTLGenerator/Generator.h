@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../CHTLNode/ASTNode.h"
-#include "../CHTLNode/OriginNode.h"
 #include <string>
 #include <sstream>
 
@@ -21,7 +20,6 @@ private:
     void visitStylePropertyNode(ASTNode* node);
     void visitScriptNode(ASTNode* node);
     void visitOriginNode(ASTNode* node);
-    void visitNamespaceNode(ASTNode* node);
 
     std::stringstream output_;
 };

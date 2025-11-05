@@ -10,10 +10,10 @@ public:
     Lexer(std::string_view source);
     Token scanToken();
     Token peekToken();
-    bool isAtEnd() const;
-    void setPosition(size_t position);
+    void setPosition(size_t pos);
 
 private:
+    bool isAtEnd() const;
     char advance();
     char peek() const;
     char peekNext() const;
@@ -34,7 +34,6 @@ private:
     size_t start_ = 0;
     size_t current_ = 0;
     size_t line_ = 1;
-    bool rawMode_ = false;
 };
 
 } // namespace CHTL

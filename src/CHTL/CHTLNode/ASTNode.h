@@ -16,8 +16,7 @@ enum class ASTNodeType {
     StyleProperty,
     Value,
     Import,
-    Origin,
-    Namespace,
+    Origin
 };
 
 class ASTNode {

@@ -9,20 +9,15 @@
 #include "../CHTLNode/ValueNode/VariableUsageNode.h"
 #include "../CHTLNode/ValueNode/LiteralValueNode.h"
 #include "../CHTLNode/ImportNode.h"
+#include "../CHTLNode/OriginNode.h"
 #include "../CHTLParser/Parser.h"
 #include <algorithm>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <memory>
-#include <stdexcept>
 
 namespace CHTL {
 
 Analyser::Analyser(SymbolTable& symbolTable)
     : symbolTable_(symbolTable) {}
-
-Analyser::~Analyser() = default;
 
 void Analyser::analyse(ASTNode* root) {
     visit(root);
@@ -49,9 +44,6 @@ void Analyser::visit(ASTNode* node) {
         case ASTNodeType::Origin:
             visitOriginNode(node);
             break;
-        case ASTNodeType::Namespace:
-            visitNamespaceNode(node);
-            break;
         default:
             for (const auto& child : node->children) {
                 visit(child.get());
@@ -67,8 +59,7 @@ void Analyser::visitStylePropertyNode(ASTNode* node) {
     auto valueNode = dynamic_cast<ValueNode*>(styleProp->value.get());
     if (valueNode && valueNode->valueType == ValueNodeType::VariableUsage) {
         auto varUsage = dynamic_cast<VariableUsageNode*>(valueNode);
-        auto* node = symbolTable_.lookup(varUsage->name);
-        auto* templateNode = dynamic_cast<TemplateNode*>(node);
+        TemplateNode* templateNode = symbolTable_.lookup(varUsage->name);
         if (templateNode && templateNode->templateType == "Var") {
             // A Var template should only have one property.
             if (!templateNode->children.empty()) {
@@ -90,12 +81,7 @@ void Analyser::visitElementNode(ASTNode* node) {
         if (child->getType() == ASTNodeType::TemplateUsage) {
             auto usage = dynamic_cast<TemplateUsageNode*>(child.get());
             if (usage && usage->templateType == "Element") {
-                std::string qualifiedName = currentNamespace_.empty() ? usage->name : currentNamespace_ + "::" + usage->name;
-                auto* node = symbolTable_.lookup(qualifiedName);
-                if (!node) {
-                    node = symbolTable_.lookup(usage->name);
-                }
-                auto* templateNode = dynamic_cast<TemplateNode*>(node);
+                TemplateNode* templateNode = symbolTable_.lookup(usage->name);
                 if (templateNode) {
                     for (const auto& prop : templateNode->children) {
                         newChildren.push_back(prop->clone());
@@ -141,12 +127,7 @@ void Analyser::visitStyleNode(ASTNode* node) {
         if (child->getType() == ASTNodeType::TemplateUsage) {
             auto usage = dynamic_cast<TemplateUsageNode*>(child.get());
             if (usage) {
-                std::string qualifiedName = currentNamespace_.empty() ? usage->name : currentNamespace_ + "::" + usage->name;
-                auto* node = symbolTable_.lookup(qualifiedName);
-                if (!node) {
-                    node = symbolTable_.lookup(usage->name);
-                }
-                auto* templateNode = dynamic_cast<TemplateNode*>(node);
+                TemplateNode* templateNode = symbolTable_.lookup(usage->name);
                 if (templateNode) {
                     for (const auto& prop : templateNode->children) {
                         newChildren.push_back(prop->clone());
@@ -164,15 +145,18 @@ void Analyser::visitStyleNode(ASTNode* node) {
     }
 }
 
-void Analyser::collectTemplates(ASTNode* node) {
-    for (auto it = node->children.begin(); it != node->children.end(); ) {
+void Analyser::visitProgramNode(ASTNode* node) {
+    auto programNode = dynamic_cast<ProgramNode*>(node);
+    if (!programNode) return;
+
+    // First pass: collect templates
+    for (auto it = programNode->children.begin(); it != programNode->children.end(); ) {
         if ((*it)->getType() == ASTNodeType::Template) {
             auto templateNode = dynamic_cast<TemplateNode*>((*it).get());
             if (templateNode) {
-                std::string qualifiedName = currentNamespace_.empty() ? templateNode->name : currentNamespace_ + "::" + templateNode->name;
-                symbolTable_.insert(qualifiedName, templateNode);
+                symbolTable_.insert(templateNode->name, templateNode);
                 ownedTemplates_.push_back(std::unique_ptr<TemplateNode>(static_cast<TemplateNode*>(it->release())));
-                it = node->children.erase(it);
+                it = programNode->children.erase(it);
             } else {
                 ++it;
             }
@@ -180,41 +164,16 @@ void Analyser::collectTemplates(ASTNode* node) {
             ++it;
         }
     }
-}
 
-void Analyser::visitProgramNode(ASTNode* node) {
-    auto programNode = dynamic_cast<ProgramNode*>(node);
-    if (!programNode) return;
-
-    collectTemplates(programNode);
-
-    // Second pass: visit all children
+    // Visit remaining children
     for (const auto& child : programNode->children) {
         visit(child.get());
     }
 }
 
 void Analyser::visitOriginNode(ASTNode* node) {
-    auto originNode = dynamic_cast<OriginNode*>(node);
-    if (originNode && originNode->name.has_value()) {
-        symbolTable_.insert(originNode->name.value(), originNode);
-    }
-}
-
-void Analyser::visitNamespaceNode(ASTNode* node) {
-    auto namespaceNode = dynamic_cast<NamespaceNode*>(node);
-    if (!namespaceNode) return;
-
-    std::string previousNamespace = currentNamespace_;
-    currentNamespace_ = namespaceNode->name;
-
-    collectTemplates(namespaceNode);
-
-    for (const auto& child : namespaceNode->children) {
-        visit(child.get());
-    }
-
-    currentNamespace_ = previousNamespace;
+    // The analyser does not need to do anything with origin nodes.
+    // They are passed directly to the generator.
 }
 
 } // namespace CHTL

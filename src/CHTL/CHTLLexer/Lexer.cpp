@@ -11,8 +11,10 @@ Token Lexer::peekToken() {
     return tempLexer.scanToken();
 }
 
-void Lexer::setPosition(size_t position) {
-    current_ = position;
+void Lexer::setPosition(size_t pos) {
+    if (pos <= source_.length()) {
+        current_ = pos;
+    }
 }
 
 Token Lexer::scanToken() {
@@ -35,7 +37,7 @@ Token Lexer::scanToken() {
             }
         case ']': return makeToken(TokenType::RIGHT_BRACKET);
         case ';': return makeToken(TokenType::SEMICOLON);
-        case ':': return makeToken(match(':') ? TokenType::COLON_COLON : TokenType::COLON);
+        case ':': return makeToken(TokenType::COLON);
         case ',': return makeToken(TokenType::COMMA);
         case '.': return makeToken(TokenType::DOT);
         case '-': return makeToken(TokenType::MINUS);
