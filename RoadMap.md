@@ -17,7 +17,7 @@
 - [x] Script blocks
 - [x] Templates (@Style, @Element, @Var)
 - [x] Custom directives (@Style, @Element, @Var)
-- [ ] Origin blocks
+- [x] Origin blocks
 - [ ] Import statements
 - [ ] Namespaces
 - [ ] Configurations

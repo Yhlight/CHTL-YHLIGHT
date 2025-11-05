@@ -17,6 +17,8 @@ class CustomNode;
 class ElementDirectiveNode;
 class StyleDirectiveNode;
 class ProgramNode;
+class OriginNode;
+class OriginDirectiveNode;
 
 class Generator {
 public:
@@ -33,6 +35,8 @@ private:
     void visit(const CustomNode* node);
     void visit(const ElementDirectiveNode* node);
     void visit(const StyleDirectiveNode* node);
+    void visit(const OriginNode* node);
+    void visit(const OriginDirectiveNode* node);
 
     const BaseNode& root;
     std::stringstream html_output;
@@ -42,4 +46,5 @@ private:
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> var_templates;
     std::map<std::string, const CustomNode*> custom_style_templates;
+    std::map<std::string, const OriginNode*> named_origin_blocks;
 };

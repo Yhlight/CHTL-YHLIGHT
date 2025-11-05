@@ -9,5 +9,9 @@ public:
 
     NodeType getType() const override { return NodeType::Script; }
 
+    std::unique_ptr<BaseNode> clone() const override {
+        return std::make_unique<ScriptNode>(content);
+    }
+
     std::string content;
 };

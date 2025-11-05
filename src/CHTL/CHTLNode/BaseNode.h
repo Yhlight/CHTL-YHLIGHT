@@ -14,6 +14,8 @@ enum class NodeType {
     Program,
     StyleContent,
     Custom,
+    Origin,
+    OriginDirective,
     // Add other node types here
 };
 
@@ -21,4 +23,5 @@ class BaseNode {
 public:
     virtual ~BaseNode() = default;
     virtual NodeType getType() const = 0;
+    virtual std::unique_ptr<BaseNode> clone() const = 0;
 };

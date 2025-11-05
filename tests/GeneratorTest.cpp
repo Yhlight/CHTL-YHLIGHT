@@ -11,6 +11,27 @@
 #include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
+#include "OriginNode.h"
+#include "OriginDirectiveNode.h"
+
+TEST(GeneratorTest, OriginBlock) {
+    auto root = std::make_unique<ProgramNode>();
+    root->children.push_back(std::make_unique<OriginNode>("Html", "", "<p>hello</p>"));
+    root->children.push_back(std::make_unique<OriginNode>("Style", "", ".red { color: red; }"));
+    root->children.push_back(std::make_unique<OriginNode>("JavaScript", "", "let x = 1;"));
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style>.red { color: red; }</style></head><body><p>hello</p><script>let x = 1;</script></body></html>");
+}
+
+TEST(GeneratorTest, NamedOriginBlock) {
+    auto root = std::make_unique<ProgramNode>();
+    root->children.push_back(std::make_unique<OriginNode>("Html", "myHtml", "<p>hello</p>"));
+    root->children.push_back(std::make_unique<OriginDirectiveNode>("Html", "myHtml"));
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style></style></head><body><p>hello</p><script></script></body></html>");
+}
 
 TEST(GeneratorTest, SimpleElement) {
     auto root = std::make_unique<ProgramNode>();

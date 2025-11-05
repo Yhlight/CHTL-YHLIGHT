@@ -18,6 +18,8 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
         return parse_template();
     } else if (current_token().type == TokenType::CustomKeyword) {
         return parse_custom();
+} else if (current_token().type == TokenType::OriginKeyword) {
+    return parse_origin();
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
@@ -454,6 +456,60 @@ std::unique_ptr<StyleDirectiveNode> Parser::parse_style_directive() {
     advance(); // Consume ';'
 
     return std::make_unique<StyleDirectiveNode>(name);
+}
+
+std::unique_ptr<BaseNode> Parser::parse_origin() {
+    advance(); // Consume '[Origin]'
+    if (current_token().type != TokenType::At) {
+        // Handle error: expected '@'
+        return nullptr;
+    }
+    advance(); // Consume '@'
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string type = current_token().value;
+    advance(); // Consume the type
+
+    std::string name;
+    if (current_token().type == TokenType::Identifier) {
+        name = current_token().value;
+        advance(); // Consume the name
+    }
+
+    if (current_token().type == TokenType::OpenBrace) {
+        int start_pos = current_token().pos + 1;
+        advance(); // Consume the '{'
+
+        int brace_level = 1;
+        while (brace_level > 0 && current_token().type != TokenType::EndOfFile) {
+            if (current_token().type == TokenType::OpenBrace) {
+                brace_level++;
+            } else if (current_token().type == TokenType::CloseBrace) {
+                brace_level--;
+            }
+            if (brace_level > 0) {
+                advance();
+            }
+        }
+        int end_pos = current_token().pos;
+
+        if (current_token().type != TokenType::CloseBrace) {
+            // Handle error: expected '}'
+            return nullptr;
+        }
+        advance(); // Consume the '}'
+
+        std::string content = source.substr(start_pos, end_pos - start_pos);
+        return std::make_unique<OriginNode>(type, name, content);
+    } else if (current_token().type == TokenType::Semicolon) {
+        advance(); // Consume ';'
+        return std::make_unique<OriginDirectiveNode>(type, name);
+    }
+
+    // Handle error: expected '{' or ';'
+    return nullptr;
 }
 
 Token Parser::current_token() {

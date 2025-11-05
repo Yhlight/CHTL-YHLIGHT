@@ -14,6 +14,7 @@ enum class TokenType {
     At,
     TemplateKeyword,
     CustomKeyword,
+    OriginKeyword,
     OpenParen,
     CloseParen,
     EndOfFile,

@@ -11,7 +11,50 @@
 #include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
+#include "OriginNode.h"
+#include "OriginDirectiveNode.h"
 #include "Lexer.h"
+
+TEST(ParserTest, OriginBlock) {
+    std::string source = "[Origin] @Html { <p>hello</p> }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto origin_node = dynamic_cast<OriginNode*>(ast->children[0].get());
+    ASSERT_NE(origin_node, nullptr);
+    EXPECT_EQ(origin_node->type, "Html");
+    EXPECT_EQ(origin_node->name, "");
+    EXPECT_EQ(origin_node->content, " <p>hello</p> ");
+}
+
+TEST(ParserTest, NamedOriginBlock) {
+    std::string source = "[Origin] @Style myCss { .red { color: red; } }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto origin_node = dynamic_cast<OriginNode*>(ast->children[0].get());
+    ASSERT_NE(origin_node, nullptr);
+    EXPECT_EQ(origin_node->type, "Style");
+    EXPECT_EQ(origin_node->name, "myCss");
+    EXPECT_EQ(origin_node->content, " .red { color: red; } ");
+}
+
+TEST(ParserTest, OriginDirective) {
+    std::string source = "[Origin] @JavaScript myScript;";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto origin_directive_node = dynamic_cast<OriginDirectiveNode*>(ast->children[0].get());
+    ASSERT_NE(origin_directive_node, nullptr);
+    EXPECT_EQ(origin_directive_node->type, "JavaScript");
+    EXPECT_EQ(origin_directive_node->name, "myScript");
+}
 
 TEST(ParserTest, EmptyInput) {
     std::string source = "";

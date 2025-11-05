@@ -11,6 +11,12 @@ public:
     NodeType getType() const override { return NodeType::StyleDirective; }
     StyleContentType getStyleContentType() const override { return StyleContentType::Directive; }
 
+    std::unique_ptr<BaseNode> clone() const override {
+        auto node = std::make_unique<StyleDirectiveNode>(name);
+        node->properties = properties;
+        return node;
+    }
+
     std::string name;
     std::map<std::string, std::string> properties;
 };

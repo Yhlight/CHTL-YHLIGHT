@@ -10,6 +10,8 @@
 #include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
+#include "OriginNode.h"
+#include "OriginDirectiveNode.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
 
@@ -57,6 +59,12 @@ void Generator::visit(const BaseNode* node) {
             break;
         case NodeType::StyleDirective:
             visit(static_cast<const StyleDirectiveNode*>(node));
+            break;
+        case NodeType::Origin:
+            visit(static_cast<const OriginNode*>(node));
+            break;
+        case NodeType::OriginDirective:
+            visit(static_cast<const OriginDirectiveNode*>(node));
             break;
     }
 }
@@ -174,4 +182,31 @@ void Generator::visit(const ElementDirectiveNode* node) {
 
 void Generator::visit(const StyleDirectiveNode* node) {
     // This is handled by the parent element
+}
+
+void Generator::visit(const OriginNode* node) {
+    if (!node->name.empty()) {
+        named_origin_blocks[node->name] = node;
+    } else {
+        if (node->type == "Html") {
+            html_output << node->content;
+        } else if (node->type == "Style") {
+            css_output << node->content;
+        } else if (node->type == "JavaScript") {
+            js_output << node->content;
+        }
+    }
+}
+
+void Generator::visit(const OriginDirectiveNode* node) {
+    auto it = named_origin_blocks.find(node->name);
+    if (it != named_origin_blocks.end()) {
+        if (it->second->type == "Html") {
+            html_output << it->second->content;
+        } else if (it->second->type == "Style") {
+            css_output << it->second->content;
+        } else if (it->second->type == "JavaScript") {
+            js_output << it->second->content;
+        }
+    }
 }

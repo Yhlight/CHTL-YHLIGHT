@@ -18,6 +18,15 @@ public:
 
     NodeType getType() const override { return NodeType::Template; }
 
+    std::unique_ptr<BaseNode> clone() const override {
+        auto node = std::make_unique<TemplateNode>(name, type);
+        for (const auto& child : children) {
+            node->children.push_back(child->clone());
+        }
+        node->variables = variables;
+        return node;
+    }
+
     std::string name;
     TemplateType type;
     std::vector<std::unique_ptr<BaseNode>> children;
