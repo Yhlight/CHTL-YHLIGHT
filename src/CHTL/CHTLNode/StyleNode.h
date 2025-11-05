@@ -7,7 +7,8 @@ namespace CHTL {
 
 class StyleNode : public ASTNode {
 public:
-    ASTNodeType getType() const override { return ASTNodeType::Style; }
+    StyleNode() : ASTNode(ASTNodeType::Style) {}
+
     std::unique_ptr<ASTNode> clone() const override {
         auto node = std::make_unique<StyleNode>();
         for (const auto& child : children) {

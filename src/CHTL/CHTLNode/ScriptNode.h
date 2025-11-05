@@ -7,9 +7,9 @@ namespace CHTL {
 
 class ScriptNode : public ASTNode {
 public:
-    ScriptNode(const std::string& content) : content(content) {}
+    ScriptNode(const std::string& content)
+        : ASTNode(ASTNodeType::Script), content(content) {}
 
-    ASTNodeType getType() const override { return ASTNodeType::Script; }
     std::unique_ptr<ASTNode> clone() const override {
         return std::make_unique<ScriptNode>(content);
     }

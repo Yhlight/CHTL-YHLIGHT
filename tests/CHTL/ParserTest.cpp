@@ -5,6 +5,8 @@
 #include "CHTL/CHTLNode/StyleNode.h"
 #include "CHTL/CHTLNode/ScriptNode.h"
 #include "CHTL/CHTLNode/StylePropertyNode.h"
+#include "CHTL/CHTLNode/ValueNode/ValueNode.h"
+#include "CHTL/CHTLNode/ValueNode/LiteralValueNode.h"
 
 TEST(ParserTest, ParseSingleElement) {
     std::string source = "div {}";
@@ -109,7 +111,10 @@ TEST(ParserTest, ParseStyleBlock) {
     auto prop = dynamic_cast<CHTL::StylePropertyNode*>(style->children[0].get());
     ASSERT_NE(prop, nullptr);
     EXPECT_EQ(prop->name, "color");
-    EXPECT_EQ(prop->value, "red");
+
+    auto value = dynamic_cast<CHTL::LiteralValueNode*>(prop->value.get());
+    ASSERT_NE(value, nullptr);
+    EXPECT_EQ(value->value, "red");
 }
 
 TEST(ParserTest, ParseScriptBlock) {

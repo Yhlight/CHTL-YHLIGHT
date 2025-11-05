@@ -7,9 +7,9 @@ namespace CHTL {
 
 class TemplateNode : public ASTNode {
 public:
-    TemplateNode(const std::string& type, const std::string& name) : templateType(type), name(name) {}
+    TemplateNode(const std::string& type, const std::string& name)
+        : ASTNode(ASTNodeType::Template), templateType(type), name(name) {}
 
-    ASTNodeType getType() const override { return ASTNodeType::Template; }
     std::unique_ptr<ASTNode> clone() const override {
         auto node = std::make_unique<TemplateNode>(templateType, name);
         for (const auto& child : children) {

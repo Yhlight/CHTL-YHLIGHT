@@ -5,6 +5,9 @@
 #include "../CHTLNode/TemplateUsageNode.h"
 #include "../CHTLNode/ElementNode.h"
 #include "../CHTLNode/StylePropertyNode.h"
+#include "../CHTLNode/ValueNode/ValueNode.h"
+#include "../CHTLNode/ValueNode/VariableUsageNode.h"
+#include "../CHTLNode/ValueNode/LiteralValueNode.h"
 #include <algorithm>
 #include <iostream>
 
@@ -29,11 +32,34 @@ void Analyser::visit(ASTNode* node) {
         case ASTNodeType::Element:
             visitElementNode(node);
             break;
+        case ASTNodeType::StyleProperty:
+            visitStylePropertyNode(node);
+            break;
         default:
             for (const auto& child : node->children) {
                 visit(child.get());
             }
             break;
+    }
+}
+
+void Analyser::visitStylePropertyNode(ASTNode* node) {
+    auto styleProp = dynamic_cast<StylePropertyNode*>(node);
+    if (!styleProp) return;
+
+    auto valueNode = dynamic_cast<ValueNode*>(styleProp->value.get());
+    if (valueNode && valueNode->valueType == ValueNodeType::VariableUsage) {
+        auto varUsage = dynamic_cast<VariableUsageNode*>(valueNode);
+        TemplateNode* templateNode = symbolTable_.lookup(varUsage->name);
+        if (templateNode && templateNode->templateType == "Var") {
+            // A Var template should only have one property.
+            if (!templateNode->children.empty()) {
+                auto prop = dynamic_cast<StylePropertyNode*>(templateNode->children[0].get());
+                if (prop) {
+                    styleProp->value = std::unique_ptr<ValueNode>(static_cast<ValueNode*>(prop->value->clone().release()));
+                }
+            }
+        }
     }
 }
 
@@ -78,10 +104,7 @@ void Analyser::visitStyleNode(ASTNode* node) {
                 TemplateNode* templateNode = symbolTable_.lookup(usage->name);
                 if (templateNode) {
                     for (const auto& prop : templateNode->children) {
-                        auto styleProp = dynamic_cast<StylePropertyNode*>(prop.get());
-                        if (styleProp) {
-                            newChildren.push_back(std::make_unique<StylePropertyNode>(styleProp->name, styleProp->value));
-                        }
+                        newChildren.push_back(prop->clone());
                     }
                 }
             }
@@ -90,6 +113,10 @@ void Analyser::visitStyleNode(ASTNode* node) {
         }
     }
     styleNode->children = std::move(newChildren);
+
+    for (auto& child : styleNode->children) {
+        visit(child.get());
+    }
 }
 
 void Analyser::visitProgramNode(ASTNode* node) {

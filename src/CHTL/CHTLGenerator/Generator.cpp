@@ -5,6 +5,8 @@
 #include "../CHTLNode/StyleNode.h"
 #include "../CHTLNode/ScriptNode.h"
 #include "../CHTLNode/StylePropertyNode.h"
+#include "../CHTLNode/ValueNode/ValueNode.h"
+#include "../CHTLNode/ValueNode/LiteralValueNode.h"
 
 namespace CHTL {
 
@@ -64,7 +66,10 @@ void Generator::visitElementNode(ASTNode* node) {
             for (const auto& styleChild : child->children) {
                 if (styleChild->getType() == ASTNodeType::StyleProperty) {
                     auto prop = static_cast<StylePropertyNode*>(styleChild.get());
-                    styleStream << prop->name << ":" << prop->value << ";";
+                    if (prop->value->valueType == ValueNodeType::Literal) {
+                        auto literalValue = static_cast<LiteralValueNode*>(prop->value.get());
+                        styleStream << prop->name << ":" << literalValue->value << ";";
+                    }
                 }
             }
         }

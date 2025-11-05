@@ -6,6 +6,8 @@
 #include "../CHTLNode/TemplateNode.h"
 #include "../CHTLNode/TemplateUsageNode.h"
 #include "../CHTLNode/StylePropertyNode.h"
+#include "../CHTLNode/ValueNode/LiteralValueNode.h"
+#include "../CHTLNode/ValueNode/VariableUsageNode.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -100,19 +102,35 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
             consume(TokenType::IDENTIFIER, "Expect property name.");
             std::string name = std::string(previous().lexeme);
             consume(TokenType::COLON, "Expect ':' after property name.");
-            std::string value;
-            while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
-                value += currentToken_.lexeme;
-                advance();
-            }
+            auto value = parseStylePropertyValue();
             consume(TokenType::SEMICOLON, "Expect ';' after property value.");
-            styleNode->children.push_back(std::make_unique<StylePropertyNode>(name, value));
+            styleNode->children.push_back(std::make_unique<StylePropertyNode>(name, std::move(value)));
         }
     }
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after style block.");
 
     return styleNode;
+}
+
+std::unique_ptr<ValueNode> Parser::parseStylePropertyValue() {
+    if (match(TokenType::AT)) {
+        consume(TokenType::IDENTIFIER, "Expect variable name.");
+        return std::make_unique<VariableUsageNode>(std::string(previous().lexeme));
+    }
+
+    if (match(TokenType::STRING)) {
+        std::string_view lexeme = previous().lexeme;
+        auto value = lexeme.substr(1, lexeme.length() - 2); // Remove quotes
+        return std::make_unique<LiteralValueNode>(std::string(value));
+    }
+
+    std::string value;
+    while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
+        value += currentToken_.lexeme;
+        advance();
+    }
+    return std::make_unique<LiteralValueNode>(value);
 }
 
 std::unique_ptr<TemplateNode> Parser::parseTemplate() {
@@ -127,18 +145,14 @@ std::unique_ptr<TemplateNode> Parser::parseTemplate() {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' after template name.");
 
-    if (type == "Style") {
+    if (type == "Style" || type == "Var") {
         while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
             consume(TokenType::IDENTIFIER, "Expect property name.");
             std::string propName = std::string(previous().lexeme);
             consume(TokenType::COLON, "Expect ':' after property name.");
-            std::string propValue;
-            while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
-                propValue += currentToken_.lexeme;
-                advance();
-            }
+            auto propValue = parseStylePropertyValue();
             consume(TokenType::SEMICOLON, "Expect ';' after property value.");
-            templateNode->children.push_back(std::make_unique<StylePropertyNode>(propName, propValue));
+            templateNode->children.push_back(std::make_unique<StylePropertyNode>(propName, std::move(propValue)));
         }
     } else if (type == "Element") {
         while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {

@@ -5,6 +5,9 @@
 
 namespace CHTL {
 
+// Forward declarations
+class TemplateNode;
+
 class Analyser {
 public:
     Analyser(SymbolTable& symbolTable);
@@ -15,6 +18,7 @@ private:
     void visitProgramNode(ASTNode* node);
     void visitStyleNode(ASTNode* node);
     void visitElementNode(ASTNode* node);
+    void visitStylePropertyNode(ASTNode* node);
 
     SymbolTable& symbolTable_;
     std::vector<std::unique_ptr<TemplateNode>> ownedTemplates_;

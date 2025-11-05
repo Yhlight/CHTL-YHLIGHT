@@ -14,15 +14,19 @@ enum class ASTNodeType {
     Template,
     TemplateUsage,
     StyleProperty,
+    Value,
 };
 
 class ASTNode {
 public:
+    ASTNode(ASTNodeType type) : type_(type) {}
     virtual ~ASTNode() = default;
-    virtual ASTNodeType getType() const = 0;
+    ASTNodeType getType() const { return type_; }
     virtual std::unique_ptr<ASTNode> clone() const = 0;
 
     std::vector<std::unique_ptr<ASTNode>> children;
+protected:
+    ASTNodeType type_;
 };
 
 } // namespace CHTL

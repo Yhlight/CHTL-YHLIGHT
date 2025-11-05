@@ -1,21 +1,24 @@
 #pragma once
 
 #include "ASTNode.h"
+#include "ValueNode/ValueNode.h"
 #include <string>
+#include <memory>
 
 namespace CHTL {
 
 class StylePropertyNode : public ASTNode {
 public:
-    StylePropertyNode(const std::string& name, const std::string& value) : name(name), value(value) {}
+    StylePropertyNode(const std::string& name, std::unique_ptr<ValueNode> value)
+        : ASTNode(ASTNodeType::StyleProperty), name(name), value(std::move(value)) {}
 
-    ASTNodeType getType() const override { return ASTNodeType::StyleProperty; }
     std::unique_ptr<ASTNode> clone() const override {
-        return std::make_unique<StylePropertyNode>(name, value);
+        auto cloned_value = std::unique_ptr<ValueNode>(static_cast<ValueNode*>(value->clone().release()));
+        return std::make_unique<StylePropertyNode>(name, std::move(cloned_value));
     }
 
     std::string name;
-    std::string value;
+    std::unique_ptr<ValueNode> value;
 };
 
 } // namespace CHTL

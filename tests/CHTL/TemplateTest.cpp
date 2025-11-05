@@ -41,3 +41,23 @@ TEST(TemplateTest, ElementTemplate) {
     std::string expected = "<body><p>hello</p><div></div></body>";
     EXPECT_EQ(compile(source), expected);
 }
+
+TEST(TemplateTest, VarTemplate) {
+    std::string source = R"(
+        [Template] @Var MyColor {
+            color: "red";
+        }
+
+        [Template] @Style MyStyle {
+            background-color: @MyColor;
+        }
+
+        div {
+            style {
+                @Style MyStyle;
+            }
+        }
+    )";
+    std::string expected = R"(<div style="background-color:red;"></div>)";
+    ASSERT_EQ(compile(source), expected);
+}
