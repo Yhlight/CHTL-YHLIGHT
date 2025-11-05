@@ -5,13 +5,22 @@
 #include "StyleNode.h"
 #include "StylePropertyNode.h"
 #include "StyleRuleNode.h"
+#include "ScriptNode.h"
 
 TEST(GeneratorTest, SimpleElement) {
     auto root = std::make_unique<ElementNode>("div");
     root->children.push_back(std::make_unique<TextNode>("hello"));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div><script></script></body></html>");
+}
+
+TEST(GeneratorTest, SimpleElementRaw) {
+    auto root = std::make_unique<ElementNode>("div");
+    root->children.push_back(std::make_unique<TextNode>("hello"));
+    Generator generator(*root);
+    auto html = generator.generate(false);
+    EXPECT_EQ(html, "<div>hello</div>");
 }
 
 TEST(GeneratorTest, ElementWithAttributes) {
@@ -20,7 +29,7 @@ TEST(GeneratorTest, ElementWithAttributes) {
     root->attributes["class"] = "container";
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div class=\"container\" id=\"main\"></div></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div class=\"container\" id=\"main\"></div><script></script></body></html>");
 }
 
 TEST(GeneratorTest, ElementWithInlineStyle) {
@@ -31,7 +40,7 @@ TEST(GeneratorTest, ElementWithInlineStyle) {
     root->children.push_back(std::move(style_node));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div><script></script></body></html>");
 }
 
 TEST(GeneratorTest, ElementWithGlobalStyle) {
@@ -43,5 +52,13 @@ TEST(GeneratorTest, ElementWithGlobalStyle) {
     root->children.push_back(std::move(style_node));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style>.my-class{color:red;}</style></head><body><div class=\"my-class\"></div></body></html>");
+    EXPECT_EQ(html, "<html><head><style>.my-class{color:red;}</style></head><body><div class=\"my-class\"></div><script></script></body></html>");
+}
+
+TEST(GeneratorTest, ElementWithScript) {
+    auto root = std::make_unique<ElementNode>("div");
+    root->children.push_back(std::make_unique<ScriptNode>("let x = 1;"));
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div></div><script>let x = 1;</script></body></html>");
 }

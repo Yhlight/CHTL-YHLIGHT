@@ -4,17 +4,23 @@
 #include "StyleNode.h"
 #include "StylePropertyNode.h"
 #include "StyleRuleNode.h"
+#include "ScriptNode.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
 
-std::string Generator::generate() {
+std::string Generator::generate(bool full_document) {
     visit(&root);
 
-    std::stringstream final_output;
-    final_output << "<html><head><style>" << css_output.str() << "</style></head><body>";
-    final_output << html_output.str();
-    final_output << "</body></html>";
-    return final_output.str();
+    if (full_document) {
+        std::stringstream final_output;
+        final_output << "<html><head><style>" << css_output.str() << "</style></head><body>";
+        final_output << html_output.str();
+        final_output << "<script>" << js_output.str() << "</script>";
+        final_output << "</body></html>";
+        return final_output.str();
+    } else {
+        return html_output.str();
+    }
 }
 
 void Generator::visit(const BaseNode* node) {
@@ -27,6 +33,9 @@ void Generator::visit(const BaseNode* node) {
             break;
         case NodeType::Style:
             // Style nodes are handled by the parent element
+            break;
+        case NodeType::Script:
+            visit(static_cast<const ScriptNode*>(node));
             break;
     }
 }
@@ -74,4 +83,8 @@ void Generator::visit(const ElementNode* node) {
 
 void Generator::visit(const TextNode* node) {
     html_output << node->text;
+}
+
+void Generator::visit(const ScriptNode* node) {
+    js_output << node->content;
 }

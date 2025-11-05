@@ -1,6 +1,6 @@
 #include "Parser.h"
 
-Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens), current_token_index(0) {}
+Parser::Parser(const std::string& source, const std::vector<Token>& tokens) : source(source), tokens(tokens), current_token_index(0) {}
 
 std::unique_ptr<BaseNode> Parser::parse() {
     if (current_token().type == TokenType::Identifier) {
@@ -26,6 +26,11 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
 
             if (key == "style") {
                 node->children.push_back(parse_style());
+                continue;
+            }
+
+            if (key == "script") {
+                node->children.push_back(parse_script());
                 continue;
             }
 
@@ -166,11 +171,45 @@ std::unique_ptr<StyleNode> Parser::parse_style() {
     return node;
 }
 
+std::unique_ptr<ScriptNode> Parser::parse_script() {
+    if (current_token().type != TokenType::OpenBrace) {
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    int start_pos = current_token().pos + 1;
+    advance(); // Consume the '{'
+
+    int brace_level = 1;
+    while (brace_level > 0 && current_token().type != TokenType::EndOfFile) {
+        if (current_token().type == TokenType::OpenBrace) {
+            brace_level++;
+        } else if (current_token().type == TokenType::CloseBrace) {
+            brace_level--;
+        }
+        if (brace_level > 0) {
+            advance();
+        }
+    }
+    int end_pos = current_token().pos;
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    std::string content = source.substr(start_pos, end_pos - start_pos);
+    // trim leading and trailing whitespace
+    content.erase(0, content.find_first_not_of(" \t\n\r\f\v"));
+    content.erase(content.find_last_not_of(" \t\n\r\f\v") + 1);
+    return std::make_unique<ScriptNode>(content);
+}
+
 Token Parser::current_token() {
     if (current_token_index < tokens.size()) {
         return tokens[current_token_index];
     }
-    return {TokenType::EndOfFile, "", 0, 0};
+    return {TokenType::EndOfFile, "", 0, 0, (int)source.length()};
 }
 
 void Parser::advance() {

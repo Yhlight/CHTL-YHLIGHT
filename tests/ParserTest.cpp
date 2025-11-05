@@ -5,19 +5,23 @@
 #include "StyleNode.h"
 #include "StylePropertyNode.h"
 #include "StyleRuleNode.h"
+#include "ScriptNode.h"
 #include "Lexer.h"
 
 TEST(ParserTest, EmptyInput) {
-    std::vector<Token> tokens;
-    Parser parser(tokens);
+    std::string source = "";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
     auto ast = parser.parse();
     EXPECT_EQ(ast, nullptr);
 }
 
 TEST(ParserTest, SimpleElement) {
-    Lexer lexer("div { text: \"hello\"; }");
+    std::string source = "div { text: \"hello\"; }";
+    Lexer lexer(source);
     auto tokens = lexer.tokenize();
-    Parser parser(tokens);
+    Parser parser(source, tokens);
     auto ast = parser.parse();
     ASSERT_NE(ast, nullptr);
     EXPECT_EQ(ast->getType(), NodeType::Element);
@@ -30,9 +34,10 @@ TEST(ParserTest, SimpleElement) {
 }
 
 TEST(ParserTest, ElementWithAttributes) {
-    Lexer lexer("div { id: \"main\"; class = \"container\"; }");
+    std::string source = "div { id: \"main\"; class = \"container\"; }";
+    Lexer lexer(source);
     auto tokens = lexer.tokenize();
-    Parser parser(tokens);
+    Parser parser(source, tokens);
     auto ast = parser.parse();
     ASSERT_NE(ast, nullptr);
     EXPECT_EQ(ast->getType(), NodeType::Element);
@@ -44,9 +49,10 @@ TEST(ParserTest, ElementWithAttributes) {
 }
 
 TEST(ParserTest, ElementWithInlineStyle) {
-    Lexer lexer("div { style { color: red; font-size: 16px; } }");
+    std::string source = "div { style { color: red; font-size: 16px; } }";
+    Lexer lexer(source);
     auto tokens = lexer.tokenize();
-    Parser parser(tokens);
+    Parser parser(source, tokens);
     auto ast = parser.parse();
     ASSERT_NE(ast, nullptr);
     EXPECT_EQ(ast->getType(), NodeType::Element);
@@ -67,9 +73,10 @@ TEST(ParserTest, ElementWithInlineStyle) {
 }
 
 TEST(ParserTest, ElementWithGlobalStyle) {
-    Lexer lexer("div { style { .my-class { color: red; } } }");
+    std::string source = "div { style { .my-class { color: red; } } }";
+    Lexer lexer(source);
     auto tokens = lexer.tokenize();
-    Parser parser(tokens);
+    Parser parser(source, tokens);
     auto ast = parser.parse();
     ASSERT_NE(ast, nullptr);
     EXPECT_EQ(ast->getType(), NodeType::Element);
@@ -87,4 +94,20 @@ TEST(ParserTest, ElementWithGlobalStyle) {
     ASSERT_NE(prop_node, nullptr);
     EXPECT_EQ(prop_node->key, "color");
     EXPECT_EQ(prop_node->value, "red");
+}
+
+TEST(ParserTest, ElementWithScript) {
+    std::string source = "div { script { let x = 1; } }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_NE(ast, nullptr);
+    EXPECT_EQ(ast->getType(), NodeType::Element);
+    auto element_node = static_cast<ElementNode*>(ast.get());
+    EXPECT_EQ(element_node->tag_name, "div");
+    ASSERT_EQ(element_node->children.size(), 1);
+    auto script_node = dynamic_cast<ScriptNode*>(element_node->children[0].get());
+    ASSERT_NE(script_node, nullptr);
+    EXPECT_EQ(script_node->content, "let x = 1;");
 }

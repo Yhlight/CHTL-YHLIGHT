@@ -19,4 +19,5 @@ struct Token {
     std::string value;
     int line;
     int column;
+    int pos;
 };

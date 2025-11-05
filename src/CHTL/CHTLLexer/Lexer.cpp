@@ -18,6 +18,8 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
+        int start_pos = current_pos;
+
         if (isalpha(current_char) || current_char == '-' || isdigit(current_char)) {
             std::string value;
             while (current_pos < source.length() && (isalnum(source[current_pos]) || source[current_pos] == '_' || source[current_pos] == '-' || source[current_pos] == '%')) {
@@ -25,47 +27,47 @@ std::vector<Token> Lexer::tokenize() {
                 current_pos++;
                 column++;
             }
-            tokens.push_back({TokenType::Identifier, value, line, column});
+            tokens.push_back({TokenType::Identifier, value, line, column, start_pos});
             continue;
         }
 
         if (current_char == '{') {
-            tokens.push_back({TokenType::OpenBrace, "{", line, column});
+            tokens.push_back({TokenType::OpenBrace, "{", line, column, start_pos});
             current_pos++;
             column++;
             continue;
         }
 
         if (current_char == '}') {
-            tokens.push_back({TokenType::CloseBrace, "}", line, column});
+            tokens.push_back({TokenType::CloseBrace, "}", line, column, start_pos});
             current_pos++;
             column++;
             continue;
         }
 
         if (current_char == ':') {
-            tokens.push_back({TokenType::Colon, ":", line, column});
+            tokens.push_back({TokenType::Colon, ":", line, column, start_pos});
             current_pos++;
             column++;
             continue;
         }
 
         if (current_char == '=') {
-            tokens.push_back({TokenType::Equal, "=", line, column});
+            tokens.push_back({TokenType::Equal, "=", line, column, start_pos});
             current_pos++;
             column++;
             continue;
         }
 
         if (current_char == ';') {
-            tokens.push_back({TokenType::Semicolon, ";", line, column});
+            tokens.push_back({TokenType::Semicolon, ";", line, column, start_pos});
             current_pos++;
             column++;
             continue;
         }
 
         if (current_char == '.') {
-            tokens.push_back({TokenType::Dot, ".", line, column});
+            tokens.push_back({TokenType::Dot, ".", line, column, start_pos});
             current_pos++;
             column++;
             continue;
@@ -80,7 +82,7 @@ std::vector<Token> Lexer::tokenize() {
                 column++;
             }
             current_pos++; // Skip the closing quote
-            tokens.push_back({TokenType::StringLiteral, value, line, column});
+            tokens.push_back({TokenType::StringLiteral, value, line, column, start_pos});
             continue;
         }
 
@@ -89,6 +91,6 @@ std::vector<Token> Lexer::tokenize() {
         column++;
     }
 
-    tokens.push_back({TokenType::EndOfFile, "", line, column});
+    tokens.push_back({TokenType::EndOfFile, "", line, column, (int)source.length()});
     return tokens;
 }

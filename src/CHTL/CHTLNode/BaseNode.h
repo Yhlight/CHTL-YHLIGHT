@@ -7,6 +7,7 @@ enum class NodeType {
     Element,
     Text,
     Style,
+    Script,
     // Add other node types here
 };
 
