@@ -10,8 +10,11 @@ public:
     NodeType getType() const override { return NodeType::ElementDirective; }
 
     std::unique_ptr<BaseNode> clone() const override {
-        return std::make_unique<ElementDirectiveNode>(name);
+        auto node = std::make_unique<ElementDirectiveNode>(name);
+        node->from_namespace = from_namespace;
+        return node;
     }
 
     std::string name;
+    std::string from_namespace;
 };

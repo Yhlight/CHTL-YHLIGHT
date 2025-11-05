@@ -14,9 +14,11 @@ public:
     std::unique_ptr<BaseNode> clone() const override {
         auto node = std::make_unique<StyleDirectiveNode>(name);
         node->properties = properties;
+        node->from_namespace = from_namespace;
         return node;
     }
 
     std::string name;
     std::map<std::string, std::string> properties;
+    std::string from_namespace;
 };

@@ -48,6 +48,13 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
+        if (source.substr(current_pos, 11) == "[Namespace]") {
+            tokens.push_back({TokenType::NamespaceKeyword, "[Namespace]", line, column, start_pos});
+            current_pos += 11;
+            column += 11;
+            continue;
+        }
+
         if (isalpha(current_char) || current_char == '-' || isdigit(current_char)) {
             std::string value;
             while (current_pos < source.length() && (isalnum(source[current_pos]) || source[current_pos] == '_' || source[current_pos] == '-' || source[current_pos] == '%')) {

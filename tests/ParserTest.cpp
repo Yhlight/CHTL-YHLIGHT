@@ -14,7 +14,40 @@
 #include "OriginNode.h"
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
+#include "NamespaceNode.h"
 #include "Lexer.h"
+
+TEST(ParserTest, NamespaceBlock) {
+    std::string source = "[Namespace] my_space { [Template] @Element MyElement { div {} } }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto namespace_node = dynamic_cast<NamespaceNode*>(ast->children[0].get());
+    ASSERT_NE(namespace_node, nullptr);
+    EXPECT_EQ(namespace_node->name, "my_space");
+    ASSERT_EQ(namespace_node->children.size(), 1);
+    auto template_node = dynamic_cast<TemplateNode*>(namespace_node->children[0].get());
+    ASSERT_NE(template_node, nullptr);
+    EXPECT_EQ(template_node->name, "MyElement");
+}
+
+TEST(ParserTest, ElementDirectiveWithNamespace) {
+    std::string source = "div { @Element MyElement from my_space; }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto element_node = dynamic_cast<ElementNode*>(ast->children[0].get());
+    ASSERT_NE(element_node, nullptr);
+    ASSERT_EQ(element_node->children.size(), 1);
+    auto directive_node = dynamic_cast<ElementDirectiveNode*>(element_node->children[0].get());
+    ASSERT_NE(directive_node, nullptr);
+    EXPECT_EQ(directive_node->name, "MyElement");
+    EXPECT_EQ(directive_node->from_namespace, "my_space");
+}
 
 TEST(ParserTest, ImportStatement) {
     std::string source = "[Import] @Html from \"test.html\" as myHtml;";

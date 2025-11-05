@@ -14,6 +14,26 @@
 #include "OriginNode.h"
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
+#include "NamespaceNode.h"
+
+TEST(GeneratorTest, Namespace) {
+    auto root = std::make_unique<ProgramNode>();
+    auto namespace_node = std::make_unique<NamespaceNode>("my_space");
+    auto template_node = std::make_unique<TemplateNode>("MyElement", TemplateType::Element);
+    template_node->children.push_back(std::make_unique<ElementNode>("p"));
+    namespace_node->children.push_back(std::move(template_node));
+    root->children.push_back(std::move(namespace_node));
+
+    auto element = std::make_unique<ElementNode>("div");
+    auto directive = std::make_unique<ElementDirectiveNode>("MyElement");
+    directive->from_namespace = "my_space";
+    element->children.push_back(std::move(directive));
+    root->children.push_back(std::move(element));
+
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div><p></p></div><script></script></body></html>");
+}
 
 // TEST(GeneratorTest, ImportStatement) {
 //     auto root = std::make_unique<ProgramNode>();

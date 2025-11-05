@@ -22,6 +22,8 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
     return parse_origin();
 } else if (current_token().type == TokenType::ImportKeyword) {
     return parse_import();
+} else if (current_token().type == TokenType::NamespaceKeyword) {
+    return parse_namespace();
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
@@ -412,13 +414,25 @@ std::unique_ptr<ElementDirectiveNode> Parser::parse_element_directive() {
     std::string name = current_token().value;
     advance(); // Consume the name
 
+    auto node = std::make_unique<ElementDirectiveNode>(name);
+
+    if (current_token().type == TokenType::FromKeyword) {
+        advance(); // Consume 'from'
+        if (current_token().type != TokenType::Identifier) {
+            // Handle error: expected identifier
+            return nullptr;
+        }
+        node->from_namespace = current_token().value;
+        advance(); // Consume the namespace
+    }
+
     if (current_token().type != TokenType::Semicolon) {
         // Handle error: expected ';'
         return nullptr;
     }
     advance(); // Consume ';'
 
-    return std::make_unique<ElementDirectiveNode>(name);
+    return node;
 }
 
 std::unique_ptr<StyleDirectiveNode> Parser::parse_style_directive() {
@@ -429,8 +443,19 @@ std::unique_ptr<StyleDirectiveNode> Parser::parse_style_directive() {
     std::string name = current_token().value;
     advance(); // Consume the name
 
+    auto node = std::make_unique<StyleDirectiveNode>(name);
+
+    if (current_token().type == TokenType::FromKeyword) {
+        advance(); // Consume 'from'
+        if (current_token().type != TokenType::Identifier) {
+            // Handle error: expected identifier
+            return nullptr;
+        }
+        node->from_namespace = current_token().value;
+        advance(); // Consume the namespace
+    }
+
     if (current_token().type == TokenType::OpenBrace) {
-        auto node = std::make_unique<StyleDirectiveNode>(name);
         advance(); // consume '{'
         while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
             if (current_token().type == TokenType::Identifier) {
@@ -561,6 +586,39 @@ std::unique_ptr<ImportNode> Parser::parse_import() {
     advance(); // Consume ';'
 
     return std::make_unique<ImportNode>(type, path, alias);
+}
+
+std::unique_ptr<NamespaceNode> Parser::parse_namespace() {
+    advance(); // Consume '[Namespace]'
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string name = current_token().value;
+    advance(); // Consume the name
+
+    auto node = std::make_unique<NamespaceNode>(name);
+
+    if (current_token().type != TokenType::OpenBrace) {
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    advance(); // Consume the '{'
+
+    while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+        auto statement = parse_statement();
+        if (statement) {
+            node->children.push_back(std::move(statement));
+        }
+    }
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    return node;
 }
 
 Token Parser::current_token() {
