@@ -8,6 +8,7 @@
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
 #include "TemplateNode.h"
+#include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
 
@@ -122,4 +123,23 @@ TEST(GeneratorTest, VarTemplate) {
     Generator generator(*root);
     auto html = generator.generate();
     EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div><script></script></body></html>");
+}
+
+TEST(GeneratorTest, CustomStyleTemplate) {
+    auto root = std::make_unique<ProgramNode>();
+    auto custom_node = std::make_unique<CustomNode>("MyStyle", CustomType::Style);
+    custom_node->valueless_properties.push_back("color");
+    custom_node->valueless_properties.push_back("font-size");
+    root->children.push_back(std::move(custom_node));
+    auto element = std::make_unique<ElementNode>("div");
+    auto style_node = std::make_unique<StyleNode>();
+    auto directive = std::make_unique<StyleDirectiveNode>("MyStyle");
+    directive->properties["color"] = "red";
+    directive->properties["font-size"] = "16px";
+    style_node->children.push_back(std::move(directive));
+    element->children.push_back(std::move(style_node));
+    root->children.push_back(std::move(element));
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div><script></script></body></html>");
 }

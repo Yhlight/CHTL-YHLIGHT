@@ -52,3 +52,12 @@ TEST(LexerTest, TemplateKeyword) {
     EXPECT_EQ(tokens[0].value, "[Template]");
     EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
 }
+
+TEST(LexerTest, CustomKeyword) {
+    Lexer lexer("[Custom]");
+    auto tokens = lexer.tokenize();
+    EXPECT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, TokenType::CustomKeyword);
+    EXPECT_EQ(tokens[0].value, "[Custom]");
+    EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
+}

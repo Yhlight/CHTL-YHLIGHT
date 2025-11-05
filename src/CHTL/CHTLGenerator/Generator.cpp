@@ -7,6 +7,7 @@
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
 #include "TemplateNode.h"
+#include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
 
@@ -47,6 +48,9 @@ void Generator::visit(const BaseNode* node) {
             break;
         case NodeType::Template:
             visit(static_cast<const TemplateNode*>(node));
+            break;
+        case NodeType::Custom:
+            visit(static_cast<const CustomNode*>(node));
             break;
         case NodeType::ElementDirective:
             visit(static_cast<const ElementDirectiveNode*>(node));
@@ -108,6 +112,15 @@ void Generator::visit(const ElementNode* node) {
                             style_attr << prop_node->key << ":" << prop_node->value << ";";
                         }
                     }
+                    auto custom_it = custom_style_templates.find(directive_node->name);
+                    if (custom_it != custom_style_templates.end()) {
+                        for (const auto& prop_name : custom_it->second->valueless_properties) {
+                            auto prop_it = directive_node->properties.find(prop_name);
+                            if (prop_it != directive_node->properties.end()) {
+                                style_attr << prop_name << ":" << prop_it->second << ";";
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -141,6 +154,12 @@ void Generator::visit(const TemplateNode* node) {
         style_templates[node->name] = node;
     } else if (node->type == TemplateType::Var) {
         var_templates[node->name] = node;
+    }
+}
+
+void Generator::visit(const CustomNode* node) {
+    if (node->type == CustomType::Style) {
+        custom_style_templates[node->name] = node;
     }
 }
 

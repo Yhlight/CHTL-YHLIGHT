@@ -2,6 +2,7 @@
 
 #include "StyleContentNode.h"
 #include <string>
+#include <map>
 
 class StyleDirectiveNode : public StyleContentNode {
 public:
@@ -11,4 +12,5 @@ public:
     StyleContentType getStyleContentType() const override { return StyleContentType::Directive; }
 
     std::string name;
+    std::map<std::string, std::string> properties;
 };

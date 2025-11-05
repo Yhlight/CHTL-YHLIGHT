@@ -13,6 +13,7 @@ class StylePropertyNode;
 class StyleRuleNode;
 class ScriptNode;
 class TemplateNode;
+class CustomNode;
 class ElementDirectiveNode;
 class StyleDirectiveNode;
 class ProgramNode;
@@ -29,6 +30,7 @@ private:
     void visit(const TextNode* node);
     void visit(const ScriptNode* node);
     void visit(const TemplateNode* node);
+    void visit(const CustomNode* node);
     void visit(const ElementDirectiveNode* node);
     void visit(const StyleDirectiveNode* node);
 
@@ -39,4 +41,5 @@ private:
     std::map<std::string, const TemplateNode*> element_templates;
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> var_templates;
+    std::map<std::string, const CustomNode*> custom_style_templates;
 };

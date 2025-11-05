@@ -9,6 +9,7 @@
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
 #include "TemplateNode.h"
+#include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
 #include "ProgramNode.h"
@@ -27,6 +28,7 @@ private:
     std::unique_ptr<StyleNode> parse_style();
     std::unique_ptr<ScriptNode> parse_script();
     std::unique_ptr<TemplateNode> parse_template();
+    std::unique_ptr<CustomNode> parse_custom();
     std::unique_ptr<ElementDirectiveNode> parse_element_directive();
     std::unique_ptr<StyleDirectiveNode> parse_style_directive();
     Token current_token();

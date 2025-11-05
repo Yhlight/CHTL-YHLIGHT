@@ -13,6 +13,7 @@ enum class TokenType {
     Dot,
     At,
     TemplateKeyword,
+    CustomKeyword,
     OpenParen,
     CloseParen,
     EndOfFile,

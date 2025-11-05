@@ -16,6 +16,8 @@ std::unique_ptr<ProgramNode> Parser::parse() {
 std::unique_ptr<BaseNode> Parser::parse_statement() {
     if (current_token().type == TokenType::TemplateKeyword) {
         return parse_template();
+    } else if (current_token().type == TokenType::CustomKeyword) {
+        return parse_custom();
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
@@ -341,6 +343,63 @@ std::unique_ptr<TemplateNode> Parser::parse_template() {
     return node;
 }
 
+std::unique_ptr<CustomNode> Parser::parse_custom() {
+    advance(); // Consume '[Custom]'
+    if (current_token().type != TokenType::At) {
+        // Handle error: expected '@'
+        return nullptr;
+    }
+    advance(); // Consume '@'
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string type_str = current_token().value;
+    advance(); // Consume the type
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string name = current_token().value;
+    advance(); // Consume the name
+
+    CustomType type;
+    if (type_str == "Style") {
+        type = CustomType::Style;
+    } else {
+        // Handle error: unknown custom type
+        return nullptr;
+    }
+
+    auto node = std::make_unique<CustomNode>(name, type);
+
+    if (current_token().type != TokenType::OpenBrace) {
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    advance(); // Consume the '{'
+
+    while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+        if (current_token().type == TokenType::Identifier) {
+            node->valueless_properties.push_back(current_token().value);
+            advance();
+            if (current_token().type == TokenType::Semicolon) {
+                advance();
+            }
+        } else {
+            advance();
+        }
+    }
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    return node;
+}
+
 std::unique_ptr<ElementDirectiveNode> Parser::parse_element_directive() {
     if (current_token().type != TokenType::Identifier) {
         // Handle error: expected identifier
@@ -366,7 +425,29 @@ std::unique_ptr<StyleDirectiveNode> Parser::parse_style_directive() {
     std::string name = current_token().value;
     advance(); // Consume the name
 
-    if (current_token().type != TokenType::Semicolon) {
+    if (current_token().type == TokenType::OpenBrace) {
+        auto node = std::make_unique<StyleDirectiveNode>(name);
+        advance(); // consume '{'
+        while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+            if (current_token().type == TokenType::Identifier) {
+                std::string key = current_token().value;
+                advance();
+                if (current_token().type == TokenType::Colon) {
+                    advance();
+                    std::string value = current_token().value;
+                    advance();
+                    if (current_token().type == TokenType::Semicolon) {
+                        advance();
+                    }
+                    node->properties[key] = value;
+                }
+            } else {
+                advance();
+            }
+        }
+        advance(); // consume '}'
+        return node;
+    } else if (current_token().type != TokenType::Semicolon) {
         // Handle error: expected ';'
         return nullptr;
     }

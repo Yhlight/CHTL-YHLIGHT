@@ -8,6 +8,7 @@
 #include "StyleRuleNode.h"
 #include "ScriptNode.h"
 #include "TemplateNode.h"
+#include "CustomNode.h"
 #include "ElementDirectiveNode.h"
 #include "StyleDirectiveNode.h"
 #include "Lexer.h"
@@ -164,4 +165,20 @@ TEST(ParserTest, VarTemplate) {
     EXPECT_EQ(template_node->type, TemplateType::Var);
     EXPECT_EQ(template_node->variables.size(), 1);
     EXPECT_EQ(template_node->variables["color"], "red");
+}
+
+TEST(ParserTest, CustomStyleTemplate) {
+    std::string source = "[Custom] @Style MyStyle { color; font-size; }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto custom_node = dynamic_cast<CustomNode*>(ast->children[0].get());
+    ASSERT_NE(custom_node, nullptr);
+    EXPECT_EQ(custom_node->name, "MyStyle");
+    EXPECT_EQ(custom_node->type, CustomType::Style);
+    EXPECT_EQ(custom_node->valueless_properties.size(), 2);
+    EXPECT_EQ(custom_node->valueless_properties[0], "color");
+    EXPECT_EQ(custom_node->valueless_properties[1], "font-size");
 }
