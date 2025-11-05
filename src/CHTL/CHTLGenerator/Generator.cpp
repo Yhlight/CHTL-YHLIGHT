@@ -76,7 +76,20 @@ void Generator::visit(const ElementNode* node) {
             for (const auto& style_content : style_node->children) {
                 if (style_content->getStyleContentType() == StyleContentType::Property) {
                     auto prop_node = static_cast<const StylePropertyNode*>(style_content.get());
-                    style_attr << prop_node->key << ":" << prop_node->value << ";";
+                    std::string value = prop_node->value;
+                    size_t start_pos = value.find('(');
+                    if (start_pos != std::string::npos) {
+                        std::string template_name = value.substr(0, start_pos);
+                        std::string var_name = value.substr(start_pos + 1, value.length() - start_pos - 2);
+                        auto it = var_templates.find(template_name);
+                        if (it != var_templates.end()) {
+                            auto var_it = it->second->variables.find(var_name);
+                            if (var_it != it->second->variables.end()) {
+                                value = var_it->second;
+                            }
+                        }
+                    }
+                    style_attr << prop_node->key << ":" << value << ";";
                 } else if (style_content->getStyleContentType() == StyleContentType::Rule) {
                     auto rule_node = static_cast<const StyleRuleNode*>(style_content.get());
                     css_output << "." << rule_node->selector << "{";
@@ -126,6 +139,8 @@ void Generator::visit(const TemplateNode* node) {
         element_templates[node->name] = node;
     } else if (node->type == TemplateType::Style) {
         style_templates[node->name] = node;
+    } else if (node->type == TemplateType::Var) {
+        var_templates[node->name] = node;
     }
 }
 

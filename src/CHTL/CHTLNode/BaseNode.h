@@ -12,6 +12,7 @@ enum class NodeType {
     ElementDirective,
     StyleDirective,
     Program,
+    StyleContent,
     // Add other node types here
 };
 

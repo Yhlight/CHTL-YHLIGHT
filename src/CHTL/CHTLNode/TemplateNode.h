@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 
 enum class TemplateType {
     Element,
@@ -20,4 +21,5 @@ public:
     std::string name;
     TemplateType type;
     std::vector<std::unique_ptr<BaseNode>> children;
+    std::map<std::string, std::string> variables;
 };

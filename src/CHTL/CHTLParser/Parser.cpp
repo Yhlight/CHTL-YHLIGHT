@@ -164,26 +164,37 @@ std::unique_ptr<StyleNode> Parser::parse_style() {
             std::string key = current_token().value;
             advance(); // Consume the identifier
 
-            if (current_token().type != TokenType::Colon) {
-                // Handle error: expected ':'
-                return nullptr;
-            }
-            advance(); // Consume the ':'
+            if (current_token().type == TokenType::OpenParen) {
+                advance(); // Consume '('
+                if (current_token().type != TokenType::Identifier) {
+                    // Handle error
+                    return nullptr;
+                }
+                std::string var_name = current_token().value;
+                advance();
+                if (current_token().type != TokenType::CloseParen) {
+                    return nullptr;
+                }
+                advance();
+                node->children.push_back(std::make_unique<StylePropertyNode>(key, key + "(" + var_name + ")"));
+            } else if (current_token().type == TokenType::Colon) {
+                advance(); // Consume the ':'
 
-            if (current_token().type != TokenType::StringLiteral && current_token().type != TokenType::Identifier) {
-                // Handle error: expected a string literal or identifier
-                return nullptr;
-            }
-            std::string value = current_token().value;
-            advance(); // Consume the value
+                if (current_token().type != TokenType::StringLiteral && current_token().type != TokenType::Identifier) {
+                    // Handle error: expected a string literal or identifier
+                    return nullptr;
+                }
+                std::string value = current_token().value;
+                advance(); // Consume the value
 
-            if (current_token().type != TokenType::Semicolon) {
-                // Handle error: expected ';'
-                return nullptr;
-            }
-            advance(); // Consume ';'
+                if (current_token().type != TokenType::Semicolon) {
+                    // Handle error: expected ';'
+                    return nullptr;
+                }
+                advance(); // Consume ';'
 
-            node->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+                node->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+            }
         } else if (current_token().type == TokenType::At) {
             advance(); // Consume '@'
             if (current_token().type == TokenType::Identifier && current_token().value == "Style") {
@@ -283,7 +294,22 @@ std::unique_ptr<TemplateNode> Parser::parse_template() {
     advance(); // Consume the '{'
 
     while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
-        if (type == TemplateType::Style) {
+        if (type == TemplateType::Var) {
+            std::string key = current_token().value;
+            advance();
+            if (current_token().type != TokenType::Colon) {
+                // Handle error
+                return nullptr;
+            }
+            advance();
+            std::string value = current_token().value;
+            advance();
+            if (current_token().type != TokenType::Semicolon) {
+                return nullptr;
+            }
+            advance();
+            node->variables[key] = value;
+        } else if (type == TemplateType::Style) {
             std::string key = current_token().value;
             advance();
             if (current_token().type != TokenType::Colon) {

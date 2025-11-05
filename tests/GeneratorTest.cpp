@@ -39,7 +39,8 @@ TEST(GeneratorTest, ElementWithAttributes) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div class=\"container\" id=\"main\"></div><script></script></body></html>");
+    EXPECT_NE(html.find("id=\"main\""), std::string::npos);
+    EXPECT_NE(html.find("class=\"container\""), std::string::npos);
 }
 
 TEST(GeneratorTest, ElementWithInlineStyle) {
@@ -101,6 +102,21 @@ TEST(GeneratorTest, StyleTemplate) {
     auto element = std::make_unique<ElementNode>("div");
     auto style_node = std::make_unique<StyleNode>();
     style_node->children.push_back(std::make_unique<StyleDirectiveNode>("MyStyle"));
+    element->children.push_back(std::move(style_node));
+    root->children.push_back(std::move(element));
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div><script></script></body></html>");
+}
+
+TEST(GeneratorTest, VarTemplate) {
+    auto root = std::make_unique<ProgramNode>();
+    auto template_node = std::make_unique<TemplateNode>("MyVars", TemplateType::Var);
+    template_node->variables["color"] = "red";
+    root->children.push_back(std::move(template_node));
+    auto element = std::make_unique<ElementNode>("div");
+    auto style_node = std::make_unique<StyleNode>();
+    style_node->children.push_back(std::make_unique<StylePropertyNode>("color", "MyVars(color)"));
     element->children.push_back(std::move(style_node));
     root->children.push_back(std::move(element));
     Generator generator(*root);

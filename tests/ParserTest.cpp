@@ -150,3 +150,18 @@ TEST(ParserTest, StyleTemplate) {
     EXPECT_EQ(prop_node->key, "color");
     EXPECT_EQ(prop_node->value, "red");
 }
+
+TEST(ParserTest, VarTemplate) {
+    std::string source = "[Template] @Var MyVars { color: \"red\"; }";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto template_node = dynamic_cast<TemplateNode*>(ast->children[0].get());
+    ASSERT_NE(template_node, nullptr);
+    EXPECT_EQ(template_node->name, "MyVars");
+    EXPECT_EQ(template_node->type, TemplateType::Var);
+    EXPECT_EQ(template_node->variables.size(), 1);
+    EXPECT_EQ(template_node->variables["color"], "red");
+}

@@ -87,6 +87,20 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
+        if (current_char == '(') {
+            tokens.push_back({TokenType::OpenParen, "(", line, column, start_pos});
+            current_pos++;
+            column++;
+            continue;
+        }
+
+        if (current_char == ')') {
+            tokens.push_back({TokenType::CloseParen, ")", line, column, start_pos});
+            current_pos++;
+            column++;
+            continue;
+        }
+
         if (current_char == '"') {
             std::string value;
             current_pos++; // Skip the opening quote
