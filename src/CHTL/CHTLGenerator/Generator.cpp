@@ -12,6 +12,8 @@
 #include "StyleDirectiveNode.h"
 #include "OriginNode.h"
 #include "OriginDirectiveNode.h"
+#include "ImportNode.h"
+#include "FileUtil.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
 
@@ -65,6 +67,9 @@ void Generator::visit(const BaseNode* node) {
             break;
         case NodeType::OriginDirective:
             visit(static_cast<const OriginDirectiveNode*>(node));
+            break;
+        case NodeType::Import:
+            visit(static_cast<const ImportNode*>(node));
             break;
     }
 }
@@ -180,13 +185,22 @@ void Generator::visit(const ElementDirectiveNode* node) {
     }
 }
 
+void Generator::visit(const ImportNode* node) {
+    std::string content = FileUtil::read_file(node->path);
+    if (!content.empty()) {
+        named_origin_blocks[node->alias] = std::make_unique<OriginNode>(node->type, node->alias, content);
+    }
+}
+
 void Generator::visit(const StyleDirectiveNode* node) {
     // This is handled by the parent element
 }
 
 void Generator::visit(const OriginNode* node) {
     if (!node->name.empty()) {
-        named_origin_blocks[node->name] = node;
+        // This is a declaration, so we just store it.
+        // The generator takes ownership of the node.
+        named_origin_blocks[node->name] = std::unique_ptr<OriginNode>(static_cast<OriginNode*>(node->clone().release()));
     } else {
         if (node->type == "Html") {
             html_output << node->content;

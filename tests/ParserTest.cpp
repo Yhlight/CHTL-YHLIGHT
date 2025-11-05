@@ -13,7 +13,22 @@
 #include "StyleDirectiveNode.h"
 #include "OriginNode.h"
 #include "OriginDirectiveNode.h"
+#include "ImportNode.h"
 #include "Lexer.h"
+
+TEST(ParserTest, ImportStatement) {
+    std::string source = "[Import] @Html from \"test.html\" as myHtml;";
+    Lexer lexer(source);
+    auto tokens = lexer.tokenize();
+    Parser parser(source, tokens);
+    auto ast = parser.parse();
+    ASSERT_EQ(ast->children.size(), 1);
+    auto import_node = dynamic_cast<ImportNode*>(ast->children[0].get());
+    ASSERT_NE(import_node, nullptr);
+    EXPECT_EQ(import_node->type, "Html");
+    EXPECT_EQ(import_node->path, "test.html");
+    EXPECT_EQ(import_node->alias, "myHtml");
+}
 
 TEST(ParserTest, OriginBlock) {
     std::string source = "[Origin] @Html { <p>hello</p> }";

@@ -18,7 +18,7 @@
 - [x] Templates (@Style, @Element, @Var)
 - [x] Custom directives (@Style, @Element, @Var)
 - [x] Origin blocks
-- [ ] Import statements
+- [x] Import statements
 - [ ] Namespaces
 - [ ] Configurations
 

@@ -41,6 +41,13 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
+        if (source.substr(current_pos, 8) == "[Import]") {
+            tokens.push_back({TokenType::ImportKeyword, "[Import]", line, column, start_pos});
+            current_pos += 8;
+            column += 8;
+            continue;
+        }
+
         if (isalpha(current_char) || current_char == '-' || isdigit(current_char)) {
             std::string value;
             while (current_pos < source.length() && (isalnum(source[current_pos]) || source[current_pos] == '_' || source[current_pos] == '-' || source[current_pos] == '%')) {
@@ -48,7 +55,13 @@ std::vector<Token> Lexer::tokenize() {
                 current_pos++;
                 column++;
             }
-            tokens.push_back({TokenType::Identifier, value, line, column, start_pos});
+            if (value == "from") {
+                tokens.push_back({TokenType::FromKeyword, value, line, column, start_pos});
+            } else if (value == "as") {
+                tokens.push_back({TokenType::AsKeyword, value, line, column, start_pos});
+            } else {
+                tokens.push_back({TokenType::Identifier, value, line, column, start_pos});
+            }
             continue;
         }
 

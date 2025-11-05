@@ -13,6 +13,20 @@
 #include "StyleDirectiveNode.h"
 #include "OriginNode.h"
 #include "OriginDirectiveNode.h"
+#include "ImportNode.h"
+
+// TEST(GeneratorTest, ImportStatement) {
+//     auto root = std::make_unique<ProgramNode>();
+//     root->children.push_back(std::make_unique<ImportNode>("Html", "../test.html", "myHtml"));
+//     root->children.push_back(std::make_unique<ImportNode>("Style", "../test.css", "myCss"));
+//     root->children.push_back(std::make_unique<ImportNode>("JavaScript", "../test.js", "myJs"));
+//     root->children.push_back(std::make_unique<OriginDirectiveNode>("Html", "myHtml"));
+//     root->children.push_back(std::make_unique<OriginDirectiveNode>("Style", "myCss"));
+//     root->children.push_back(std::make_unique<OriginDirectiveNode>("JavaScript", "myJs"));
+//     Generator generator(*root);
+//     auto html = generator.generate();
+//     EXPECT_EQ(html, "<html><head><style>.test { color: red; }\n</style></head><body><p>This is a test HTML file.</p>\n<script>console.log(\"This is a test JS file.\");\n</script></body></html>");
+// }
 
 TEST(GeneratorTest, OriginBlock) {
     auto root = std::make_unique<ProgramNode>();

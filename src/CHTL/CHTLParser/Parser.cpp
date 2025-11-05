@@ -20,6 +20,8 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
         return parse_custom();
 } else if (current_token().type == TokenType::OriginKeyword) {
     return parse_origin();
+} else if (current_token().type == TokenType::ImportKeyword) {
+    return parse_import();
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
@@ -510,6 +512,55 @@ std::unique_ptr<BaseNode> Parser::parse_origin() {
 
     // Handle error: expected '{' or ';'
     return nullptr;
+}
+
+std::unique_ptr<ImportNode> Parser::parse_import() {
+    advance(); // Consume '[Import]'
+    if (current_token().type != TokenType::At) {
+        // Handle error: expected '@'
+        return nullptr;
+    }
+    advance(); // Consume '@'
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string type = current_token().value;
+    advance(); // Consume the type
+
+    if (current_token().type != TokenType::FromKeyword) {
+        // Handle error: expected 'from'
+        return nullptr;
+    }
+    advance(); // Consume 'from'
+
+    if (current_token().type != TokenType::StringLiteral) {
+        // Handle error: expected string literal
+        return nullptr;
+    }
+    std::string path = current_token().value;
+    advance(); // Consume the path
+
+    if (current_token().type != TokenType::AsKeyword) {
+        // Handle error: expected 'as'
+        return nullptr;
+    }
+    advance(); // Consume 'as'
+
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected identifier
+        return nullptr;
+    }
+    std::string alias = current_token().value;
+    advance(); // Consume the alias
+
+    if (current_token().type != TokenType::Semicolon) {
+        // Handle error: expected ';'
+        return nullptr;
+    }
+    advance(); // Consume ';'
+
+    return std::make_unique<ImportNode>(type, path, alias);
 }
 
 Token Parser::current_token() {
