@@ -10,3 +10,13 @@ TEST(GeneratorTest, SimpleElement) {
     auto html = generator.generate();
     EXPECT_EQ(html, "<div>hello</div>");
 }
+
+TEST(GeneratorTest, ElementWithAttributes) {
+    auto root = std::make_unique<ElementNode>("div");
+    root->attributes["id"] = "main";
+    root->attributes["class"] = "container";
+    Generator generator(*root);
+    auto html = generator.generate();
+    EXPECT_NE(html.find("id=\"main\""), std::string::npos);
+    EXPECT_NE(html.find("class=\"container\""), std::string::npos);
+}

@@ -16,3 +16,12 @@ TEST(LexerTest, SimpleIdentifier) {
     EXPECT_EQ(tokens[0].value, "div");
     EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
 }
+
+TEST(LexerTest, EqualSign) {
+    Lexer lexer("=");
+    auto tokens = lexer.tokenize();
+    EXPECT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, TokenType::Equal);
+    EXPECT_EQ(tokens[0].value, "=");
+    EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
+}

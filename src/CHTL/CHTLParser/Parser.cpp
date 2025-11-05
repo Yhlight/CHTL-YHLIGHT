@@ -20,19 +20,21 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
     advance(); // Consume the '{'
 
     while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
-        if (current_token().type == TokenType::Identifier && current_token().value == "text") {
-            advance(); // Consume "text"
-            if (current_token().type != TokenType::Colon) {
-                // Handle error: expected ':'
+        if (current_token().type == TokenType::Identifier) {
+            std::string key = current_token().value;
+            advance(); // Consume the identifier
+
+            if (current_token().type != TokenType::Colon && current_token().type != TokenType::Equal) {
+                // Handle error: expected ':' or '='
                 return nullptr;
             }
-            advance(); // Consume ':'
+            advance(); // Consume the ':' or '='
 
             if (current_token().type != TokenType::StringLiteral) {
                 // Handle error: expected a string literal
                 return nullptr;
             }
-            node->children.push_back(std::make_unique<TextNode>(current_token().value));
+            std::string value = current_token().value;
             advance(); // Consume the string literal
 
             if (current_token().type != TokenType::Semicolon) {
@@ -40,8 +42,14 @@ std::unique_ptr<ElementNode> Parser::parse_element() {
                 return nullptr;
             }
             advance(); // Consume ';'
+
+            if (key == "text") {
+                node->children.push_back(std::make_unique<TextNode>(value));
+            } else {
+                node->attributes[key] = value;
+            }
         } else {
-            // Handle other attributes or children
+            // Handle other children
             advance();
         }
     }

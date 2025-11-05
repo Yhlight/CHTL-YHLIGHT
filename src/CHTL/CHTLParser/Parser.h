@@ -14,7 +14,6 @@ public:
 
 private:
     std::unique_ptr<ElementNode> parse_element();
-    std::unique_ptr<TextNode> parse_text();
     Token current_token();
     void advance();
 

@@ -9,6 +9,7 @@ enum class TokenType {
     Colon,
     Semicolon,
     StringLiteral,
+    Equal,
     EndOfFile,
 };
 

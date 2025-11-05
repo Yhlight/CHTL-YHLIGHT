@@ -50,6 +50,13 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
+        if (current_char == '=') {
+            tokens.push_back({TokenType::Equal, "=", line, column});
+            current_pos++;
+            column++;
+            continue;
+        }
+
         if (current_char == ';') {
             tokens.push_back({TokenType::Semicolon, ";", line, column});
             current_pos++;

@@ -3,15 +3,15 @@
 ## Phase 1: Core Compiler Infrastructure
 
 - [x] Initial project structure setup
-- [ ] Lexer implementation
-- [ ] Parser implementation
-- [ ] Abstract Syntax Tree (AST) node definitions
-- [ ] Generator implementation
+- [x] Lexer implementation
+- [x] Parser implementation
+- [x] Abstract Syntax Tree (AST) node definitions
+- [x] Generator implementation
 
 ## Phase 2: CHTL Language Features
 
-- [ ] Text nodes
-- [ ] Element nodes
+- [x] Text nodes
+- [x] Element nodes
 - [ ] Attributes
 - [ ] Style blocks (inline and global)
 - [ ] Script blocks

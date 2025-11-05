@@ -21,7 +21,11 @@ void Generator::visit(const BaseNode* node) {
 }
 
 void Generator::visit(const ElementNode* node) {
-    output << "<" << node->tag_name << ">";
+    output << "<" << node->tag_name;
+    for (const auto& attr : node->attributes) {
+        output << " " << attr.first << "=\"" << attr.second << "\"";
+    }
+    output << ">";
     for (const auto& child : node->children) {
         visit(child.get());
     }
