@@ -19,7 +19,7 @@
 - [x] Custom directives (@Style, @Element, @Var)
 - [x] Origin blocks
 - [x] Import statements
-- [ ] Namespaces
+- [x] Namespaces
 - [ ] Configurations
 
 ## Phase 3: CHTLJS Compiler

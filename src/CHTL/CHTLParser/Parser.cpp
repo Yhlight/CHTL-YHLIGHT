@@ -18,10 +18,12 @@ std::unique_ptr<BaseNode> Parser::parse_statement() {
         return parse_template();
     } else if (current_token().type == TokenType::CustomKeyword) {
         return parse_custom();
-} else if (current_token().type == TokenType::OriginKeyword) {
-    return parse_origin();
-} else if (current_token().type == TokenType::ImportKeyword) {
-    return parse_import();
+    } else if (current_token().type == TokenType::OriginKeyword) {
+        return parse_origin();
+    } else if (current_token().type == TokenType::ImportKeyword) {
+        return parse_import();
+    } else if (current_token().type == TokenType::NamespaceKeyword) {
+        return parse_namespace();
     } else if (current_token().type == TokenType::Identifier) {
         return parse_element();
     } else if (current_token().type == TokenType::At) {
@@ -561,6 +563,41 @@ std::unique_ptr<ImportNode> Parser::parse_import() {
     advance(); // Consume ';'
 
     return std::make_unique<ImportNode>(type, path, alias);
+}
+
+std::unique_ptr<BaseNode> Parser::parse_namespace() {
+    advance(); // Consume '[Namespace]'
+
+    if (current_token().type != TokenType::Identifier) {
+        // Handle error: expected namespace name
+        return nullptr;
+    }
+    std::string name = current_token().value;
+    advance(); // Consume the name
+
+    std::vector<std::unique_ptr<BaseNode>> children;
+
+    if (current_token().type != TokenType::OpenBrace) {
+        // For now, we only support namespaces with bodies enclosed in braces.
+        // Handle error: expected '{'
+        return nullptr;
+    }
+    advance(); // Consume the '{'
+
+    while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+        auto statement = parse_statement();
+        if (statement) {
+            children.push_back(std::move(statement));
+        }
+    }
+
+    if (current_token().type != TokenType::CloseBrace) {
+        // Handle error: expected '}'
+        return nullptr;
+    }
+    advance(); // Consume the '}'
+
+    return std::make_unique<NamespaceNode>(name, std::move(children));
 }
 
 Token Parser::current_token() {

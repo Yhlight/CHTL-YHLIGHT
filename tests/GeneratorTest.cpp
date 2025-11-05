@@ -44,7 +44,7 @@ TEST(GeneratorTest, NamedOriginBlock) {
     root->children.push_back(std::make_unique<OriginDirectiveNode>("Html", "myHtml"));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><p>hello</p><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><p>hello</p></body></html>");
 }
 
 TEST(GeneratorTest, SimpleElement) {
@@ -54,7 +54,7 @@ TEST(GeneratorTest, SimpleElement) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div></body></html>");
 }
 
 TEST(GeneratorTest, SimpleElementRaw) {
@@ -89,7 +89,7 @@ TEST(GeneratorTest, ElementWithInlineStyle) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div></body></html>");
 }
 
 TEST(GeneratorTest, ElementWithGlobalStyle) {
@@ -103,7 +103,7 @@ TEST(GeneratorTest, ElementWithGlobalStyle) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style>.my-class{color:red;}</style></head><body><div class=\"my-class\"></div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style>.my-class{color:red;}</style></head><body><div class=\"my-class\"></div></body></html>");
 }
 
 TEST(GeneratorTest, ElementWithScript) {
@@ -127,7 +127,7 @@ TEST(GeneratorTest, ElementTemplate) {
     root->children.push_back(std::move(element_directive));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div>hello</div></body></html>");
 }
 
 TEST(GeneratorTest, StyleTemplate) {
@@ -142,7 +142,7 @@ TEST(GeneratorTest, StyleTemplate) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div></body></html>");
 }
 
 TEST(GeneratorTest, VarTemplate) {
@@ -157,7 +157,7 @@ TEST(GeneratorTest, VarTemplate) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;\"></div></body></html>");
 }
 
 TEST(GeneratorTest, CustomStyleTemplate) {
@@ -176,5 +176,5 @@ TEST(GeneratorTest, CustomStyleTemplate) {
     root->children.push_back(std::move(element));
     Generator generator(*root);
     auto html = generator.generate();
-    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div><script></script></body></html>");
+    EXPECT_EQ(html, "<html><head><style></style></head><body><div style=\"color:red;font-size:16px;\"></div></body></html>");
 }

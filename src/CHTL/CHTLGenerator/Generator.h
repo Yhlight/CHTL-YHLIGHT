@@ -20,6 +20,7 @@ class ProgramNode;
 class OriginNode;
 class OriginDirectiveNode;
 class ImportNode;
+class NamespaceNode;
 
 class Generator {
 public:
@@ -39,6 +40,9 @@ private:
     void visit(const OriginNode* node);
     void visit(const OriginDirectiveNode* node);
     void visit(const ImportNode* node);
+    void visit(const NamespaceNode* node);
+
+    std::string get_namespaced_name(const std::string& name);
 
     const BaseNode& root;
     std::stringstream html_output;
@@ -49,4 +53,5 @@ private:
     std::map<std::string, const TemplateNode*> var_templates;
     std::map<std::string, const CustomNode*> custom_style_templates;
     std::map<std::string, std::unique_ptr<OriginNode>> named_origin_blocks;
+    std::vector<std::string> namespace_stack;
 };

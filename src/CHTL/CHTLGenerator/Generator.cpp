@@ -13,6 +13,7 @@
 #include "OriginNode.h"
 #include "OriginDirectiveNode.h"
 #include "ImportNode.h"
+#include "NamespaceNode.h"
 #include "FileUtil.h"
 
 Generator::Generator(const BaseNode& root) : root(root) {}
@@ -24,12 +25,26 @@ std::string Generator::generate(bool full_document) {
         std::stringstream final_output;
         final_output << "<html><head><style>" << css_output.str() << "</style></head><body>";
         final_output << html_output.str();
-        final_output << "<script>" << js_output.str() << "</script>";
+        if (js_output.str().length() > 0) {
+            final_output << "<script>" << js_output.str() << "</script>";
+        }
         final_output << "</body></html>";
         return final_output.str();
     } else {
         return html_output.str();
     }
+}
+
+std::string Generator::get_namespaced_name(const std::string& name) {
+    if (namespace_stack.empty()) {
+        return name;
+    }
+    std::string full_name;
+    for (const auto& ns : namespace_stack) {
+        full_name += ns + "::";
+    }
+    full_name += name;
+    return full_name;
 }
 
 void Generator::visit(const BaseNode* node) {
@@ -71,6 +86,9 @@ void Generator::visit(const BaseNode* node) {
         case NodeType::Import:
             visit(static_cast<const ImportNode*>(node));
             break;
+        case NodeType::Namespace:
+            visit(static_cast<const NamespaceNode*>(node));
+            break;
     }
 }
 
@@ -98,7 +116,7 @@ void Generator::visit(const ElementNode* node) {
                     if (start_pos != std::string::npos) {
                         std::string template_name = value.substr(0, start_pos);
                         std::string var_name = value.substr(start_pos + 1, value.length() - start_pos - 2);
-                        auto it = var_templates.find(template_name);
+                        auto it = var_templates.find(get_namespaced_name(template_name));
                         if (it != var_templates.end()) {
                             auto var_it = it->second->variables.find(var_name);
                             if (var_it != it->second->variables.end()) {
@@ -118,14 +136,14 @@ void Generator::visit(const ElementNode* node) {
                     html_output << " class=\"" << rule_node->selector << "\"";
                 } else if (style_content->getStyleContentType() == StyleContentType::Directive) {
                     auto directive_node = static_cast<const StyleDirectiveNode*>(style_content.get());
-                    auto it = style_templates.find(directive_node->name);
+                    auto it = style_templates.find(get_namespaced_name(directive_node->name));
                     if (it != style_templates.end()) {
                         for (const auto& prop : it->second->children) {
                             auto prop_node = static_cast<const StylePropertyNode*>(prop.get());
                             style_attr << prop_node->key << ":" << prop_node->value << ";";
                         }
                     }
-                    auto custom_it = custom_style_templates.find(directive_node->name);
+                    auto custom_it = custom_style_templates.find(get_namespaced_name(directive_node->name));
                     if (custom_it != custom_style_templates.end()) {
                         for (const auto& prop_name : custom_it->second->valueless_properties) {
                             auto prop_it = directive_node->properties.find(prop_name);
@@ -161,23 +179,24 @@ void Generator::visit(const ScriptNode* node) {
 }
 
 void Generator::visit(const TemplateNode* node) {
+    std::string namespaced_name = get_namespaced_name(node->name);
     if (node->type == TemplateType::Element) {
-        element_templates[node->name] = node;
+        element_templates[namespaced_name] = node;
     } else if (node->type == TemplateType::Style) {
-        style_templates[node->name] = node;
+        style_templates[namespaced_name] = node;
     } else if (node->type == TemplateType::Var) {
-        var_templates[node->name] = node;
+        var_templates[namespaced_name] = node;
     }
 }
 
 void Generator::visit(const CustomNode* node) {
     if (node->type == CustomType::Style) {
-        custom_style_templates[node->name] = node;
+        custom_style_templates[get_namespaced_name(node->name)] = node;
     }
 }
 
 void Generator::visit(const ElementDirectiveNode* node) {
-    auto it = element_templates.find(node->name);
+    auto it = element_templates.find(get_namespaced_name(node->name));
     if (it != element_templates.end()) {
         for (const auto& child : it->second->children) {
             visit(child.get());
@@ -223,4 +242,12 @@ void Generator::visit(const OriginDirectiveNode* node) {
             js_output << it->second->content;
         }
     }
+}
+
+void Generator::visit(const NamespaceNode* node) {
+    namespace_stack.push_back(node->getName());
+    for (const auto& child : node->getChildren()) {
+        visit(child.get());
+    }
+    namespace_stack.pop_back();
 }

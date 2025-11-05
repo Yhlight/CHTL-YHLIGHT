@@ -1,4 +1,4 @@
-add_executable(run_tests main.cpp LexerTest.cpp ParserTest.cpp GeneratorTest.cpp)
+add_executable(run_tests main.cpp LexerTest.cpp ParserTest.cpp GeneratorTest.cpp NamespaceTest.cpp)
 
 target_link_libraries(run_tests
     GTest::gtest_main

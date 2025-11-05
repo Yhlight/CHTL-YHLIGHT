@@ -16,6 +16,7 @@ enum class TokenType {
     CustomKeyword,
     OriginKeyword,
     ImportKeyword,
+    NamespaceKeyword,
     FromKeyword,
     AsKeyword,
     OpenParen,
