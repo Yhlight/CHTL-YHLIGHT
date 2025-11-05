@@ -20,6 +20,7 @@ class ASTNode {
 public:
     virtual ~ASTNode() = default;
     virtual ASTNodeType getType() const = 0;
+    virtual std::unique_ptr<ASTNode> clone() const = 0;
 
     std::vector<std::unique_ptr<ASTNode>> children;
 };

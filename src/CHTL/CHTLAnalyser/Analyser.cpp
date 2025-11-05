@@ -3,6 +3,7 @@
 #include "../CHTLNode/TemplateNode.h"
 #include "../CHTLNode/StyleNode.h"
 #include "../CHTLNode/TemplateUsageNode.h"
+#include "../CHTLNode/ElementNode.h"
 #include "../CHTLNode/StylePropertyNode.h"
 #include <algorithm>
 #include <iostream>
@@ -17,6 +18,7 @@ void Analyser::analyse(ASTNode* root) {
 }
 
 void Analyser::visit(ASTNode* node) {
+    if (!node) return;
     switch (node->getType()) {
         case ASTNodeType::Program:
             visitProgramNode(node);
@@ -24,11 +26,43 @@ void Analyser::visit(ASTNode* node) {
         case ASTNodeType::Style:
             visitStyleNode(node);
             break;
+        case ASTNodeType::Element:
+            visitElementNode(node);
+            break;
         default:
             for (const auto& child : node->children) {
                 visit(child.get());
             }
             break;
+    }
+}
+
+void Analyser::visitElementNode(ASTNode* node) {
+    auto elementNode = dynamic_cast<ElementNode*>(node);
+    if (!elementNode) return;
+
+    std::vector<std::unique_ptr<ASTNode>> newChildren;
+    for (auto& child : elementNode->children) {
+        if (child->getType() == ASTNodeType::TemplateUsage) {
+            auto usage = dynamic_cast<TemplateUsageNode*>(child.get());
+            if (usage && usage->templateType == "Element") {
+                TemplateNode* templateNode = symbolTable_.lookup(usage->name);
+                if (templateNode) {
+                    for (const auto& prop : templateNode->children) {
+                        newChildren.push_back(prop->clone());
+                    }
+                }
+            } else {
+                newChildren.push_back(std::move(child));
+            }
+        } else {
+            newChildren.push_back(std::move(child));
+        }
+    }
+    elementNode->children = std::move(newChildren);
+
+    for (const auto& child : elementNode->children) {
+        visit(child.get());
     }
 }
 

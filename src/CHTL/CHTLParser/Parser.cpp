@@ -69,6 +69,14 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseElement();
     } else if (check(TokenType::BLOCK_TEMPLATE)) {
         return parseTemplate();
+    } else if (check(TokenType::AT)) {
+        advance(); // consume '@'
+        consume(TokenType::IDENTIFIER, "Expect template type.");
+        std::string type = std::string(previous().lexeme);
+        consume(TokenType::IDENTIFIER, "Expect template name.");
+        std::string name = std::string(previous().lexeme);
+        consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+        return std::make_unique<TemplateUsageNode>(type, name);
     }
     throw std::runtime_error("Expected a statement.");
 }
@@ -119,17 +127,23 @@ std::unique_ptr<TemplateNode> Parser::parseTemplate() {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' after template name.");
 
-    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        consume(TokenType::IDENTIFIER, "Expect property name.");
-        std::string propName = std::string(previous().lexeme);
-        consume(TokenType::COLON, "Expect ':' after property name.");
-        std::string propValue;
-        while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
-            propValue += currentToken_.lexeme;
-            advance();
+    if (type == "Style") {
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            consume(TokenType::IDENTIFIER, "Expect property name.");
+            std::string propName = std::string(previous().lexeme);
+            consume(TokenType::COLON, "Expect ':' after property name.");
+            std::string propValue;
+            while (!check(TokenType::SEMICOLON) && !check(TokenType::END_OF_FILE)) {
+                propValue += currentToken_.lexeme;
+                advance();
+            }
+            consume(TokenType::SEMICOLON, "Expect ';' after property value.");
+            templateNode->children.push_back(std::make_unique<StylePropertyNode>(propName, propValue));
         }
-        consume(TokenType::SEMICOLON, "Expect ';' after property value.");
-        templateNode->children.push_back(std::make_unique<StylePropertyNode>(propName, propValue));
+    } else if (type == "Element") {
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            templateNode->children.push_back(parseStatement());
+        }
     }
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after template block.");

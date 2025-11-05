@@ -28,3 +28,16 @@ TEST(TemplateTest, StyleTemplate) {
     std::string expected = "<div style=\"color:red;font-size:16px;\"></div>";
     EXPECT_EQ(compile(source), expected);
 }
+
+TEST(TemplateTest, ElementTemplate) {
+    std::string source =
+        "[Template] @Element MyElement {\n"
+        "    p { text { \"hello\" } }\n"
+        "    div {}\n"
+        "}\n"
+        "body {\n"
+        "    @Element MyElement;\n"
+        "}";
+    std::string expected = "<body><p>hello</p><div></div></body>";
+    EXPECT_EQ(compile(source), expected);
+}
