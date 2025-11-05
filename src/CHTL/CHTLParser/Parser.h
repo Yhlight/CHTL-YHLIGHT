@@ -16,6 +16,7 @@ class TemplateNode;
 class TemplateUsageNode;
 class StylePropertyNode;
 class ValueNode;
+class ImportNode;
 
 class Parser {
 public:
@@ -38,6 +39,7 @@ private:
     std::unique_ptr<ScriptNode> parseScript();
     std::unique_ptr<TemplateNode> parseTemplate();
     std::unique_ptr<ValueNode> parseStylePropertyValue();
+    std::unique_ptr<ImportNode> parseImport();
 
     std::string_view source_;
     Lexer lexer_;

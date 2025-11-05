@@ -8,6 +8,7 @@
 #include "../CHTLNode/StylePropertyNode.h"
 #include "../CHTLNode/ValueNode/LiteralValueNode.h"
 #include "../CHTLNode/ValueNode/VariableUsageNode.h"
+#include "../CHTLNode/ImportNode.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -71,6 +72,8 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseElement();
     } else if (check(TokenType::BLOCK_TEMPLATE)) {
         return parseTemplate();
+    } else if (check(TokenType::BLOCK_IMPORT)) {
+        return parseImport();
     } else if (check(TokenType::AT)) {
         advance(); // consume '@'
         consume(TokenType::IDENTIFIER, "Expect template type.");
@@ -163,6 +166,50 @@ std::unique_ptr<TemplateNode> Parser::parseTemplate() {
     consume(TokenType::RIGHT_BRACE, "Expect '}' after template block.");
 
     return templateNode;
+}
+
+std::unique_ptr<ImportNode> Parser::parseImport() {
+    consume(TokenType::BLOCK_IMPORT, "Expect '[Import]' keyword.");
+    consume(TokenType::AT, "Expect '@' after '[Import]'.");
+    consume(TokenType::IDENTIFIER, "Expect import type.");
+    std::string type = std::string(previous().lexeme);
+
+    ImportType importType;
+    if (type == "Html") {
+        importType = ImportType::Html;
+    } else if (type == "Style") {
+        importType = ImportType::Style;
+    } else if (type == "JavaScript") {
+        importType = ImportType::JavaScript;
+    } else if (type == "Chtl") {
+        importType = ImportType::Chtl;
+    } else if (type == "Config") {
+        importType = ImportType::Config;
+    } else {
+        throw std::runtime_error("Unknown import type.");
+    }
+
+    consume(TokenType::FROM, "Expect 'from' keyword.");
+
+    std::string path;
+    if (match(TokenType::STRING)) {
+        std::string_view lexeme = previous().lexeme;
+        path = lexeme.substr(1, lexeme.length() - 2);
+    } else if (match(TokenType::IDENTIFIER)) {
+        path = std::string(previous().lexeme);
+    } else {
+        throw std::runtime_error("Expect import path.");
+    }
+
+    auto importNode = std::make_unique<ImportNode>(importType, path);
+
+    if (match(TokenType::AS)) {
+        consume(TokenType::IDENTIFIER, "Expect alias.");
+        // For now, we're not handling aliasing in this simplified implementation.
+    }
+
+    consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
+    return importNode;
 }
 
 std::unique_ptr<ScriptNode> Parser::parseScript() {

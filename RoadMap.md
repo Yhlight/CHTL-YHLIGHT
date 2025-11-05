@@ -9,11 +9,11 @@ This document outlines the development roadmap for the CHTL project.
 - [x] Parser implementation
 - [x] AST implementation
 - [x] Generator implementation
-- [ ] Template system (In Progress)
+- [x] Template system
   - [x] @Style templates
   - [x] @Element templates
-  - [ ] @Var templates
-- [ ] Import system
+  - [x] @Var templates
+- [ ] Import system (In Progress)
 - [ ] Origin blocks
 - [ ] Namespace blocks
 - [ ] Configuration blocks

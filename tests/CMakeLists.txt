@@ -15,6 +15,7 @@ target_sources(run_tests PRIVATE
     CHTL/ParserTest.cpp
     CHTL/GeneratorTest.cpp
     CHTL/TemplateTest.cpp
+    CHTL/ImportTest.cpp
 )
 
 target_include_directories(run_tests PRIVATE

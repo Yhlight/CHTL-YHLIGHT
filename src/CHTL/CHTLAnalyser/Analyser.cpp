@@ -8,6 +8,8 @@
 #include "../CHTLNode/ValueNode/ValueNode.h"
 #include "../CHTLNode/ValueNode/VariableUsageNode.h"
 #include "../CHTLNode/ValueNode/LiteralValueNode.h"
+#include "../CHTLNode/ImportNode.h"
+#include "../CHTLParser/Parser.h"
 #include <algorithm>
 #include <iostream>
 
@@ -34,6 +36,9 @@ void Analyser::visit(ASTNode* node) {
             break;
         case ASTNodeType::StyleProperty:
             visitStylePropertyNode(node);
+            break;
+        case ASTNodeType::Import:
+            visitImportNode(node);
             break;
         default:
             for (const auto& child : node->children) {
@@ -89,6 +94,23 @@ void Analyser::visitElementNode(ASTNode* node) {
 
     for (const auto& child : elementNode->children) {
         visit(child.get());
+    }
+}
+
+void Analyser::visitImportNode(ASTNode* node) {
+    auto importNode = dynamic_cast<ImportNode*>(node);
+    if (!importNode) return;
+
+    if (importNode->importType == ImportType::Chtl) {
+        try {
+            std::string source = importer_.importFile(importNode->path);
+            Parser parser(source);
+            auto program = parser.parse();
+            analyse(program.get());
+        } catch (const std::runtime_error& e) {
+            // It might be useful to log this error or handle it more gracefully.
+            std::cerr << "Error importing file: " << e.what() << std::endl;
+        }
     }
 }
 
