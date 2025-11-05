@@ -4,6 +4,7 @@
 #include "../CHTLNode/ASTNode.h"
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/OriginNode.h"
+#include "../CHTLNode/NamespaceNode.h"
 #include <memory>
 
 namespace CHTL {
@@ -26,6 +27,7 @@ public:
     std::unique_ptr<ProgramNode> parse();
 
 private:
+    std::string parseQualifiedName();
     void advance();
     void consume(TokenType type, const char* message);
     bool match(TokenType type);
@@ -43,6 +45,7 @@ private:
     std::unique_ptr<ValueNode> parseStylePropertyValue();
     std::unique_ptr<ImportNode> parseImport();
     std::unique_ptr<OriginNode> parseOrigin();
+    std::unique_ptr<NamespaceNode> parseNamespace();
 
     std::string_view source_;
     Lexer lexer_;

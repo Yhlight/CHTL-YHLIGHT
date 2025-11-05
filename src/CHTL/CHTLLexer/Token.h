@@ -20,7 +20,7 @@ enum class TokenType {
     AT,                            // @
 
     // One or two character tokens
-    EQUAL,                         // = (CE equality with :)
+    EQUAL, COLON_COLON,             // = (CE equality with :)
     POWER,                         // **
     LOGICAL_AND,                   // &&
     LOGICAL_OR,                    // ||

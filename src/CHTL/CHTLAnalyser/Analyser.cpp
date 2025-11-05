@@ -49,6 +49,9 @@ void Analyser::visit(ASTNode* node) {
         case ASTNodeType::Origin:
             visitOriginNode(node);
             break;
+        case ASTNodeType::Namespace:
+            visitNamespaceNode(node);
+            break;
         default:
             for (const auto& child : node->children) {
                 visit(child.get());
@@ -87,7 +90,11 @@ void Analyser::visitElementNode(ASTNode* node) {
         if (child->getType() == ASTNodeType::TemplateUsage) {
             auto usage = dynamic_cast<TemplateUsageNode*>(child.get());
             if (usage && usage->templateType == "Element") {
-                auto* node = symbolTable_.lookup(usage->name);
+                std::string qualifiedName = currentNamespace_.empty() ? usage->name : currentNamespace_ + "::" + usage->name;
+                auto* node = symbolTable_.lookup(qualifiedName);
+                if (!node) {
+                    node = symbolTable_.lookup(usage->name);
+                }
                 auto* templateNode = dynamic_cast<TemplateNode*>(node);
                 if (templateNode) {
                     for (const auto& prop : templateNode->children) {
@@ -134,7 +141,11 @@ void Analyser::visitStyleNode(ASTNode* node) {
         if (child->getType() == ASTNodeType::TemplateUsage) {
             auto usage = dynamic_cast<TemplateUsageNode*>(child.get());
             if (usage) {
-                auto* node = symbolTable_.lookup(usage->name);
+                std::string qualifiedName = currentNamespace_.empty() ? usage->name : currentNamespace_ + "::" + usage->name;
+                auto* node = symbolTable_.lookup(qualifiedName);
+                if (!node) {
+                    node = symbolTable_.lookup(usage->name);
+                }
                 auto* templateNode = dynamic_cast<TemplateNode*>(node);
                 if (templateNode) {
                     for (const auto& prop : templateNode->children) {
@@ -153,18 +164,15 @@ void Analyser::visitStyleNode(ASTNode* node) {
     }
 }
 
-void Analyser::visitProgramNode(ASTNode* node) {
-    auto programNode = dynamic_cast<ProgramNode*>(node);
-    if (!programNode) return;
-
-    // First pass: collect templates
-    for (auto it = programNode->children.begin(); it != programNode->children.end(); ) {
+void Analyser::collectTemplates(ASTNode* node) {
+    for (auto it = node->children.begin(); it != node->children.end(); ) {
         if ((*it)->getType() == ASTNodeType::Template) {
             auto templateNode = dynamic_cast<TemplateNode*>((*it).get());
             if (templateNode) {
-                symbolTable_.insert(templateNode->name, templateNode);
+                std::string qualifiedName = currentNamespace_.empty() ? templateNode->name : currentNamespace_ + "::" + templateNode->name;
+                symbolTable_.insert(qualifiedName, templateNode);
                 ownedTemplates_.push_back(std::unique_ptr<TemplateNode>(static_cast<TemplateNode*>(it->release())));
-                it = programNode->children.erase(it);
+                it = node->children.erase(it);
             } else {
                 ++it;
             }
@@ -172,8 +180,15 @@ void Analyser::visitProgramNode(ASTNode* node) {
             ++it;
         }
     }
+}
 
-    // Visit remaining children
+void Analyser::visitProgramNode(ASTNode* node) {
+    auto programNode = dynamic_cast<ProgramNode*>(node);
+    if (!programNode) return;
+
+    collectTemplates(programNode);
+
+    // Second pass: visit all children
     for (const auto& child : programNode->children) {
         visit(child.get());
     }
@@ -184,6 +199,22 @@ void Analyser::visitOriginNode(ASTNode* node) {
     if (originNode && originNode->name.has_value()) {
         symbolTable_.insert(originNode->name.value(), originNode);
     }
+}
+
+void Analyser::visitNamespaceNode(ASTNode* node) {
+    auto namespaceNode = dynamic_cast<NamespaceNode*>(node);
+    if (!namespaceNode) return;
+
+    std::string previousNamespace = currentNamespace_;
+    currentNamespace_ = namespaceNode->name;
+
+    collectTemplates(namespaceNode);
+
+    for (const auto& child : namespaceNode->children) {
+        visit(child.get());
+    }
+
+    currentNamespace_ = previousNamespace;
 }
 
 } // namespace CHTL

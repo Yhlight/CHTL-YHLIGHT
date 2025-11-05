@@ -133,3 +133,18 @@ TEST(ParserTest, ParseScriptBlock) {
     ASSERT_NE(script, nullptr);
     EXPECT_EQ(script->content, " console.log(\"hello\"); ");
 }
+
+TEST(ParserTest, ParseOriginBlock) {
+    std::string source = "[Origin] @Html MyOrigin { <div><p>hello</p></div> }";
+    CHTL::Parser parser(source);
+    auto program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->children.size(), 1);
+
+    auto origin = dynamic_cast<CHTL::OriginNode*>(program->children[0].get());
+    ASSERT_NE(origin, nullptr);
+    EXPECT_EQ(origin->type, "Html");
+    EXPECT_EQ(origin->name, "MyOrigin");
+    EXPECT_EQ(origin->content, " <div><p>hello</p></div> ");
+}

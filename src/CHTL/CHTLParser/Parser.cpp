@@ -61,6 +61,17 @@ const Token& Parser::previous() const {
 const Token& Parser::peek() const {
     return currentToken_;
 }
+
+std::string Parser::parseQualifiedName() {
+    consume(TokenType::IDENTIFIER, "Expect identifier.");
+    std::string name = std::string(previous().lexeme);
+    while (match(TokenType::COLON_COLON)) {
+        consume(TokenType::IDENTIFIER, "Expect identifier after '::'.");
+        name += "::" + std::string(previous().lexeme);
+    }
+    return name;
+}
+
 std::unique_ptr<ASTNode> Parser::parseStatement() {
     if (check(TokenType::TEXT)) {
         return parseText();
@@ -72,14 +83,17 @@ std::unique_ptr<ASTNode> Parser::parseStatement() {
         return parseElement();
     } else if (check(TokenType::BLOCK_TEMPLATE)) {
         return parseTemplate();
+    } else if (check(TokenType::BLOCK_NAMESPACE)) {
+        return parseNamespace();
     } else if (check(TokenType::BLOCK_IMPORT)) {
         return parseImport();
+    } else if (check(TokenType::BLOCK_ORIGIN)) {
+        return parseOrigin();
     } else if (check(TokenType::AT)) {
         advance(); // consume '@'
         consume(TokenType::IDENTIFIER, "Expect template type.");
         std::string type = std::string(previous().lexeme);
-        consume(TokenType::IDENTIFIER, "Expect template name.");
-        std::string name = std::string(previous().lexeme);
+        std::string name = parseQualifiedName();
         consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
         return std::make_unique<TemplateUsageNode>(type, name);
     }
@@ -97,8 +111,7 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
             advance(); // consume '@'
             consume(TokenType::IDENTIFIER, "Expect template type.");
             std::string type = std::string(previous().lexeme);
-            consume(TokenType::IDENTIFIER, "Expect template name.");
-            std::string name = std::string(previous().lexeme);
+            std::string name = parseQualifiedName();
             consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
             styleNode->children.push_back(std::make_unique<TemplateUsageNode>(type, name));
         } else {
@@ -281,6 +294,58 @@ std::unique_ptr<TextNode> Parser::parseText() {
     auto text = std::make_unique<TextNode>(std::string(content));
     consume(TokenType::RIGHT_BRACE, "Expect '}' after text block.");
     return text;
+}
+
+std::unique_ptr<NamespaceNode> Parser::parseNamespace() {
+    consume(TokenType::BLOCK_NAMESPACE, "Expect '[Namespace]' keyword.");
+    consume(TokenType::IDENTIFIER, "Expect namespace name.");
+    std::string name = std::string(previous().lexeme);
+
+    auto namespaceNode = std::make_unique<NamespaceNode>(name);
+
+    if (match(TokenType::LEFT_BRACE)) {
+        while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+            namespaceNode->children.push_back(parseStatement());
+        }
+        consume(TokenType::RIGHT_BRACE, "Expect '}' after namespace block.");
+    }
+
+    return namespaceNode;
+}
+
+std::unique_ptr<OriginNode> Parser::parseOrigin() {
+    consume(TokenType::BLOCK_ORIGIN, "Expect '[Origin]' keyword.");
+    consume(TokenType::AT, "Expect '@' after '[Origin]'.");
+    consume(TokenType::IDENTIFIER, "Expect origin type.");
+    std::string type = std::string(previous().lexeme);
+
+    std::optional<std::string> name;
+    if (match(TokenType::IDENTIFIER)) {
+        name = std::string(previous().lexeme);
+    }
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' after origin type.");
+
+    size_t start = previousToken_.start_pos + previousToken_.lexeme.length();
+    int braceCount = 1;
+    size_t current = start;
+    while (braceCount > 0 && current < source_.length()) {
+        if (source_[current] == '{') {
+            braceCount++;
+        } else if (source_[current] == '}') {
+            braceCount--;
+        }
+        current++;
+    }
+    size_t end = current - 1;
+
+    std::string content = std::string(source_.substr(start, end - start));
+
+    lexer_.setPosition(end);
+    advance(); // Consume the closing brace
+    advance(); // Advance to the next token
+
+    return std::make_unique<OriginNode>(type, name, content);
 }
 
 } // namespace CHTL

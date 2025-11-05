@@ -10,11 +10,10 @@ public:
     Lexer(std::string_view source);
     Token scanToken();
     Token peekToken();
-    void setRawMode(bool rawMode);
+    bool isAtEnd() const;
+    void setPosition(size_t position);
 
 private:
-    Token scanRawContent();
-    bool isAtEnd() const;
     char advance();
     char peek() const;
     char peekNext() const;

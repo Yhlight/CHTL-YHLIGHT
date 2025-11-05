@@ -15,7 +15,7 @@ This document outlines the development roadmap for the CHTL project.
   - [x] @Var templates
 - [ ] Import system (In Progress)
 - [x] Origin blocks
-- [ ] Namespace blocks
+- [x] Namespace blocks
 - [ ] Configuration blocks
 
 ## Phase 2: CHTLJS Extension

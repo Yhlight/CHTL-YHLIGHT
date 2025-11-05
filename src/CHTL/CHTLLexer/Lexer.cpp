@@ -11,14 +11,11 @@ Token Lexer::peekToken() {
     return tempLexer.scanToken();
 }
 
-void Lexer::setRawMode(bool rawMode) {
-    rawMode_ = rawMode;
+void Lexer::setPosition(size_t position) {
+    current_ = position;
 }
 
 Token Lexer::scanToken() {
-    if (rawMode_) {
-        return scanRawContent();
-    }
     skipWhitespace();
     start_ = current_;
 
@@ -38,7 +35,7 @@ Token Lexer::scanToken() {
             }
         case ']': return makeToken(TokenType::RIGHT_BRACKET);
         case ';': return makeToken(TokenType::SEMICOLON);
-        case ':': return makeToken(TokenType::COLON);
+        case ':': return makeToken(match(':') ? TokenType::COLON_COLON : TokenType::COLON);
         case ',': return makeToken(TokenType::COMMA);
         case '.': return makeToken(TokenType::DOT);
         case '-': return makeToken(TokenType::MINUS);
@@ -234,25 +231,6 @@ void Lexer::skipWhitespace() {
                 return;
         }
     }
-}
-
-Token Lexer::scanRawContent() {
-    start_ = current_;
-    int braceCount = 1;
-    while (braceCount > 0 && !isAtEnd()) {
-        char c = peek();
-        if (c == '{') {
-            braceCount++;
-        } else if (c == '}') {
-            braceCount--;
-        }
-        if (braceCount > 0) {
-            if (c == '\n') line_++;
-            advance();
-        }
-    }
-
-    return makeToken(TokenType::RAW_CONTENT);
 }
 
 } // namespace CHTL
