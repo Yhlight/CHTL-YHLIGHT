@@ -77,7 +77,57 @@ std::unique_ptr<StyleNode> Parser::parse_style() {
     advance(); // Consume the '{'
 
     while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
-        if (current_token().type == TokenType::Identifier) {
+        if (current_token().type == TokenType::Dot) {
+            advance(); // Consume the '.'
+            if (current_token().type != TokenType::Identifier) {
+                // Handle error: expected identifier
+                return nullptr;
+            }
+            auto rule = std::make_unique<StyleRuleNode>(current_token().value);
+            advance(); // Consume the identifier
+
+            if (current_token().type != TokenType::OpenBrace) {
+                // Handle error: expected '{'
+                return nullptr;
+            }
+            advance(); // Consume the '{'
+
+            while (current_token().type != TokenType::CloseBrace && current_token().type != TokenType::EndOfFile) {
+                if (current_token().type == TokenType::Identifier) {
+                    std::string key = current_token().value;
+                    advance(); // Consume the identifier
+
+                    if (current_token().type != TokenType::Colon) {
+                        // Handle error: expected ':'
+                        return nullptr;
+                    }
+                    advance(); // Consume the ':'
+
+                    if (current_token().type != TokenType::StringLiteral && current_token().type != TokenType::Identifier) {
+                        // Handle error: expected a string literal or identifier
+                        return nullptr;
+                    }
+                    std::string value = current_token().value;
+                    advance(); // Consume the value
+
+                    if (current_token().type != TokenType::Semicolon) {
+                        // Handle error: expected ';'
+                        return nullptr;
+                    }
+                    advance(); // Consume ';'
+                    rule->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+                } else {
+                    // Handle other style content
+                    advance();
+                }
+            }
+            if (current_token().type != TokenType::CloseBrace) {
+                // Handle error: expected '}'
+                return nullptr;
+            }
+            advance(); // Consume the '}'
+            node->children.push_back(std::move(rule));
+        } else if (current_token().type == TokenType::Identifier) {
             std::string key = current_token().value;
             advance(); // Consume the identifier
 
@@ -100,7 +150,7 @@ std::unique_ptr<StyleNode> Parser::parse_style() {
             }
             advance(); // Consume ';'
 
-            node->properties[key] = value;
+            node->children.push_back(std::make_unique<StylePropertyNode>(key, value));
         } else {
             // Handle other style content
             advance();

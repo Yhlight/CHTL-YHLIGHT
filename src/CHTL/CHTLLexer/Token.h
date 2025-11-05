@@ -10,6 +10,7 @@ enum class TokenType {
     Semicolon,
     StringLiteral,
     Equal,
+    Dot,
     EndOfFile,
 };
 

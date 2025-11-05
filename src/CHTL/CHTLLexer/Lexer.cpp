@@ -64,6 +64,13 @@ std::vector<Token> Lexer::tokenize() {
             continue;
         }
 
+        if (current_char == '.') {
+            tokens.push_back({TokenType::Dot, ".", line, column});
+            current_pos++;
+            column++;
+            continue;
+        }
+
         if (current_char == '"') {
             std::string value;
             current_pos++; // Skip the opening quote

@@ -3,6 +3,8 @@
 #include "ElementNode.h"
 #include "TextNode.h"
 #include "StyleNode.h"
+#include "StylePropertyNode.h"
+#include "StyleRuleNode.h"
 #include "Lexer.h"
 
 TEST(ParserTest, EmptyInput) {
@@ -53,7 +55,36 @@ TEST(ParserTest, ElementWithInlineStyle) {
     ASSERT_EQ(element_node->children.size(), 1);
     auto style_node = dynamic_cast<StyleNode*>(element_node->children[0].get());
     ASSERT_NE(style_node, nullptr);
-    EXPECT_EQ(style_node->properties.size(), 2);
-    EXPECT_EQ(style_node->properties["color"], "red");
-    EXPECT_EQ(style_node->properties["font-size"], "16px");
+    ASSERT_EQ(style_node->children.size(), 2);
+    auto prop1 = dynamic_cast<StylePropertyNode*>(style_node->children[0].get());
+    ASSERT_NE(prop1, nullptr);
+    EXPECT_EQ(prop1->key, "color");
+    EXPECT_EQ(prop1->value, "red");
+    auto prop2 = dynamic_cast<StylePropertyNode*>(style_node->children[1].get());
+    ASSERT_NE(prop2, nullptr);
+    EXPECT_EQ(prop2->key, "font-size");
+    EXPECT_EQ(prop2->value, "16px");
+}
+
+TEST(ParserTest, ElementWithGlobalStyle) {
+    Lexer lexer("div { style { .my-class { color: red; } } }");
+    auto tokens = lexer.tokenize();
+    Parser parser(tokens);
+    auto ast = parser.parse();
+    ASSERT_NE(ast, nullptr);
+    EXPECT_EQ(ast->getType(), NodeType::Element);
+    auto element_node = static_cast<ElementNode*>(ast.get());
+    EXPECT_EQ(element_node->tag_name, "div");
+    ASSERT_EQ(element_node->children.size(), 1);
+    auto style_node = dynamic_cast<StyleNode*>(element_node->children[0].get());
+    ASSERT_NE(style_node, nullptr);
+    ASSERT_EQ(style_node->children.size(), 1);
+    auto rule_node = dynamic_cast<StyleRuleNode*>(style_node->children[0].get());
+    ASSERT_NE(rule_node, nullptr);
+    EXPECT_EQ(rule_node->selector, "my-class");
+    ASSERT_EQ(rule_node->children.size(), 1);
+    auto prop_node = dynamic_cast<StylePropertyNode*>(rule_node->children[0].get());
+    ASSERT_NE(prop_node, nullptr);
+    EXPECT_EQ(prop_node->key, "color");
+    EXPECT_EQ(prop_node->value, "red");
 }

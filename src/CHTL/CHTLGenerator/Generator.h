@@ -7,6 +7,8 @@
 class ElementNode;
 class TextNode;
 class StyleNode;
+class StylePropertyNode;
+class StyleRuleNode;
 
 class Generator {
 public:

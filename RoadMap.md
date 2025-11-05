@@ -13,7 +13,7 @@
 - [x] Text nodes
 - [x] Element nodes
 - [x] Attributes
-- [ ] Style blocks (inline and global)
+- [x] Style blocks (inline and global)
 - [ ] Script blocks
 - [ ] Templates (@Style, @Element, @Var)
 - [ ] Custom directives (@Style, @Element, @Var)

@@ -5,6 +5,8 @@
 #include "ElementNode.h"
 #include "TextNode.h"
 #include "StyleNode.h"
+#include "StylePropertyNode.h"
+#include "StyleRuleNode.h"
 #include <vector>
 #include <memory>
 

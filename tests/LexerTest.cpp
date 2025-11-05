@@ -25,3 +25,12 @@ TEST(LexerTest, EqualSign) {
     EXPECT_EQ(tokens[0].value, "=");
     EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
 }
+
+TEST(LexerTest, Dot) {
+    Lexer lexer(".");
+    auto tokens = lexer.tokenize();
+    EXPECT_EQ(tokens.size(), 2);
+    EXPECT_EQ(tokens[0].type, TokenType::Dot);
+    EXPECT_EQ(tokens[0].value, ".");
+    EXPECT_EQ(tokens[1].type, TokenType::EndOfFile);
+}
