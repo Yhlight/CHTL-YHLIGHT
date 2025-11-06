@@ -1,0 +1,81 @@
+# CHTL Project Roadmap
+
+This document outlines the development plan for the CHTL language and its associated tooling.
+
+## Phase 1: Core Compiler Infrastructure (In Progress)
+
+- [ ] **Project Setup**
+  - [x] Create `RoadMap.md`
+  - [ ] Create `.gitignore`
+  - [ ] Establish directory structure (`src`, `tests`, `src/SharedCore`, `src/CHTL`, `src/CHTLJS`)
+  - [ ] Implement Python build script (`build.py`)
+  - [ ] Set up root `CMakeLists.txt`
+
+- [ ] **Lexer (CHTL)**
+  - [ ] Implement basic tokenization (identifiers, keywords, symbols, literals)
+  - [ ] Add support for comments (`//`, `/**/`, `#`)
+  - [ ] Differentiate between block keywords (`[Template]`) and regular identifiers
+
+- [ ] **Parser (CHTL)**
+  - [ ] Implement basic AST node structure (`ASTNode`, `ProgramNode`)
+  - [ ] Parse text nodes (`text {}`)
+  - [ ] Parse element nodes (`div {}`)
+  - [ ] Parse attributes (`id: "box";`)
+
+- [ ] **Testing**
+  - [ ] Set up Google Test framework
+  - [ ] Write unit tests for the Lexer
+  - [ ] Write unit tests for the Parser
+
+## Phase 2: Basic Language Features
+
+- [ ] **Generator (CHTL)**
+  - [ ] Implement a basic generator to traverse the AST
+  - [ ] Generate HTML from element and text nodes
+  - [ ] Handle attributes
+
+- [ ] **Style Blocks**
+  - [ ] Parse `style {}` blocks
+  - [ ] Parse style properties (`width: 100px;`)
+  - [ ] Generate inline styles
+
+- [ ] **Templates**
+  - [ ] Parse `[Template]` blocks (`@Style`, `@Element`)
+  - [ ] Implement Analyser pass to collect templates
+  - [ ] Implement Analyser pass to resolve template usage
+
+- [ ] **Imports**
+  - [ ] Parse `[Import]` statements
+  - [ ] Implement file loading and parsing for CHTL files
+
+## Phase 3: Advanced CHTL and CHTLJS Integration
+
+- [ ] **CHTLJS Core**
+  - [ ] Implement CHTLJS Lexer
+  - [ ] Implement CHTLJS Parser (Pratt Parser)
+  - [ ] Implement CHTLJS Generator
+
+- [ ] **Enhanced Selectors**
+  - [ ] Parse `{{...}}` syntax
+  - [ ] Generate corresponding JavaScript DOM queries
+
+- [ ] **Event Handling**
+  - [ ] Parse `Listen` and `Delegate` blocks
+  - [ ] Generate JavaScript `addEventListener` calls
+
+- [ ] **Salt Bridge (SharedCore)**
+  - [ ] Design and implement the communication bridge between CHTL and CHTLJS compilers
+
+## Phase 4: Tooling and Modules
+
+- [ ] **CLI**
+  - [ ] Implement command-line interface for the compiler
+  - [ ] Add support for `--inline` and other flags
+
+- [ ] **CMOD System**
+  - [ ] Implement module packaging
+  - [ ] Implement module importing and resolution
+
+- [ ] **VSCode Extension**
+  - [ ] Develop basic syntax highlighting
+  - [ ] Implement code formatting

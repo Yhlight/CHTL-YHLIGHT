@@ -1,1 +1,20 @@
-third-party/
+# CMake
+build/
+**/build/
+**/CMakeCache.txt
+**/CMakeFiles/
+**/cmake_install.cmake
+**/CMakeLists.txt.user
+**/compile_commands.json
+
+# Binaries
+*.exe
+*.out
+*.dll
+*.so
+*.dylib
+
+# Others
+.vscode/
+*.swp
+*~
