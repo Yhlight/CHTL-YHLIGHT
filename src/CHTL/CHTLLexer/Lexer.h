@@ -12,6 +12,8 @@ public:
     Token getNextToken();
 
 private:
+    void skipWhitespaceAndComments();
+
     std::string source;
     size_t position;
 };

@@ -7,3 +7,61 @@ TEST(LexerTest, HandlesSingleQuotedStrings) {
     ASSERT_EQ(token.type, CHTL::TokenType::String);
     ASSERT_EQ(token.value, "hello");
 }
+
+TEST(LexerTest, HandlesUnterminatedSingleQuotedStrings) {
+    CHTL::Lexer lexer("'hello");
+    CHTL::Token token = lexer.getNextToken();
+    ASSERT_EQ(token.type, CHTL::TokenType::Unknown);
+}
+
+TEST(LexerTest, HandlesDoubleQuotedStrings) {
+    CHTL::Lexer lexer("\"world\"");
+    CHTL::Token token = lexer.getNextToken();
+    ASSERT_EQ(token.type, CHTL::TokenType::String);
+    ASSERT_EQ(token.value, "world");
+}
+
+TEST(LexerTest, HandlesSymbols) {
+    CHTL::Lexer lexer("{}:;");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::OpenBrace);
+    ASSERT_EQ(token1.value, "{");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::CloseBrace);
+    ASSERT_EQ(token2.value, "}");
+
+    CHTL::Token token3 = lexer.getNextToken();
+    ASSERT_EQ(token3.type, CHTL::TokenType::Colon);
+    ASSERT_EQ(token3.value, ":");
+
+    CHTL::Token token4 = lexer.getNextToken();
+    ASSERT_EQ(token4.type, CHTL::TokenType::Semicolon);
+    ASSERT_EQ(token4.value, ";");
+}
+
+TEST(LexerTest, HandlesIdentifiersAndUnquotedLiterals) {
+    CHTL::Lexer lexer("div color red");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::Identifier);
+    ASSERT_EQ(token1.value, "div");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::Identifier);
+    ASSERT_EQ(token2.value, "color");
+
+    CHTL::Token token3 = lexer.getNextToken();
+    ASSERT_EQ(token3.type, CHTL::TokenType::Identifier);
+    ASSERT_EQ(token3.value, "red");
+}
+
+TEST(LexerTest, HandlesComments) {
+    CHTL::Lexer lexer("// this is a comment\ndiv /* multi\nline\ncomment */ {");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::Identifier);
+    ASSERT_EQ(token1.value, "div");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::OpenBrace);
+    ASSERT_EQ(token2.value, "{");
+}
