@@ -10,7 +10,7 @@ enum class TokenType {
     LEFT_BRACKET, RIGHT_BRACKET,
     COMMA, DOT, MINUS, PLUS,
     SEMICOLON, SLASH, STAR, COLON,
-    EQUAL,
+    EQUAL, AT,
 
     // One or two character tokens.
     BANG, BANG_EQUAL,
@@ -35,15 +35,6 @@ enum class TokenType {
     KEYWORD_CONFIGURATION,
     KEYWORD_FROM,
     KEYWORD_AS,
-
-    // Block Keywords
-    BLOCK_AT_STYLE,
-    BLOCK_AT_ELEMENT,
-    BLOCK_AT_VAR,
-    BLOCK_AT_HTML,
-    BLOCK_AT_JAVASCRIPT,
-    BLOCK_AT_CHTL,
-    BLOCK_AT_CONFIG,
 
     // Misc
     HASH_COMMENT, // #

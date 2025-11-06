@@ -9,6 +9,10 @@ public:
 
     const std::string& getText() const { return text_; }
 
+    std::unique_ptr<ASTNode> clone() const override {
+        return std::make_unique<TextNode>(text_);
+    }
+
 private:
     std::string text_;
 };

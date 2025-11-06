@@ -34,15 +34,15 @@ This document outlines the development plan for the CHTL language and its associ
   - [x] Generate HTML from element and text nodes
   - [x] Handle attributes
 
-- [ ] **Style Blocks**
-  - [ ] Parse `style {}` blocks
-  - [ ] Parse style properties (`width: 100px;`)
-  - [ ] Generate inline styles
+- [x] **Style Blocks**
+  - [x] Parse `style {}` blocks
+  - [x] Parse style properties (`width: 100px;`)
+  - [x] Generate inline styles
 
-- [ ] **Templates**
-  - [ ] Parse `[Template]` blocks (`@Style`, `@Element`)
-  - [ ] Implement Analyser pass to collect templates
-  - [ ] Implement Analyser pass to resolve template usage
+- [x] **Templates**
+  - [x] Parse `[Template]` blocks (`@Style`, `@Element`)
+  - [x] Implement Analyser pass to collect templates
+  - [x] Implement Analyser pass to resolve template usage
 
 - [ ] **Imports**
   - [ ] Parse `[Import]` statements

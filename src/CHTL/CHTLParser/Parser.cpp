@@ -5,6 +5,8 @@
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/StylePropertyNode.h"
 #include "CHTLNode/LiteralValueNode.h"
+#include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/TemplateUsageNode.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -47,6 +49,9 @@ const Token& Parser::peek() const {
 }
 
 std::unique_ptr<ASTNode> Parser::declaration() {
+    if (check(TokenType::LEFT_BRACKET) && lexer_.peekToken().type == TokenType::KEYWORD_TEMPLATE) {
+        return parseTemplate();
+    }
     return statement();
 }
 
@@ -108,14 +113,69 @@ std::unique_ptr<ASTNode> Parser::parseStyleProperty() {
     return std::make_unique<StylePropertyNode>(std::move(name), std::move(value));
 }
 
+std::unique_ptr<ASTNode> Parser::parseTemplateUsage() {
+    consume(TokenType::IDENTIFIER, "Expect template type after '@'.");
+    std::string template_type = std::string(previous_.lexeme); // Style, Element, Var
+
+    consume(TokenType::IDENTIFIER, "Expect template name.");
+    std::string template_name = std::string(previous_.lexeme);
+
+    consume(TokenType::SEMICOLON, "Expect ';' after template usage.");
+
+    return std::make_unique<TemplateUsageNode>(template_name);
+}
+
 std::unique_ptr<ASTNode> Parser::parseStyle() {
     consume(TokenType::LEFT_BRACE, "Expect '{' after 'style' keyword.");
     auto styleNode = std::make_unique<StyleNode>();
     while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
-        styleNode->addChild(parseStyleProperty());
+        if (match(TokenType::AT)) {
+            styleNode->addChild(parseTemplateUsage());
+        } else {
+            styleNode->addChild(parseStyleProperty());
+        }
     }
     consume(TokenType::RIGHT_BRACE, "Expect '}' after style block.");
     return styleNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseTemplateBody(TemplateType type) {
+    if (type == TemplateType::Style) {
+        return parseStyleProperty();
+    }
+    return declaration();
+}
+
+
+std::unique_ptr<ASTNode> Parser::parseTemplate() {
+    consume(TokenType::LEFT_BRACKET, "Expect '[' before 'Template'.");
+    consume(TokenType::KEYWORD_TEMPLATE, "Expect 'Template' keyword.");
+    consume(TokenType::RIGHT_BRACKET, "Expect ']' after 'Template'.");
+
+    consume(TokenType::AT, "Expect '@' after '[Template]'.");
+    consume(TokenType::IDENTIFIER, "Expect template type.");
+    std::string type_str = std::string(previous_.lexeme);
+    TemplateType type;
+    if (type_str == "Style") {
+        type = TemplateType::Style;
+    } else if (type_str == "Element") {
+        type = TemplateType::Element;
+    } else {
+        type = TemplateType::Var;
+    }
+
+    consume(TokenType::IDENTIFIER, "Expect template name.");
+    std::string name = std::string(previous_.lexeme);
+
+    auto templateNode = std::make_unique<TemplateNode>(name, type);
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' to open template body.");
+    while (!check(TokenType::RIGHT_BRACE) && !check(TokenType::END_OF_FILE)) {
+        templateNode->addChild(parseTemplateBody(type));
+    }
+    consume(TokenType::RIGHT_BRACE, "Expect '}' to close template body.");
+
+    return templateNode;
 }
 
 std::unique_ptr<ASTNode> Parser::parseElement() {

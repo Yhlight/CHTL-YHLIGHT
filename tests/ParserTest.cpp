@@ -4,6 +4,9 @@
 #include "CHTL/CHTLNode/ProgramNode.h"
 #include "CHTL/CHTLNode/TextNode.h"
 #include "CHTL/CHTLNode/ElementNode.h"
+#include "CHTL/CHTLNode/TemplateNode.h"
+#include "CHTL/CHTLNode/TemplateUsageNode.h"
+#include "CHTL/CHTLNode/StyleNode.h"
 
 TEST(ParserTest, ParseTextNode) {
     std::string source = "text { \"hello world\" }";
@@ -91,4 +94,46 @@ TEST(ParserTest, ParseNestedElements) {
     ASSERT_EQ(text_children.size(), 1);
     auto* textNode = static_cast<TextNode*>(text_children[0].get());
     EXPECT_EQ(textNode->getText(), "nested");
+}
+
+TEST(ParserTest, ParseStyleTemplate) {
+    std::string source = "[Template] @Style MyTheme { color: red; }";
+    Lexer lexer(source);
+    Parser parser(lexer);
+
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    const auto& children = program->getChildren();
+    ASSERT_EQ(children.size(), 1);
+
+    const auto& child = children[0];
+    ASSERT_EQ(child->getType(), ASTNodeType::Template);
+
+    auto* templateNode = static_cast<TemplateNode*>(child.get());
+    EXPECT_EQ(templateNode->getName(), "MyTheme");
+    EXPECT_EQ(templateNode->getTemplateType(), TemplateType::Style);
+}
+
+TEST(ParserTest, ParseStyleTemplateUsage) {
+    std::string source = "div { style { @Style MyTheme; } }";
+    Lexer lexer(source);
+    Parser parser(lexer);
+
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    const auto& children = program->getChildren();
+    ASSERT_EQ(children.size(), 1);
+
+    auto* elementNode = static_cast<ElementNode*>(children[0].get());
+    const auto& style_children = elementNode->getChildren();
+    ASSERT_EQ(style_children.size(), 1);
+
+    auto* styleNode = static_cast<StyleNode*>(style_children[0].get());
+    const auto& usage_children = styleNode->getChildren();
+    ASSERT_EQ(usage_children.size(), 1);
+
+    auto* usageNode = static_cast<TemplateUsageNode*>(usage_children[0].get());
+    EXPECT_EQ(usageNode->getName(), "MyTheme");
 }

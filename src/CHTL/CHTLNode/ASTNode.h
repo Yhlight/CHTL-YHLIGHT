@@ -9,7 +9,9 @@ enum class ASTNodeType {
     Element,
     Style,
     StyleProperty,
-    LiteralValue
+    LiteralValue,
+    Template,
+    TemplateUsage
 };
 
 class ASTNode {
@@ -24,6 +26,12 @@ public:
     }
 
     const std::vector<std::unique_ptr<ASTNode>>& getChildren() const {
+        return children_;
+    }
+
+    virtual std::unique_ptr<ASTNode> clone() const = 0;
+
+    std::vector<std::unique_ptr<ASTNode>>& getChildrenForModify() {
         return children_;
     }
 

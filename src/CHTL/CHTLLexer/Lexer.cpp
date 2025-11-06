@@ -113,27 +113,19 @@ Token Lexer::number() {
 }
 
 TokenType Lexer::identifierType() {
-    // A simple keyword checker
     std::string_view lexeme = source_.substr(start_, current_ - start_);
     static const std::unordered_map<std::string_view, TokenType> keywords = {
         {"style", TokenType::KEYWORD_STYLE},
         {"script", TokenType::KEYWORD_SCRIPT},
         {"text", TokenType::KEYWORD_TEXT},
-        {"[Template]", TokenType::KEYWORD_TEMPLATE},
-        {"[Custom]", TokenType::KEYWORD_CUSTOM},
-        {"[Origin]", TokenType::KEYWORD_ORIGIN},
-        {"[Import]", TokenType::KEYWORD_IMPORT},
-        {"[Namespace]", TokenType::KEYWORD_NAMESPACE},
-        {"[Configuration]", TokenType::KEYWORD_CONFIGURATION},
+        {"Template", TokenType::KEYWORD_TEMPLATE},
+        {"Custom", TokenType::KEYWORD_CUSTOM},
+        {"Origin", TokenType::KEYWORD_ORIGIN},
+        {"Import", TokenType::KEYWORD_IMPORT},
+        {"Namespace", TokenType::KEYWORD_NAMESPACE},
+        {"Configuration", TokenType::KEYWORD_CONFIGURATION},
         {"from", TokenType::KEYWORD_FROM},
         {"as", TokenType::KEYWORD_AS},
-        {"@Style", TokenType::BLOCK_AT_STYLE},
-        {"@Element", TokenType::BLOCK_AT_ELEMENT},
-        {"@Var", TokenType::BLOCK_AT_VAR},
-        {"@Html", TokenType::BLOCK_AT_HTML},
-        {"@JavaScript", TokenType::BLOCK_AT_JAVASCRIPT},
-        {"@Chtl", TokenType::BLOCK_AT_CHTL},
-        {"@Config", TokenType::BLOCK_AT_CONFIG}
     };
 
     auto it = keywords.find(lexeme);
@@ -180,6 +172,7 @@ Token Lexer::scanToken() {
         case '=': return makeToken(match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL);
         case '<': return makeToken(match('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
         case '>': return makeToken(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
+        case '@': return makeToken(TokenType::AT);
         case '"':
         case '\'': return string();
         case '#': return makeToken(TokenType::HASH_COMMENT);

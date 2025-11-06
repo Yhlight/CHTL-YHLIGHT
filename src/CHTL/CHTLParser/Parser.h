@@ -3,6 +3,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLNode/ASTNode.h"
 #include "CHTLNode/ProgramNode.h"
+#include "CHTLNode/TemplateNode.h"
 #include <memory>
 
 class Parser {
@@ -24,6 +25,9 @@ private:
     std::unique_ptr<ASTNode> parseElement();
     std::unique_ptr<ASTNode> parseStyle();
     std::unique_ptr<ASTNode> parseStyleProperty();
+    std::unique_ptr<ASTNode> parseTemplate();
+    std::unique_ptr<ASTNode> parseTemplateUsage();
+    std::unique_ptr<ASTNode> parseTemplateBody(TemplateType type);
 
 
     Lexer& lexer_;
