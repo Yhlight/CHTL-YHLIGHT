@@ -88,10 +88,39 @@ std::unique_ptr<ExprNode> Parser::grouping() {
 }
 
 std::unique_ptr<ExprNode> Parser::selector() {
-    consume(TokenType::IDENTIFIER, "Expect selector identifier.");
-    std::string selector = std::string(previous_.lexeme);
+    std::vector<SelectorComponent> components;
+    bool expect_identifier = true;
+
+    while (!check(TokenType::RIGHT_DOUBLE_BRACE) && !check(TokenType::END_OF_FILE)) {
+        if (match(TokenType::DOT)) {
+            consume(TokenType::IDENTIFIER, "Expect class name after '.'.");
+            components.push_back({SelectorComponentType::CLASS, std::string(previous_.lexeme)});
+            expect_identifier = false;
+        } else if (match(TokenType::HASH)) {
+            consume(TokenType::IDENTIFIER, "Expect id name after '#'.");
+            components.push_back({SelectorComponentType::ID, std::string(previous_.lexeme)});
+            expect_identifier = false;
+        } else if (match(TokenType::IDENTIFIER)) {
+            if (!expect_identifier) {
+                components.push_back({SelectorComponentType::DESCENDANT, " "});
+            }
+            components.push_back({SelectorComponentType::TAG, std::string(previous_.lexeme)});
+            expect_identifier = false;
+        } else if (match(TokenType::LEFT_BRACKET)) {
+            consume(TokenType::NUMBER, "Expect number in brackets.");
+            components.push_back({SelectorComponentType::INDEX, std::string(previous_.lexeme)});
+            consume(TokenType::RIGHT_BRACKET, "Expect ']' after index.");
+            expect_identifier = false;
+        } else if (match(TokenType::IDENTIFIER)) {
+            if (components.empty() || components.back().type != SelectorComponentType::DESCENDANT) {
+                 components.push_back({SelectorComponentType::DESCENDANT, " "});
+            }
+            components.push_back({SelectorComponentType::TAG, std::string(previous_.lexeme)});
+        }
+    }
+
     consume(TokenType::RIGHT_DOUBLE_BRACE, "Expect '}}' after selector.");
-    return std::make_unique<SelectorExprNode>(selector);
+    return std::make_unique<SelectorExprNode>(std::move(components));
 }
 
 std::unique_ptr<ExprNode> Parser::binary(std::unique_ptr<ExprNode> left) {

@@ -2,17 +2,31 @@
 
 #include "ExprNode.h"
 #include <string>
+#include <vector>
 
 namespace CHTLJS {
 
+enum class SelectorComponentType {
+    TAG,
+    ID,
+    CLASS,
+    DESCENDANT,
+    INDEX
+};
+
+struct SelectorComponent {
+    SelectorComponentType type;
+    std::string value;
+};
+
 class SelectorExprNode : public ExprNode {
 public:
-    explicit SelectorExprNode(std::string selector) : ExprNode(ExprNodeType::Selector), selector_(std::move(selector)) {}
+    explicit SelectorExprNode(std::vector<SelectorComponent> components);
 
-    const std::string& getSelector() const { return selector_; }
+    const std::vector<SelectorComponent>& getComponents() const;
 
 private:
-    std::string selector_;
+    std::vector<SelectorComponent> components_;
 };
 
 }

@@ -43,7 +43,58 @@ TEST(CHTLJSParserTest, ParseSelector) {
     ASSERT_EQ(expr->getType(), ExprNodeType::Selector);
 
     auto* selectorExpr = static_cast<SelectorExprNode*>(expr.get());
-    EXPECT_EQ(selectorExpr->getSelector(), "#my-id");
+    const auto& components = selectorExpr->getComponents();
+    ASSERT_EQ(components.size(), 1);
+    EXPECT_EQ(components[0].type, SelectorComponentType::ID);
+    EXPECT_EQ(components[0].value, "my-id");
+}
+
+TEST(CHTLJSParserTest, ParseTagSelector) {
+    std::string source = "{{my-tag}};";
+    Lexer lexer(source);
+    Parser parser(lexer);
+
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    const auto& expressions = program->getExpressions();
+    ASSERT_EQ(expressions.size(), 1);
+
+    const auto& expr = expressions[0];
+    ASSERT_EQ(expr->getType(), ExprNodeType::Selector);
+
+    auto* selectorExpr = static_cast<SelectorExprNode*>(expr.get());
+    const auto& components = selectorExpr->getComponents();
+    ASSERT_EQ(components.size(), 1);
+    EXPECT_EQ(components[0].type, SelectorComponentType::TAG);
+    EXPECT_EQ(components[0].value, "my-tag");
+}
+
+TEST(CHTLJSParserTest, ParseComplexSelector) {
+    std::string source = "{{.box button[0]}};";
+    Lexer lexer(source);
+    Parser parser(lexer);
+
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    const auto& expressions = program->getExpressions();
+    ASSERT_EQ(expressions.size(), 1);
+
+    const auto& expr = expressions[0];
+    ASSERT_EQ(expr->getType(), ExprNodeType::Selector);
+
+    auto* selectorExpr = static_cast<SelectorExprNode*>(expr.get());
+    const auto& components = selectorExpr->getComponents();
+    ASSERT_EQ(components.size(), 4);
+    EXPECT_EQ(components[0].type, SelectorComponentType::CLASS);
+    EXPECT_EQ(components[0].value, "box");
+    EXPECT_EQ(components[1].type, SelectorComponentType::DESCENDANT);
+    EXPECT_EQ(components[1].value, " ");
+    EXPECT_EQ(components[2].type, SelectorComponentType::TAG);
+    EXPECT_EQ(components[2].value, "button");
+    EXPECT_EQ(components[3].type, SelectorComponentType::INDEX);
+    EXPECT_EQ(components[3].value, "0");
 }
 
 TEST(CHTLJSParserTest, ParseBinaryExpression) {
@@ -94,7 +145,10 @@ TEST(CHTLJSParserTest, ParseCallExpression) {
     ASSERT_EQ(object.getType(), ExprNodeType::Selector);
 
     auto* selectorExpr = static_cast<const SelectorExprNode*>(&object);
-    EXPECT_EQ(selectorExpr->getSelector(), "myObject");
+    const auto& components = selectorExpr->getComponents();
+    ASSERT_EQ(components.size(), 1);
+    EXPECT_EQ(components[0].type, SelectorComponentType::TAG);
+    EXPECT_EQ(components[0].value, "myObject");
 
     EXPECT_EQ(memberAccessExpr->getMember().lexeme, "myMethod");
 

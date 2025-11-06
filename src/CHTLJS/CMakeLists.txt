@@ -6,6 +6,7 @@ target_sources(libchtljs
     CHTLJSParser/Parser.cpp
     CHTLJSNode/CallExprNode.cpp
     CHTLJSNode/MemberAccessExprNode.cpp
+    CHTLJSNode/SelectorExprNode.cpp
 )
 
 target_include_directories(libchtljs

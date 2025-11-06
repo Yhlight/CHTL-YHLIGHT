@@ -128,7 +128,7 @@ TokenType Lexer::identifierType() {
 }
 
 Token Lexer::identifier() {
-    while (isAlpha(peek()) || isDigit(peek()) || peek() == '#' || peek() == '-') advance();
+    while (isAlpha(peek()) || isDigit(peek()) || peek() == '-') advance();
     return makeToken(identifierType());
 }
 
@@ -141,11 +141,12 @@ Token Lexer::scanToken() {
 
     char c = advance();
 
-    if (isAlpha(c) || c == '#') return identifier();
+    if (isAlpha(c)) return identifier();
     if (isDigit(c)) return number();
 
 
     switch (c) {
+        case '#': return makeToken(TokenType::HASH);
         case '(': return makeToken(TokenType::LEFT_PAREN);
         case ')': return makeToken(TokenType::RIGHT_PAREN);
         case '{': return match('{') ? makeToken(TokenType::LEFT_DOUBLE_BRACE) : makeToken(TokenType::LEFT_BRACE);

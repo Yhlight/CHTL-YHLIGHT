@@ -4,7 +4,7 @@
 using namespace CHTLJS;
 
 TEST(CHTLJSLexerTest, SingleCharacterTokens) {
-    std::string source = "(){}[];:.";
+    std::string source = "(){}[];:.#";
     Lexer lexer(source);
 
     std::vector<TokenType> expected_tokens = {
@@ -17,6 +17,7 @@ TEST(CHTLJSLexerTest, SingleCharacterTokens) {
         TokenType::SEMICOLON,
         TokenType::COLON,
         TokenType::DOT,
+        TokenType::HASH,
         TokenType::END_OF_FILE
     };
 
@@ -63,11 +64,11 @@ TEST(CHTLJSLexerTest, Keywords) {
     }
 }
 
-TEST(CHTLJSLexerTest, IdentifierWithHash) {
-    std::string source = "#my-id";
+TEST(CHTLJSLexerTest, IdentifierWithDash) {
+    std::string source = "my-id";
     Lexer lexer(source);
 
     Token token = lexer.scanToken();
     EXPECT_EQ(token.type, TokenType::IDENTIFIER);
-    EXPECT_EQ(token.lexeme, "#my-id");
+    EXPECT_EQ(token.lexeme, "my-id");
 }

@@ -57,7 +57,7 @@ This document outlines the development plan for the CHTL language and its associ
   - [ ] Implement CHTLJS Generator
 
 - [ ] **Enhanced Selectors**
-  - [ ] Parse `{{...}}` syntax
+  - [x] Parse `{{...}}` syntax
   - [ ] Generate corresponding JavaScript DOM queries
 
 - [ ] **Event Handling**
