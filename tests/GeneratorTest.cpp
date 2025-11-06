@@ -50,3 +50,15 @@ TEST(GeneratorTest, GeneratesGlobalStylesheet) {
 
     ASSERT_EQ(result, "<style>.box{color:blue;}</style><div class=\"box\"></div>");
 }
+
+TEST(GeneratorTest, HandlesAutomaticClassAndId) {
+    std::string source = "div { class:\"existing\"; style { .box { color: blue; } #main { background: white; } } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<style>.box{color:blue;}#main{background:white;}</style><div class=\"existing box\" id=\"main\"></div>");
+}

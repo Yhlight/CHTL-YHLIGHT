@@ -48,3 +48,10 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Implement generation of inline styles from `StylePropertyNode`.
 - [x] Implement generation of global stylesheets from `StyleRuleNode`.
 - [x] Write unit tests for the generator.
+
+## Milestone 7: Automatic Class/ID Generation
+
+- [x] Enhance the `Lexer` to recognize `.` and `#` in identifiers.
+- [x] Enhance the `Parser` to correctly parse `StyleRuleNode` within `style` blocks.
+- [x] Enhance the `Generator` to automatically add `class` or `id` attributes to elements.
+- [x] Write unit tests for the automatic class/id generation feature.

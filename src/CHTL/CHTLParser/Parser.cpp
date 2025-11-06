@@ -85,32 +85,37 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
 
     auto styleNode = std::make_unique<StyleNode>();
 
-    while(currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+    while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
         if (currentToken.type == TokenType::Identifier) {
+            // Peek to see if it's a rule or a property
             Token peekToken = lexer->peek();
+
             if (peekToken.type == TokenType::OpenBrace) {
-                // Style Rule
-                auto ruleNode = std::make_unique<StyleRuleNode>(currentToken.value);
+                // It's a style rule
+                std::string selector = currentToken.value;
                 consume(TokenType::Identifier);
                 consume(TokenType::OpenBrace);
+
+                auto ruleNode = std::make_unique<StyleRuleNode>(selector);
                 ruleNode->properties = parseStyleProperties();
-                consume(TokenType::CloseBrace);
                 styleNode->children.push_back(std::move(ruleNode));
-            } else {
-                // Style Property
+
+                consume(TokenType::CloseBrace);
+            } else if (peekToken.type == TokenType::Colon) {
+                // It's a style property
                 std::string key = currentToken.value;
                 consume(TokenType::Identifier);
                 consume(TokenType::Colon);
                 std::string value = currentToken.value;
-                consume(currentToken.type); // String or Identifier
+                consume(currentToken.type);
                 consume(TokenType::Semicolon);
                 styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+            } else {
+                // Error or unexpected token
+                consume(currentToken.type);
             }
         } else {
-             // If we don't recognize the token, consume it and move on
-            if (currentToken.type != TokenType::Eof) {
-                currentToken = lexer->getNextToken();
-            }
+            consume(currentToken.type);
         }
     }
 

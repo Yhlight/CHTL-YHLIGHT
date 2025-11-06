@@ -72,9 +72,19 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
         } else if (child->getType() == NodeType::StyleRule) {
             auto ruleNode = static_cast<StyleRuleNode*>(child.get());
             visit(ruleNode);
-            // Assuming the selector is a class, add it to the parent
-            if (ruleNode->selector[0] == '.') {
-                 parent->attributes["class"] = ruleNode->selector.substr(1);
+            // Automatically add class or id to the parent element
+            const std::string& selector = ruleNode->selector;
+            if (!selector.empty()) {
+                if (selector[0] == '.') {
+                    std::string className = selector.substr(1);
+                    if (parent->attributes.count("class")) {
+                        parent->attributes["class"] += " " + className;
+                    } else {
+                        parent->attributes["class"] = className;
+                    }
+                } else if (selector[0] == '#') {
+                    parent->attributes["id"] = selector.substr(1);
+                }
             }
         }
     }
