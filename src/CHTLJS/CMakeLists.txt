@@ -4,6 +4,8 @@ target_sources(libchtljs
     PRIVATE
     CHTLJSLexer/Lexer.cpp
     CHTLJSParser/Parser.cpp
+    CHTLJSNode/CallExprNode.cpp
+    CHTLJSNode/MemberAccessExprNode.cpp
 )
 
 target_include_directories(libchtljs

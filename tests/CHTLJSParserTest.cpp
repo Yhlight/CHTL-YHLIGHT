@@ -5,6 +5,8 @@
 #include "CHTLJS/CHTLJSNode/LiteralExprNode.h"
 #include "CHTLJS/CHTLJSNode/SelectorExprNode.h"
 #include "CHTLJS/CHTLJSNode/BinaryExprNode.h"
+#include "CHTLJS/CHTLJSNode/CallExprNode.h"
+#include "CHTLJS/CHTLJSNode/MemberAccessExprNode.h"
 
 using namespace CHTLJS;
 
@@ -67,4 +69,35 @@ TEST(CHTLJSParserTest, ParseBinaryExpression) {
 
     auto* right = static_cast<const LiteralExprNode*>(binaryExpr->getRight());
     EXPECT_EQ(right->getValue(), "2");
+}
+
+TEST(CHTLJSParserTest, ParseCallExpression) {
+    std::string source = "{{myObject}}->myMethod();";
+    Lexer lexer(source);
+    Parser parser(lexer);
+
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    const auto& expressions = program->getExpressions();
+    ASSERT_EQ(expressions.size(), 1);
+
+    const auto& expr = expressions[0];
+    ASSERT_EQ(expr->getType(), ExprNodeType::Call);
+
+    auto* callExpr = static_cast<CallExprNode*>(expr.get());
+    const auto& callee = callExpr->getCallee();
+    ASSERT_EQ(callee.getType(), ExprNodeType::MemberAccess);
+
+    auto* memberAccessExpr = static_cast<const MemberAccessExprNode*>(&callee);
+    const auto& object = memberAccessExpr->getObject();
+    ASSERT_EQ(object.getType(), ExprNodeType::Selector);
+
+    auto* selectorExpr = static_cast<const SelectorExprNode*>(&object);
+    EXPECT_EQ(selectorExpr->getSelector(), "myObject");
+
+    EXPECT_EQ(memberAccessExpr->getMember().lexeme, "myMethod");
+
+    const auto& args = callExpr->getArguments();
+    EXPECT_EQ(args.size(), 0);
 }

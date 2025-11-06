@@ -53,6 +53,7 @@ This document outlines the development plan for the CHTL language and its associ
 - [ ] **CHTLJS Core**
   - [x] Implement CHTLJS Lexer
   - [ ] Implement CHTLJS Parser (Pratt Parser)
+    - [x] Arrow operator (`->`) for member access and calls
   - [ ] Implement CHTLJS Generator
 
 - [ ] **Enhanced Selectors**

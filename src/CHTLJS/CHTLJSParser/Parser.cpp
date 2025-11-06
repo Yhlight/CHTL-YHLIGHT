@@ -3,13 +3,16 @@
 #include "CHTLJSNode/SelectorExprNode.h"
 #include "CHTLJSNode/BinaryExprNode.h"
 #include "CHTLJSNode/UnaryExprNode.h"
+#include "CHTLJSNode/CallExprNode.h"
+#include "CHTLJSNode/MemberAccessExprNode.h"
 #include <iostream>
 
 namespace CHTLJS {
 
 Parser::Parser(Lexer& lexer) : lexer_(lexer) {
     rules_ = {
-        {TokenType::LEFT_PAREN,     {&Parser::grouping, nullptr,   Precedence::NONE}},
+        {TokenType::LEFT_PAREN,     {&Parser::grouping, &Parser::call,   Precedence::CALL}},
+        {TokenType::ARROW,          {nullptr,           &Parser::memberAccess,   Precedence::MEMBER}},
         {TokenType::MINUS,          {&Parser::unary,    &Parser::binary,   Precedence::TERM}},
         {TokenType::PLUS,           {nullptr,           &Parser::binary,   Precedence::TERM}},
         {TokenType::SLASH,          {nullptr,           &Parser::binary,   Precedence::FACTOR}},
@@ -102,6 +105,22 @@ std::unique_ptr<ExprNode> Parser::unary() {
     Token op = previous_;
     auto right = parsePrecedence(Precedence::UNARY);
     return std::make_unique<UnaryExprNode>(op, std::move(right));
+}
+
+std::unique_ptr<ExprNode> Parser::memberAccess(std::unique_ptr<ExprNode> object) {
+    consume(TokenType::IDENTIFIER, "Expect identifier after '->'.");
+    return std::make_unique<MemberAccessExprNode>(std::move(object), previous_);
+}
+
+std::unique_ptr<ExprNode> Parser::call(std::unique_ptr<ExprNode> callee) {
+    std::vector<std::unique_ptr<ExprNode>> arguments;
+    if (!check(TokenType::RIGHT_PAREN)) {
+        do {
+            arguments.push_back(parsePrecedence(Precedence::ASSIGNMENT));
+        } while (match(TokenType::COMMA));
+    }
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+    return std::make_unique<CallExprNode>(std::move(callee), previous_, std::move(arguments));
 }
 
 std::unique_ptr<ProgramNode> Parser::parse() {

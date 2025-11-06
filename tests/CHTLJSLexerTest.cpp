@@ -33,7 +33,7 @@ TEST(CHTLJSLexerTest, DoubleCharacterTokens) {
     std::vector<TokenType> expected_tokens = {
         TokenType::LEFT_DOUBLE_BRACE,
         TokenType::RIGHT_DOUBLE_BRACE,
-        TokenType::ARROW_DASH,
+        TokenType::ARROW,
         TokenType::AMPERSAND_ARROW_DASH,
         TokenType::END_OF_FILE
     };

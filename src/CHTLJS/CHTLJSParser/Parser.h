@@ -18,7 +18,8 @@ enum class Precedence {
     TERM,        // + -
     FACTOR,      // * /
     UNARY,       // ! -
-    CALL,        // . ()
+    CALL,        // ()
+    MEMBER,      // . ->
     PRIMARY
 };
 
@@ -54,6 +55,8 @@ private:
     std::unique_ptr<ExprNode> selector();
     std::unique_ptr<ExprNode> binary(std::unique_ptr<ExprNode> left);
     std::unique_ptr<ExprNode> unary();
+    std::unique_ptr<ExprNode> memberAccess(std::unique_ptr<ExprNode> object);
+    std::unique_ptr<ExprNode> call(std::unique_ptr<ExprNode> callee);
 
     Lexer& lexer_;
     Token current_;

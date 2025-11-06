@@ -10,7 +10,9 @@ enum class ExprNodeType {
     Literal,
     Selector,
     Binary,
-    Unary
+    Unary,
+    Call,
+    MemberAccess
 };
 
 class ExprNode {

@@ -155,7 +155,7 @@ Token Lexer::scanToken() {
         case ';': return makeToken(TokenType::SEMICOLON);
         case ',': return makeToken(TokenType::COMMA);
         case '.': return makeToken(TokenType::DOT);
-        case '-': return match('>') ? makeToken(TokenType::ARROW_DASH) : makeToken(TokenType::MINUS);
+        case '-': return match('>') ? makeToken(TokenType::ARROW) : makeToken(TokenType::MINUS);
         case '&': return match('-') && match('>') ? makeToken(TokenType::AMPERSAND_ARROW_DASH) : errorToken("Unexpected character.");
         case '+': return makeToken(TokenType::PLUS);
         case '/': return makeToken(TokenType::SLASH);
