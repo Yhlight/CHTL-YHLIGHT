@@ -1,1 +1,17 @@
-third-party/
+# CMake build files
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Compiled binaries
+*.exe
+*.out
+*.so
+*.dll
+*.lib
+*.a
+
+# Other
+.DS_Store
