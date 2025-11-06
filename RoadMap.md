@@ -58,7 +58,7 @@ This document outlines the development plan for the CHTL language and its associ
 
 - [ ] **Enhanced Selectors**
   - [x] Parse `{{...}}` syntax
-  - [ ] Generate corresponding JavaScript DOM queries
+  - [x] Generate corresponding JavaScript DOM queries
 
 - [ ] **Event Handling**
   - [ ] Parse `Listen` and `Delegate` blocks

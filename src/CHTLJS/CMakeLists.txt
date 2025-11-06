@@ -13,3 +13,6 @@ target_include_directories(libchtljs
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
     PRIVATE ${CMAKE_SOURCE_DIR}/src/SharedCore
 )
+
+add_subdirectory(CHTLJSGenerator)
+target_link_libraries(libchtljs PUBLIC libchtljsgenerator)
