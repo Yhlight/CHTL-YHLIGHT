@@ -22,6 +22,9 @@ private:
     std::unique_ptr<ASTNode> statement();
     std::unique_ptr<ASTNode> parseText();
     std::unique_ptr<ASTNode> parseElement();
+    std::unique_ptr<ASTNode> parseStyle();
+    std::unique_ptr<ASTNode> parseStyleProperty();
+
 
     Lexer& lexer_;
     Token current_;

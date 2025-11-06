@@ -6,7 +6,10 @@
 enum class ASTNodeType {
     Program,
     Text,
-    Element
+    Element,
+    Style,
+    StyleProperty,
+    LiteralValue
 };
 
 class ASTNode {

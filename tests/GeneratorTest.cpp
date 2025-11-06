@@ -63,3 +63,27 @@ TEST(GeneratorTest, GenerateComplexStructure) {
     std::string expected = "<body><div id=\"main-content\"><h1 class=\"title\">Welcome to CHTL</h1><p>This is a paragraph.</p></div></body>";
     EXPECT_EQ(compileCHTL(source), expected);
 }
+
+TEST(StyleBlockTest, GenerateSingleStyleProperty) {
+    std::string source = "div { style { color: red; } }";
+    std::string expected = "<div style=\"color: red\"></div>";
+    EXPECT_EQ(compileCHTL(source), expected);
+}
+
+TEST(StyleBlockTest, GenerateMultipleStyleProperties) {
+    std::string source = "p { style { font-size: 16px; font-weight: bold; } }";
+    std::string expected = "<p style=\"font-size: 16px;font-weight: bold\"></p>";
+    EXPECT_EQ(compileCHTL(source), expected);
+}
+
+TEST(StyleBlockTest, GenerateStylesAndAttributes) {
+    std::string source = "a { class: \"link\"; style { text-decoration: none; } }";
+    std::string expected = "<a class=\"link\" style=\"text-decoration: none\"></a>";
+    EXPECT_EQ(compileCHTL(source), expected);
+}
+
+TEST(StyleBlockTest, GenerateStylesAndNestedContent) {
+    std::string source = "div { style { border: '1px solid black'; } text { \"content\" } }";
+    std::string expected = "<div style=\"border: 1px solid black\">content</div>";
+    EXPECT_EQ(compileCHTL(source), expected);
+}

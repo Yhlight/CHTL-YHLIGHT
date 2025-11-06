@@ -2,7 +2,7 @@
 
 This document outlines the development plan for the CHTL language and its associated tooling.
 
-## Phase 1: Core Compiler Infrastructure (In Progress)
+## Phase 1: Core Compiler Infrastructure (Completed)
 
 - [x] **Project Setup**
   - [x] Create `RoadMap.md`
@@ -27,12 +27,12 @@ This document outlines the development plan for the CHTL language and its associ
   - [x] Write unit tests for the Lexer
   - [x] Write unit tests for the Parser
 
-## Phase 2: Basic Language Features
+## Phase 2: Basic Language Features (In Progress)
 
-- [ ] **Generator (CHTL)**
-  - [ ] Implement a basic generator to traverse the AST
-  - [ ] Generate HTML from element and text nodes
-  - [ ] Handle attributes
+- [x] **Generator (CHTL)**
+  - [x] Implement a basic generator to traverse the AST
+  - [x] Generate HTML from element and text nodes
+  - [x] Handle attributes
 
 - [ ] **Style Blocks**
   - [ ] Parse `style {}` blocks
