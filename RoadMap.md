@@ -16,16 +16,16 @@ This document outlines the development plan for the CHTL language and its associ
   - [x] Add support for comments (`//`, `/**/`, `#`)
   - [ ] Differentiate between block keywords (`[Template]`) and regular identifiers
 
-- [ ] **Parser (CHTL)**
-  - [ ] Implement basic AST node structure (`ASTNode`, `ProgramNode`)
-  - [ ] Parse text nodes (`text {}`)
-  - [ ] Parse element nodes (`div {}`)
-  - [ ] Parse attributes (`id: "box";`)
+- [x] **Parser (CHTL)**
+  - [x] Implement basic AST node structure (`ASTNode`, `ProgramNode`)
+  - [x] Parse text nodes (`text {}`)
+  - [x] Parse element nodes (`div {}`)
+  - [x] Parse attributes (`id: "box";`)
 
 - [x] **Testing**
   - [x] Set up Google Test framework
   - [x] Write unit tests for the Lexer
-  - [ ] Write unit tests for the Parser
+  - [x] Write unit tests for the Parser
 
 ## Phase 2: Basic Language Features
 
