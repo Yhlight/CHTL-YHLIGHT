@@ -9,6 +9,7 @@
 #include "CHTLNode/StyleRuleNode.h"
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/OriginNode.h"
+#include "CHTLNode/TemplateNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -205,4 +206,32 @@ TEST(ParserTest, ParsesOriginBlock) {
     CHTL::OriginNode* origin_node = static_cast<CHTL::OriginNode*>(stmt);
     ASSERT_EQ(origin_node->originType, "Html");
     ASSERT_EQ(origin_node->content, "<div></div>");
+}
+
+TEST(ParserTest, ParsesStyleGroupTemplate) {
+    std::string source = R"(
+        [Template] @Style DefaultText {
+            color: "black";
+            line-height: 1.6;
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Template);
+
+    CHTL::TemplateNode* template_node = static_cast<CHTL::TemplateNode*>(stmt);
+    ASSERT_EQ(template_node->type, "Style");
+    ASSERT_EQ(template_node->name, "DefaultText");
+    ASSERT_EQ(template_node->properties.size(), 2);
+    ASSERT_EQ(template_node->properties[0]->key, "color");
+    ASSERT_EQ(template_node->properties[0]->value, "black");
+    ASSERT_EQ(template_node->properties[1]->key, "line-height");
+    ASSERT_EQ(template_node->properties[1]->value, "1.6");
 }

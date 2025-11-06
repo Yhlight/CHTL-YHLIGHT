@@ -8,10 +8,14 @@
 #include "../CHTLNode/StyleRuleNode.h"
 #include "../CHTLNode/ScriptNode.h"
 #include "../CHTLNode/OriginNode.h"
+#include "../CHTLNode/TemplateNode.h"
 #include <string>
 #include <sstream>
+#include <map>
 
 namespace CHTL {
+
+class TemplateNode;
 
 class Generator {
 public:
@@ -24,10 +28,12 @@ private:
     void visit(const StyleNode* node, ElementNode* parent);
     void visit(const ScriptNode* node);
     void visit(const OriginNode* node);
+    void visit(const TemplateNode* node);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
 
     std::stringstream html_output;
     std::stringstream css_output;
+    std::map<std::string, const TemplateNode*> style_templates;
 };
 
 } // namespace CHTL

@@ -14,6 +14,14 @@ std::string Generator::generate(const ProgramNode& program) {
 }
 
 void Generator::visit(const ProgramNode* node) {
+    // First pass: collect all style templates
+    for (const auto& statement : node->statements) {
+        if (statement->getType() == NodeType::Template) {
+            visit(static_cast<TemplateNode*>(statement.get()));
+        }
+    }
+
+    // Second pass: process the rest of the statements
     for (const auto& statement : node->statements) {
         switch (statement->getType()) {
             case NodeType::Element:
@@ -21,6 +29,9 @@ void Generator::visit(const ProgramNode* node) {
                 break;
             case NodeType::Origin:
                 visit(static_cast<OriginNode*>(statement.get()));
+                break;
+            case NodeType::Template:
+                // Already processed
                 break;
             default:
                 break;
@@ -135,9 +146,23 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
         }
     }
 
+    // Process style group references
+    for (const auto& groupName : node->styleGroupReferences) {
+        if (style_templates.count(groupName)) {
+            const auto& templateNode = style_templates[groupName];
+            for (const auto& prop : templateNode->properties) {
+                visit(prop.get(), styleStream);
+            }
+        }
+    }
+
     std::string styleString = styleStream.str();
     if (!styleString.empty()) {
-        parent->attributes["style"] = styleString;
+        if (parent->attributes.count("style")) {
+            parent->attributes["style"] += styleString;
+        } else {
+            parent->attributes["style"] = styleString;
+        }
     }
 }
 
@@ -154,6 +179,12 @@ void Generator::visit(const OriginNode* node) {
         html_output << node->content;
     } else if (node->originType == "Style") {
         css_output << node->content;
+    }
+}
+
+void Generator::visit(const TemplateNode* node) {
+    if (node->type == "Style") {
+        style_templates[node->name] = node;
     }
 }
 

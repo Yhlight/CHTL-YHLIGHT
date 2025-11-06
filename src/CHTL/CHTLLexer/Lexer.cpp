@@ -114,7 +114,7 @@ Token Lexer::getNextToken() {
     // Handle identifiers and unquoted literals (including numbers and selectors)
     if (std::isalpha(currentChar) || std::isdigit(currentChar) || currentChar == '.' || currentChar == '#') {
         size_t start = position;
-        while (position < source.length() && (std::isalnum(source[position]) || source[position] == '.' || source[position] == '#')) {
+        while (position < source.length() && (std::isalnum(source[position]) || source[position] == '.' || source[position] == '#' || source[position] == '-')) {
             position++;
         }
         return {TokenType::Identifier, source.substr(start, position - start)};

@@ -78,3 +78,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Update the `Parser` to parse `[Origin]` blocks.
 - [x] Update the `Generator` to handle `OriginNode` and produce raw output.
 - [x] Write unit tests for the `[Origin]` block feature.
+
+## Milestone 11: Template System - Style Groups
+
+- [ ] Enhance the `Lexer` to recognize `[`, `]`, and `@`.
+- [ ] Add `TemplateNode` and related nodes to the AST.
+- [ ] Update the `Parser` to parse `[Template] @Style` blocks.
+- [ ] Update the `Generator` to resolve `@Style` references.
+- [ ] Write unit tests for the style group template feature.

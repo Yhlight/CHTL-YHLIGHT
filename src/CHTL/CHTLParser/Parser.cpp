@@ -5,6 +5,7 @@
 #include "CHTLNode/StyleRuleNode.h"
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/OriginNode.h"
+#include "CHTLNode/TemplateNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -49,6 +50,10 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
     }
 
     if (currentToken.type == TokenType::OpenBracket) {
+        Token peekToken = lexer->peek();
+        if (peekToken.value == "Template") {
+            return parseTemplateNode();
+        }
         return parseOriginNode();
     }
 
@@ -120,22 +125,31 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
     auto styleNode = std::make_unique<StyleNode>();
 
     while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
-        Token peekToken = lexer->peek();
-
-        if (peekToken.type == TokenType::OpenBrace || currentToken.type == TokenType::Ampersand) {
-            styleNode->children.push_back(parseStyleRule());
-        } else if (peekToken.type == TokenType::Colon) {
-            // It's a style property
-            std::string key = currentToken.value;
+        if (currentToken.type == TokenType::At) {
+            consume(TokenType::At);
+            consume(TokenType::Identifier); // Consume "Style"
+            std::string groupName = currentToken.value;
             consume(TokenType::Identifier);
-            consume(TokenType::Colon);
-            std::string value = currentToken.value;
-            consume(currentToken.type);
             consume(TokenType::Semicolon);
-            styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+            styleNode->styleGroupReferences.push_back(groupName);
         } else {
-            // Error or unexpected token
-            consume(currentToken.type);
+            Token peekToken = lexer->peek();
+
+            if (peekToken.type == TokenType::OpenBrace || currentToken.type == TokenType::Ampersand) {
+                styleNode->children.push_back(parseStyleRule());
+            } else if (peekToken.type == TokenType::Colon) {
+                // It's a style property
+                std::string key = currentToken.value;
+                consume(TokenType::Identifier);
+                consume(TokenType::Colon);
+                std::string value = currentToken.value;
+                consume(currentToken.type);
+                consume(TokenType::Semicolon);
+                styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+            } else {
+                // Error or unexpected token
+                consume(currentToken.type);
+            }
         }
     }
 
@@ -220,6 +234,30 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
     consume(TokenType::CloseBrace);
 
     return elementNode;
+}
+
+std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
+    consume(TokenType::OpenBracket);
+    consume(TokenType::Identifier); // Consume "Template"
+    consume(TokenType::CloseBracket);
+
+    consume(TokenType::At);
+    std::string type = currentToken.value;
+    consume(TokenType::Identifier);
+
+    std::string name = currentToken.value;
+    consume(TokenType::Identifier);
+
+    consume(TokenType::OpenBrace);
+
+    auto templateNode = std::make_unique<TemplateNode>();
+    templateNode->type = type;
+    templateNode->name = name;
+    templateNode->properties = parseStyleProperties();
+
+    consume(TokenType::CloseBrace);
+
+    return templateNode;
 }
 
 } // namespace CHTL
