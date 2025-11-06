@@ -19,6 +19,9 @@ void Generator::visit(const ProgramNode* node) {
             case NodeType::Element:
                 visit(static_cast<ElementNode*>(statement.get()));
                 break;
+            case NodeType::Origin:
+                visit(static_cast<OriginNode*>(statement.get()));
+                break;
             default:
                 break;
         }
@@ -54,6 +57,9 @@ void Generator::visit(const ElementNode* node) {
                 break;
             case NodeType::Script:
                 visit(static_cast<ScriptNode*>(child.get()));
+                break;
+            case NodeType::Origin:
+                visit(static_cast<OriginNode*>(child.get()));
                 break;
             default:
                 break;
@@ -141,6 +147,14 @@ void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStr
 
 void Generator::visit(const ScriptNode* node) {
     html_output << "<script>" << node->content << "</script>";
+}
+
+void Generator::visit(const OriginNode* node) {
+    if (node->originType == "Html" || node->originType == "JavaScript") {
+        html_output << node->content;
+    } else if (node->originType == "Style") {
+        css_output << node->content;
+    }
 }
 
 } // namespace CHTL

@@ -100,6 +100,15 @@ Token Lexer::getNextToken() {
         case '&':
             position++;
             return {TokenType::Ampersand, "&"};
+        case '[':
+            position++;
+            return {TokenType::OpenBracket, "["};
+        case ']':
+            position++;
+            return {TokenType::CloseBracket, "]"};
+        case '@':
+            position++;
+            return {TokenType::At, "@"};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)

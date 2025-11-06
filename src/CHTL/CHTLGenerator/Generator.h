@@ -7,6 +7,7 @@
 #include "../CHTLNode/StylePropertyNode.h"
 #include "../CHTLNode/StyleRuleNode.h"
 #include "../CHTLNode/ScriptNode.h"
+#include "../CHTLNode/OriginNode.h"
 #include <string>
 #include <sstream>
 
@@ -22,6 +23,7 @@ private:
     void visit(const TextNode* node);
     void visit(const StyleNode* node, ElementNode* parent);
     void visit(const ScriptNode* node);
+    void visit(const OriginNode* node);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
 
     std::stringstream html_output;

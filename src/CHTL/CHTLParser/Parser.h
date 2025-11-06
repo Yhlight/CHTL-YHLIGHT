@@ -12,6 +12,7 @@ class StyleNode;
 class StylePropertyNode;
 class StyleRuleNode;
 class ScriptNode;
+class OriginNode;
 
 class Parser {
 public:
@@ -26,6 +27,7 @@ private:
     std::unique_ptr<StyleNode> parseStyle();
     std::unique_ptr<StyleRuleNode> parseStyleRule();
     std::unique_ptr<ScriptNode> parseScriptNode();
+    std::unique_ptr<OriginNode> parseOriginNode();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
 
 

@@ -70,3 +70,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Update the `Parser` to recognize and parse `script` blocks.
 - [x] Update the `Generator` to produce `<script>` tags.
 - [x] Write unit tests for `script` block parsing and generation.
+
+## Milestone 10: Raw Embedding (`[Origin]`)
+
+- [x] Add an `OriginNode` to the AST.
+- [x] Update the `Lexer` to recognize `[`, `]`, and `@`.
+- [x] Update the `Parser` to parse `[Origin]` blocks.
+- [x] Update the `Generator` to handle `OriginNode` and produce raw output.
+- [x] Write unit tests for the `[Origin]` block feature.

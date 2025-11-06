@@ -8,6 +8,7 @@
 #include "CHTLNode/StylePropertyNode.h"
 #include "CHTLNode/StyleRuleNode.h"
 #include "CHTLNode/ScriptNode.h"
+#include "CHTLNode/OriginNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -186,4 +187,22 @@ TEST(ParserTest, ParsesScriptBlock) {
 
     CHTL::ScriptNode* script_node = static_cast<CHTL::ScriptNode*>(child_stmt);
     ASSERT_EQ(script_node->content, "console.log('hello');");
+}
+
+TEST(ParserTest, ParsesOriginBlock) {
+    std::string source = R"([Origin] @Html { "<div></div>" })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Origin);
+
+    CHTL::OriginNode* origin_node = static_cast<CHTL::OriginNode*>(stmt);
+    ASSERT_EQ(origin_node->originType, "Html");
+    ASSERT_EQ(origin_node->content, "<div></div>");
 }

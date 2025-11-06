@@ -94,3 +94,18 @@ TEST(LexerTest, HandlesEscapedStrings) {
     ASSERT_EQ(token2.type, CHTL::TokenType::String);
     ASSERT_EQ(token2.value, "foo \"bar\"");
 }
+
+TEST(LexerTest, HandlesOriginSymbols) {
+    CHTL::Lexer lexer("[]@");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::OpenBracket);
+    ASSERT_EQ(token1.value, "[");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::CloseBracket);
+    ASSERT_EQ(token2.value, "]");
+
+    CHTL::Token token3 = lexer.getNextToken();
+    ASSERT_EQ(token3.type, CHTL::TokenType::At);
+    ASSERT_EQ(token3.value, "@");
+}

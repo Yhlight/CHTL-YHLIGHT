@@ -12,7 +12,8 @@ enum class NodeType {
     Style,
     StyleProperty,
     StyleRule,
-    Script
+    Script,
+    Origin
 };
 
 class BaseNode {

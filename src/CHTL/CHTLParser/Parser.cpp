@@ -4,6 +4,7 @@
 #include "CHTLNode/StylePropertyNode.h"
 #include "CHTLNode/StyleRuleNode.h"
 #include "CHTLNode/ScriptNode.h"
+#include "CHTLNode/OriginNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -45,6 +46,10 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseScriptNode();
         }
         return parseElement();
+    }
+
+    if (currentToken.type == TokenType::OpenBracket) {
+        return parseOriginNode();
     }
 
     // If we don't recognize the token, consume it and move on
@@ -148,6 +153,25 @@ std::unique_ptr<ScriptNode> Parser::parseScriptNode() {
     consume(TokenType::CloseBrace);
 
     return std::make_unique<ScriptNode>(content);
+}
+
+std::unique_ptr<OriginNode> Parser::parseOriginNode() {
+    consume(TokenType::OpenBracket);
+    consume(TokenType::Identifier); // Consume "Origin"
+    consume(TokenType::CloseBracket);
+
+    consume(TokenType::At);
+    std::string type = currentToken.value;
+    consume(TokenType::Identifier);
+
+    consume(TokenType::OpenBrace);
+
+    std::string content = currentToken.value;
+    consume(TokenType::String);
+
+    consume(TokenType::CloseBrace);
+
+    return std::make_unique<OriginNode>(type, content);
 }
 
 

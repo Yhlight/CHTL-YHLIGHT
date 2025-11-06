@@ -98,3 +98,39 @@ TEST(GeneratorTest, GeneratesScriptBlock) {
 
     ASSERT_EQ(result, "<div><script>console.log('hello');</script></div>");
 }
+
+TEST(GeneratorTest, GeneratesOriginHtml) {
+    std::string source = R"([Origin] @Html { "<div><p>raw html</p></div>" })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div><p>raw html</p></div>");
+}
+
+TEST(GeneratorTest, GeneratesOriginCss) {
+    std::string source = R"([Origin] @Style { ".raw-css { color: purple; }" })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<style>.raw-css { color: purple; }</style>");
+}
+
+TEST(GeneratorTest, GeneratesOriginJavaScript) {
+    std::string source = R"([Origin] @JavaScript { "alert('raw js');" })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "alert('raw js');");
+}

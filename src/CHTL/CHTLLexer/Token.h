@@ -13,6 +13,9 @@ enum class TokenType {
     Semicolon,
     Equal,
     Ampersand,
+    OpenBracket,
+    CloseBracket,
+    At,
     Eof,
     Unknown
 };
