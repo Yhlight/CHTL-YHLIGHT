@@ -3,6 +3,7 @@
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/StylePropertyNode.h"
 #include "CHTLNode/StyleRuleNode.h"
+#include "CHTLNode/ScriptNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -40,6 +41,8 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseTextNode();
         } else if (currentToken.value == "style") {
             return parseStyle();
+        } else if (currentToken.value == "script") {
+            return parseScriptNode();
         }
         return parseElement();
     }
@@ -133,6 +136,18 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
 
     consume(TokenType::CloseBrace);
     return styleNode;
+}
+
+std::unique_ptr<ScriptNode> Parser::parseScriptNode() {
+    consume(TokenType::Identifier); // Consume "script"
+    consume(TokenType::OpenBrace);
+
+    std::string content = currentToken.value;
+    consume(TokenType::String);
+
+    consume(TokenType::CloseBrace);
+
+    return std::make_unique<ScriptNode>(content);
 }
 
 

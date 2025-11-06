@@ -11,7 +11,8 @@ enum class NodeType {
     Text,
     Style,
     StyleProperty,
-    StyleRule
+    StyleRule,
+    Script
 };
 
 class BaseNode {

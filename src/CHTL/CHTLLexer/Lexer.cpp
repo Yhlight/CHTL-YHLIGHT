@@ -56,16 +56,26 @@ Token Lexer::getNextToken() {
         char quoteType = currentChar;
         position++; // Consume the opening quote
         size_t start = position;
-        while (position < source.length() && source[position] != quoteType) {
-            position++;
+        std::string value;
+        while (position < source.length()) {
+            if (source[position] == '\\' && position + 1 < source.length()) {
+                // Handle escaped characters
+                value += source.substr(start, position - start);
+                value += source[position + 1];
+                position += 2;
+                start = position;
+            } else if (source[position] == quoteType) {
+                break; // End of string
+            } else {
+                position++;
+            }
         }
+        value += source.substr(start, position - start);
 
         if (position >= source.length() || source[position] != quoteType) {
             // Unterminated string
             return {TokenType::Unknown, ""};
         }
-
-        std::string value = source.substr(start, position - start);
         position++; // Consume the closing quote
         return {TokenType::String, value};
     }

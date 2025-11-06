@@ -83,3 +83,14 @@ TEST(LexerTest, HandlesAlphanumericIdentifiers) {
     ASSERT_EQ(token2.type, CHTL::TokenType::Identifier);
     ASSERT_EQ(token2.value, ".p2");
 }
+
+TEST(LexerTest, HandlesEscapedStrings) {
+    CHTL::Lexer lexer(R"('hello \'world\'' "foo \"bar\"")");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::String);
+    ASSERT_EQ(token1.value, "hello 'world'");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::String);
+    ASSERT_EQ(token2.value, "foo \"bar\"");
+}

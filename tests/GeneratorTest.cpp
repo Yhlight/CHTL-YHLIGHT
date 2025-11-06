@@ -86,3 +86,15 @@ TEST(GeneratorTest, HandlesContextDeductionWithExistingClass) {
 
     ASSERT_EQ(result, "<style>.box{color:blue;}.box:hover{color:red;}</style><div class=\"existing box\"></div>");
 }
+
+TEST(GeneratorTest, GeneratesScriptBlock) {
+    std::string source = R"(div { script { "console.log('hello');" } })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div><script>console.log('hello');</script></div>");
+}

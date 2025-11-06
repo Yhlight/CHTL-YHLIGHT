@@ -52,6 +52,9 @@ void Generator::visit(const ElementNode* node) {
             case NodeType::Style:
                 // Already processed
                 break;
+            case NodeType::Script:
+                visit(static_cast<ScriptNode*>(child.get()));
+                break;
             default:
                 break;
         }
@@ -134,6 +137,10 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
 
 void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStream) {
     styleStream << node->key << ":" << node->value << ";";
+}
+
+void Generator::visit(const ScriptNode* node) {
+    html_output << "<script>" << node->content << "</script>";
 }
 
 } // namespace CHTL

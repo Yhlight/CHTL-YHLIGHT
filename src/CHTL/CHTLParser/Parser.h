@@ -11,6 +11,7 @@ class TextNode; // Forward declaration
 class StyleNode;
 class StylePropertyNode;
 class StyleRuleNode;
+class ScriptNode;
 
 class Parser {
 public:
@@ -24,6 +25,7 @@ private:
     std::unique_ptr<TextNode> parseTextNode();
     std::unique_ptr<StyleNode> parseStyle();
     std::unique_ptr<StyleRuleNode> parseStyleRule();
+    std::unique_ptr<ScriptNode> parseScriptNode();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
 
 

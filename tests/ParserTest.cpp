@@ -7,6 +7,7 @@
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/StylePropertyNode.h"
 #include "CHTLNode/StyleRuleNode.h"
+#include "CHTLNode/ScriptNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -161,4 +162,28 @@ TEST(ParserTest, ParsesStyleBlockWithRules) {
     ASSERT_EQ(rule->properties.size(), 1);
     ASSERT_EQ(rule->properties[0]->key, "width");
     ASSERT_EQ(rule->properties[0]->value, "100px");
+}
+
+TEST(ParserTest, ParsesScriptBlock) {
+    std::string source = R"(div { script { "console.log('hello');" } })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Element);
+
+    CHTL::ElementNode* div_element = static_cast<CHTL::ElementNode*>(stmt);
+    ASSERT_EQ(div_element->tagName, "div");
+    ASSERT_EQ(div_element->children.size(), 1);
+
+    CHTL::BaseNode* child_stmt = div_element->children[0].get();
+    ASSERT_EQ(child_stmt->getType(), CHTL::NodeType::Script);
+
+    CHTL::ScriptNode* script_node = static_cast<CHTL::ScriptNode*>(child_stmt);
+    ASSERT_EQ(script_node->content, "console.log('hello');");
 }

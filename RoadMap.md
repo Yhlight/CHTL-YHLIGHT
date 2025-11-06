@@ -62,3 +62,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to correctly parse style rules that use the `&` symbol.
 - [x] Refactor the `Generator` to resolve `&` selectors based on the parent element's primary class or ID.
 - [x] Write unit tests for the context deduction feature.
+
+## Milestone 9: Script Blocks
+
+- [x] Add a `ScriptNode` to the AST.
+- [x] Refactor the `Lexer` to handle escaped quotes in strings.
+- [x] Update the `Parser` to recognize and parse `script` blocks.
+- [x] Update the `Generator` to produce `<script>` tags.
+- [x] Write unit tests for `script` block parsing and generation.
