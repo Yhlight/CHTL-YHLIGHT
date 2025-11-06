@@ -28,6 +28,7 @@ private:
     std::unique_ptr<ASTNode> parseTemplate();
     std::unique_ptr<ASTNode> parseTemplateUsage();
     std::unique_ptr<ASTNode> parseTemplateBody(TemplateType type);
+    std::unique_ptr<ASTNode> parseImport();
 
 
     Lexer& lexer_;

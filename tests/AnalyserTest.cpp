@@ -9,6 +9,7 @@
 #include "CHTL/CHTLNode/StylePropertyNode.h"
 #include "CHTL/CHTLNode/LiteralValueNode.h"
 #include "CHTL/CHTLNode/TemplateNode.h"
+#include <fstream>
 
 TEST(AnalyserTest, TemplateCollection) {
     std::string source = "[Template] @Style MyTheme { color: red; } div {}";
@@ -73,4 +74,81 @@ TEST(AnalyserTest, StyleTemplateUsageResolution) {
     EXPECT_EQ(prop2->getName(), "font-size");
     auto* value2 = static_cast<LiteralValueNode*>(const_cast<ValueNode*>(prop2->getValue()));
     EXPECT_EQ(value2->getValue(), "16px");
+}
+
+TEST(AnalyserTest, ImportResolution) {
+    // Create a temporary file to import
+    std::ofstream outfile("styles.chtl");
+    outfile << "[Template] @Style ImportedTheme { color: green; }";
+    outfile.close();
+
+    std::string source = R"(
+        [Import] @Chtl from "styles.chtl";
+        div {
+            style {
+                @Style ImportedTheme;
+            }
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    SymbolTable symbolTable;
+    Analyser analyser(symbolTable);
+    analyser.analyse(*program);
+
+    const auto& children = program->getChildren();
+    ASSERT_EQ(children.size(), 1);
+    auto* elementNode = static_cast<ElementNode*>(children[0].get());
+
+    const auto& elementChildren = elementNode->getChildren();
+    ASSERT_EQ(elementChildren.size(), 1);
+    auto* styleNode = static_cast<StyleNode*>(elementChildren[0].get());
+
+    const auto& styleChildren = styleNode->getChildren();
+    ASSERT_EQ(styleChildren.size(), 1);
+
+    auto* prop1 = static_cast<StylePropertyNode*>(styleChildren[0].get());
+    EXPECT_EQ(prop1->getName(), "color");
+    auto* value1 = static_cast<LiteralValueNode*>(const_cast<ValueNode*>(prop1->getValue()));
+    EXPECT_EQ(value1->getValue(), "green");
+
+    // Clean up the temporary file
+    remove("styles.chtl");
+}
+
+TEST(AnalyserTest, CircularImportDetection) {
+    // Create temporary files for circular import
+    std::ofstream outfile_a("a.chtl");
+    outfile_a << "[Import] @Chtl from \"b.chtl\";";
+    outfile_a.close();
+
+    std::ofstream outfile_b("b.chtl");
+    outfile_b << "[Import] @Chtl from \"a.chtl\";";
+    outfile_b.close();
+
+    std::string source = "[Import] @Chtl from \"a.chtl\";";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    SymbolTable symbolTable;
+    Analyser analyser(symbolTable);
+
+    // Redirect cerr to capture the error message
+    std::stringstream buffer;
+    std::streambuf* old_cerr = std::cerr.rdbuf(buffer.rdbuf());
+
+    analyser.analyse(*program);
+
+    std::cerr.rdbuf(old_cerr); // Restore cerr
+
+    EXPECT_TRUE(buffer.str().find("Circular import detected") != std::string::npos);
+
+    // Clean up the temporary files
+    remove("a.chtl");
+    remove("b.chtl");
 }

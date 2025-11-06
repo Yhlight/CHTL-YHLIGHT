@@ -44,9 +44,9 @@ This document outlines the development plan for the CHTL language and its associ
   - [x] Implement Analyser pass to collect templates
   - [x] Implement Analyser pass to resolve template usage
 
-- [ ] **Imports**
-  - [ ] Parse `[Import]` statements
-  - [ ] Implement file loading and parsing for CHTL files
+- [x] **Imports**
+  - [x] Parse `[Import]` statements
+  - [x] Implement file loading and parsing for CHTL files
 
 ## Phase 3: Advanced CHTL and CHTLJS Integration
 

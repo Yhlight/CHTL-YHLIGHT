@@ -7,6 +7,7 @@
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/TemplateUsageNode.h"
+#include "CHTLNode/ImportNode.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -51,6 +52,9 @@ const Token& Parser::peek() const {
 std::unique_ptr<ASTNode> Parser::declaration() {
     if (check(TokenType::LEFT_BRACKET) && lexer_.peekToken().type == TokenType::KEYWORD_TEMPLATE) {
         return parseTemplate();
+    }
+    if (check(TokenType::LEFT_BRACKET) && lexer_.peekToken().type == TokenType::KEYWORD_IMPORT) {
+        return parseImport();
     }
     return statement();
 }
@@ -176,6 +180,27 @@ std::unique_ptr<ASTNode> Parser::parseTemplate() {
     consume(TokenType::RIGHT_BRACE, "Expect '}' to close template body.");
 
     return templateNode;
+}
+
+std::unique_ptr<ASTNode> Parser::parseImport() {
+    consume(TokenType::LEFT_BRACKET, "Expect '[' before 'Import'.");
+    consume(TokenType::KEYWORD_IMPORT, "Expect 'Import' keyword.");
+    consume(TokenType::RIGHT_BRACKET, "Expect ']' after 'Import'.");
+
+    consume(TokenType::AT, "Expect '@' after '[Import]'.");
+    consume(TokenType::IDENTIFIER, "Expect import type.");
+
+    consume(TokenType::KEYWORD_FROM, "Expect 'from' keyword.");
+
+    consume(TokenType::STRING, "Expect file path in quotes.");
+    std::string path = std::string(previous_.lexeme);
+    if (path.length() >= 2) {
+        path = path.substr(1, path.length() - 2);
+    }
+
+    consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
+
+    return std::make_unique<ImportNode>(path);
 }
 
 std::unique_ptr<ASTNode> Parser::parseElement() {

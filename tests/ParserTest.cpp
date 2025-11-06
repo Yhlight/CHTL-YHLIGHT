@@ -7,6 +7,7 @@
 #include "CHTL/CHTLNode/TemplateNode.h"
 #include "CHTL/CHTLNode/TemplateUsageNode.h"
 #include "CHTL/CHTLNode/StyleNode.h"
+#include "CHTL/CHTLNode/ImportNode.h"
 
 TEST(ParserTest, ParseTextNode) {
     std::string source = "text { \"hello world\" }";
@@ -136,4 +137,22 @@ TEST(ParserTest, ParseStyleTemplateUsage) {
 
     auto* usageNode = static_cast<TemplateUsageNode*>(usage_children[0].get());
     EXPECT_EQ(usageNode->getName(), "MyTheme");
+}
+
+TEST(ParserTest, ParseImportStatement) {
+    std::string source = "[Import] @Chtl from \"./path/to/file.chtl\";";
+    Lexer lexer(source);
+    Parser parser(lexer);
+
+    auto program = parser.parse();
+    ASSERT_NE(program, nullptr);
+
+    const auto& children = program->getChildren();
+    ASSERT_EQ(children.size(), 1);
+
+    const auto& child = children[0];
+    ASSERT_EQ(child->getType(), ASTNodeType::Import);
+
+    auto* importNode = static_cast<ImportNode*>(child.get());
+    EXPECT_EQ(importNode->getPath(), "./path/to/file.chtl");
 }

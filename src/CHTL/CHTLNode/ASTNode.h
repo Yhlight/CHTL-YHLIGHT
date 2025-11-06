@@ -11,7 +11,8 @@ enum class ASTNodeType {
     StyleProperty,
     LiteralValue,
     Template,
-    TemplateUsage
+    TemplateUsage,
+    Import
 };
 
 class ASTNode {
