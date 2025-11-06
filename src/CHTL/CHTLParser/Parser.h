@@ -7,6 +7,8 @@
 
 namespace CHTL {
 
+class TextNode; // Forward declaration
+
 class Parser {
 public:
     Parser(Lexer& lexer);
@@ -16,8 +18,9 @@ public:
 private:
     std::unique_ptr<BaseNode> parseStatement();
     std::unique_ptr<ElementNode> parseElement();
+    std::unique_ptr<TextNode> parseTextNode();
 
-    Lexer& lexer;
+    Lexer* lexer;
     Token currentToken;
 
     void consume(TokenType expectedType);

@@ -38,6 +38,11 @@ void Lexer::skipWhitespaceAndComments() {
 
 
 Token Lexer::getNextToken() {
+    if (hasPeeked) {
+        hasPeeked = false;
+        return currentToken;
+    }
+
     skipWhitespaceAndComments();
 
     if (position >= source.length()) {
@@ -79,6 +84,9 @@ Token Lexer::getNextToken() {
         case ';':
             position++;
             return {TokenType::Semicolon, ";"};
+        case '=':
+            position++;
+            return {TokenType::Equal, "="};
     }
 
     // Handle identifiers and unquoted literals
@@ -92,6 +100,14 @@ Token Lexer::getNextToken() {
 
     // For now, return Unknown for anything else
     return {TokenType::Unknown, std::string(1, source[position++])};
+}
+
+Token Lexer::peek() {
+    if (!hasPeeked) {
+        currentToken = getNextToken();
+        hasPeeked = true;
+    }
+    return currentToken;
 }
 
 } // namespace CHTL

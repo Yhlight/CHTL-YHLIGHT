@@ -1,15 +1,16 @@
 #include "Parser.h"
+#include "CHTLNode/TextNode.h"
 #include <stdexcept>
 
 namespace CHTL {
 
-Parser::Parser(Lexer& lexer) : lexer(lexer) {
-    currentToken = lexer.getNextToken();
+Parser::Parser(Lexer& lexer) : lexer(&lexer) {
+    currentToken = this->lexer->getNextToken();
 }
 
 void Parser::consume(TokenType expectedType) {
     if (currentToken.type == expectedType) {
-        currentToken = lexer.getNextToken();
+        currentToken = lexer->getNextToken();
     } else {
         // Simple error handling for now
         throw std::runtime_error("Unexpected token: expected " + std::to_string((int)expectedType) +
@@ -32,16 +33,29 @@ std::unique_ptr<ProgramNode> Parser::parse() {
 
 std::unique_ptr<BaseNode> Parser::parseStatement() {
     if (currentToken.type == TokenType::Identifier) {
+        if (currentToken.value == "text") {
+            return parseTextNode();
+        }
         return parseElement();
     }
-    // In the future, we will handle other statement types here.
 
     // If we don't recognize the token, consume it and move on
-    // This part is problematic and will be fixed later. For now, it prevents infinite loops.
     if (currentToken.type != TokenType::Eof) {
-        currentToken = lexer.getNextToken();
+        currentToken = lexer->getNextToken();
     }
     return nullptr;
+}
+
+std::unique_ptr<TextNode> Parser::parseTextNode() {
+    consume(TokenType::Identifier); // Consume "text"
+    consume(TokenType::OpenBrace);
+
+    std::string content = currentToken.value;
+    consume(TokenType::String);
+
+    consume(TokenType::CloseBrace);
+
+    return std::make_unique<TextNode>(content);
 }
 
 std::unique_ptr<ElementNode> Parser::parseElement() {
@@ -53,9 +67,35 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
     consume(TokenType::OpenBrace);
 
     while(currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
-        auto child = parseStatement();
-        if (child) {
-            elementNode->children.push_back(std::move(child));
+        if (currentToken.type == TokenType::Identifier) {
+            Token peekToken = lexer->peek();
+            if (peekToken.type == TokenType::Colon || peekToken.type == TokenType::Equal) {
+                // Attribute
+                std::string key = currentToken.value;
+                consume(TokenType::Identifier);
+                consume(peekToken.type); // consume ':' or '='
+
+                std::string value;
+                if (currentToken.type == TokenType::String || currentToken.type == TokenType::Identifier) {
+                    value = currentToken.value;
+                    consume(currentToken.type);
+                } else {
+                    throw std::runtime_error("Expected string or identifier for attribute value");
+                }
+                elementNode->attributes[key] = value;
+
+                if (currentToken.type == TokenType::Semicolon) {
+                    consume(TokenType::Semicolon);
+                }
+            } else {
+                // Child Element or text node
+                elementNode->children.push_back(parseStatement());
+            }
+        } else {
+            // If we don't recognize the token, consume it and move on
+            if (currentToken.type != TokenType::Eof) {
+                currentToken = lexer->getNextToken();
+            }
         }
     }
 

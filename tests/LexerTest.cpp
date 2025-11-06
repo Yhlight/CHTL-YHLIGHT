@@ -65,3 +65,10 @@ TEST(LexerTest, HandlesComments) {
     ASSERT_EQ(token2.type, CHTL::TokenType::OpenBrace);
     ASSERT_EQ(token2.value, "{");
 }
+
+TEST(LexerTest, HandlesEqualSign) {
+    CHTL::Lexer lexer("=");
+    CHTL::Token token = lexer.getNextToken();
+    ASSERT_EQ(token.type, CHTL::TokenType::Equal);
+    ASSERT_EQ(token.value, "=");
+}

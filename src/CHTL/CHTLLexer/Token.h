@@ -11,6 +11,7 @@ enum class TokenType {
     CloseBrace,
     Colon,
     Semicolon,
+    Equal,
     Eof,
     Unknown
 };

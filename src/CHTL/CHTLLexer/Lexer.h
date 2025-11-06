@@ -10,8 +10,12 @@ public:
     Lexer(const std::string& source);
 
     Token getNextToken();
+    Token peek();
 
 private:
+    Token currentToken;
+    bool hasPeeked = false;
+
     void skipWhitespaceAndComments();
 
     std::string source;

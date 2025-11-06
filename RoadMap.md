@@ -19,7 +19,15 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 3: Basic Parser and AST
 
-- [ ] Define the core Abstract Syntax Tree (AST) nodes.
-- [ ] Implement the basic `Parser` class structure.
-- [ ] Implement parsing for simple and nested elements.
-- [ ] Write unit tests for the parser.
+- [x] Define the core Abstract Syntax Tree (AST) nodes.
+- [x] Implement the basic `Parser` class structure.
+- [x] Implement parsing for simple and nested elements.
+- [x] Write unit tests for the parser.
+
+## Milestone 4: Parser - Attributes and Text Nodes
+
+- [ ] Enhance the lexer to recognize the `=` symbol for attributes.
+- [ ] Enhance the AST to support attributes and text nodes.
+- [ ] Implement attribute parsing in the parser.
+- [ ] Implement text node parsing in the parser.
+- [ ] Write unit tests for attribute and text node parsing.
