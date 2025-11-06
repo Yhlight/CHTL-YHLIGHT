@@ -27,7 +27,7 @@ This document outlines the development plan for the CHTL language and its associ
   - [x] Write unit tests for the Lexer
   - [x] Write unit tests for the Parser
 
-## Phase 2: Basic Language Features (In Progress)
+## Phase 2: Basic Language Features (Completed)
 
 - [x] **Generator (CHTL)**
   - [x] Implement a basic generator to traverse the AST
@@ -48,7 +48,7 @@ This document outlines the development plan for the CHTL language and its associ
   - [x] Parse `[Import]` statements
   - [x] Implement file loading and parsing for CHTL files
 
-## Phase 3: Advanced CHTL and CHTLJS Integration
+## Phase 3: Advanced CHTL and CHTLJS Integration (In Progress)
 
 - [ ] **CHTLJS Core**
   - [ ] Implement CHTLJS Lexer

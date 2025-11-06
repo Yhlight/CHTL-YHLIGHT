@@ -6,6 +6,7 @@ target_sources(run_tests
     ParserTest.cpp
     GeneratorTest.cpp
     AnalyserTest.cpp
+    CHTLJSLexerTest.cpp
 )
 
 target_link_libraries(run_tests
