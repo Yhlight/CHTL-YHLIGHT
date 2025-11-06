@@ -11,8 +11,15 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 2: Advanced Lexer Features
 
-- [ ] Handle unterminated strings gracefully.
-- [ ] Add support for double-quoted strings.
-- [ ] Add support for basic symbols (`{`, `}`, `:`, `;`).
-- [ ] Add support for identifiers and unquoted literals.
-- [ ] Add support for single-line and multi-line comments.
+- [x] Handle unterminated strings gracefully.
+- [x] Add support for double-quoted strings.
+- [x] Add support for basic symbols (`{`, `}`, `:`, `;`).
+- [x] Add support for identifiers and unquoted literals.
+- [x] Add support for single-line and multi-line comments.
+
+## Milestone 3: Basic Parser and AST
+
+- [ ] Define the core Abstract Syntax Tree (AST) nodes.
+- [ ] Implement the basic `Parser` class structure.
+- [ ] Implement parsing for simple and nested elements.
+- [ ] Write unit tests for the parser.
