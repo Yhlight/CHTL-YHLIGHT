@@ -79,6 +79,32 @@ std::vector<std::unique_ptr<StylePropertyNode>> Parser::parseStyleProperties() {
     return properties;
 }
 
+std::unique_ptr<StyleRuleNode> Parser::parseStyleRule() {
+    std::string selector;
+    if (currentToken.type == TokenType::Ampersand) {
+        selector += currentToken.value;
+        consume(TokenType::Ampersand);
+        // Handle pseudo-classes like :hover
+        while (currentToken.type == TokenType::Colon) {
+            selector += currentToken.value;
+            consume(TokenType::Colon);
+            selector += currentToken.value;
+            consume(TokenType::Identifier);
+        }
+    } else {
+        selector = currentToken.value;
+        consume(TokenType::Identifier);
+    }
+
+    consume(TokenType::OpenBrace);
+
+    auto ruleNode = std::make_unique<StyleRuleNode>(selector);
+    ruleNode->properties = parseStyleProperties();
+
+    consume(TokenType::CloseBrace);
+    return ruleNode;
+}
+
 std::unique_ptr<StyleNode> Parser::parseStyle() {
     consume(TokenType::Identifier); // Consume "style"
     consume(TokenType::OpenBrace);
@@ -86,35 +112,21 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
     auto styleNode = std::make_unique<StyleNode>();
 
     while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
-        if (currentToken.type == TokenType::Identifier) {
-            // Peek to see if it's a rule or a property
-            Token peekToken = lexer->peek();
+        Token peekToken = lexer->peek();
 
-            if (peekToken.type == TokenType::OpenBrace) {
-                // It's a style rule
-                std::string selector = currentToken.value;
-                consume(TokenType::Identifier);
-                consume(TokenType::OpenBrace);
-
-                auto ruleNode = std::make_unique<StyleRuleNode>(selector);
-                ruleNode->properties = parseStyleProperties();
-                styleNode->children.push_back(std::move(ruleNode));
-
-                consume(TokenType::CloseBrace);
-            } else if (peekToken.type == TokenType::Colon) {
-                // It's a style property
-                std::string key = currentToken.value;
-                consume(TokenType::Identifier);
-                consume(TokenType::Colon);
-                std::string value = currentToken.value;
-                consume(currentToken.type);
-                consume(TokenType::Semicolon);
-                styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
-            } else {
-                // Error or unexpected token
-                consume(currentToken.type);
-            }
+        if (peekToken.type == TokenType::OpenBrace || currentToken.type == TokenType::Ampersand) {
+            styleNode->children.push_back(parseStyleRule());
+        } else if (peekToken.type == TokenType::Colon) {
+            // It's a style property
+            std::string key = currentToken.value;
+            consume(TokenType::Identifier);
+            consume(TokenType::Colon);
+            std::string value = currentToken.value;
+            consume(currentToken.type);
+            consume(TokenType::Semicolon);
+            styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
         } else {
+            // Error or unexpected token
             consume(currentToken.type);
         }
     }

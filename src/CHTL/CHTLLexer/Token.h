@@ -12,6 +12,7 @@ enum class TokenType {
     Colon,
     Semicolon,
     Equal,
+    Ampersand,
     Eof,
     Unknown
 };

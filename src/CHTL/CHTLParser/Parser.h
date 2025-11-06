@@ -10,6 +10,7 @@ namespace CHTL {
 class TextNode; // Forward declaration
 class StyleNode;
 class StylePropertyNode;
+class StyleRuleNode;
 
 class Parser {
 public:
@@ -22,6 +23,7 @@ private:
     std::unique_ptr<ElementNode> parseElement();
     std::unique_ptr<TextNode> parseTextNode();
     std::unique_ptr<StyleNode> parseStyle();
+    std::unique_ptr<StyleRuleNode> parseStyleRule();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
 
 

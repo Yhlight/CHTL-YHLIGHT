@@ -87,6 +87,9 @@ Token Lexer::getNextToken() {
         case '=':
             position++;
             return {TokenType::Equal, "="};
+        case '&':
+            position++;
+            return {TokenType::Ampersand, "&"};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)

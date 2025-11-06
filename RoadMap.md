@@ -55,3 +55,10 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to correctly parse `StyleRuleNode` within `style` blocks.
 - [x] Enhance the `Generator` to automatically add `class` or `id` attributes to elements.
 - [x] Write unit tests for the automatic class/id generation feature.
+
+## Milestone 8: Context Deduction in Style Blocks
+
+- [x] Enhance the `Lexer` to recognize the `&` symbol.
+- [x] Enhance the `Parser` to correctly parse style rules that use the `&` symbol.
+- [x] Refactor the `Generator` to resolve `&` selectors based on the parent element's primary class or ID.
+- [x] Write unit tests for the context deduction feature.

@@ -66,28 +66,66 @@ void Generator::visit(const TextNode* node) {
 
 void Generator::visit(const StyleNode* node, ElementNode* parent) {
     std::stringstream styleStream;
+    std::string firstClassSelector;
+    std::string firstIdSelector;
+
+    // First pass: Find the first class and id selectors to determine the context
     for (const auto& child : node->children) {
-        if (child->getType() == NodeType::StyleProperty) {
-            visit(static_cast<StylePropertyNode*>(child.get()), styleStream);
-        } else if (child->getType() == NodeType::StyleRule) {
-            auto ruleNode = static_cast<StyleRuleNode*>(child.get());
-            visit(ruleNode);
-            // Automatically add class or id to the parent element
+        if (child->getType() == NodeType::StyleRule) {
+            auto ruleNode = static_cast<const StyleRuleNode*>(child.get());
             const std::string& selector = ruleNode->selector;
             if (!selector.empty()) {
-                if (selector[0] == '.') {
-                    std::string className = selector.substr(1);
-                    if (parent->attributes.count("class")) {
-                        parent->attributes["class"] += " " + className;
-                    } else {
-                        parent->attributes["class"] = className;
-                    }
-                } else if (selector[0] == '#') {
-                    parent->attributes["id"] = selector.substr(1);
+                if (selector[0] == '.' && firstClassSelector.empty()) {
+                    firstClassSelector = selector;
+                } else if (selector[0] == '#' && firstIdSelector.empty()) {
+                    firstIdSelector = selector;
                 }
             }
         }
     }
+
+    // Determine the primary selector for '&' replacement (class has priority)
+    std::string primarySelectorForContext = !firstClassSelector.empty() ? firstClassSelector : firstIdSelector;
+
+    // Automatically add class or id attributes
+    if (!firstClassSelector.empty()) {
+        if (parent->attributes.count("class")) {
+            parent->attributes["class"] += " " + firstClassSelector.substr(1);
+        } else {
+            parent->attributes["class"] = firstClassSelector.substr(1);
+        }
+    }
+    if (!firstIdSelector.empty()) {
+        parent->attributes["id"] = firstIdSelector.substr(1);
+    }
+
+    // Second pass: Generate CSS for all rules
+    for (const auto& child : node->children) {
+        if (child->getType() == NodeType::StyleProperty) {
+            visit(static_cast<StylePropertyNode*>(child.get()), styleStream);
+        } else if (child->getType() == NodeType::StyleRule) {
+            auto ruleNode = static_cast<const StyleRuleNode*>(child.get());
+            std::string resolvedSelector = ruleNode->selector;
+
+            // Resolve '&' selectors
+            if (!resolvedSelector.empty() && resolvedSelector[0] == '&') {
+                if (!primarySelectorForContext.empty()) {
+                    resolvedSelector.replace(0, 1, primarySelectorForContext);
+                } else {
+                    // If no primary selector, just remove the '&'
+                    resolvedSelector.erase(0, 1);
+                }
+            }
+
+            // Generate the CSS for the rule
+            css_output << resolvedSelector << "{";
+            for (const auto& prop : ruleNode->properties) {
+                css_output << prop->key << ":" << prop->value << ";";
+            }
+            css_output << "}";
+        }
+    }
+
     std::string styleString = styleStream.str();
     if (!styleString.empty()) {
         parent->attributes["style"] = styleString;
@@ -96,14 +134,6 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
 
 void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStream) {
     styleStream << node->key << ":" << node->value << ";";
-}
-
-void Generator::visit(const StyleRuleNode* node) {
-    css_output << node->selector << "{";
-    for (const auto& prop : node->properties) {
-        css_output << prop->key << ":" << prop->value << ";";
-    }
-    css_output << "}";
 }
 
 } // namespace CHTL

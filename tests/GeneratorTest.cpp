@@ -62,3 +62,27 @@ TEST(GeneratorTest, HandlesAutomaticClassAndId) {
 
     ASSERT_EQ(result, "<style>.box{color:blue;}#main{background:white;}</style><div class=\"existing box\" id=\"main\"></div>");
 }
+
+TEST(GeneratorTest, HandlesContextDeduction) {
+    std::string source = "div { style { .box { color: blue; } &:hover { color: red; } } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<style>.box{color:blue;}.box:hover{color:red;}</style><div class=\"box\"></div>");
+}
+
+TEST(GeneratorTest, HandlesContextDeductionWithExistingClass) {
+    std::string source = "div { class:\"existing\"; style { .box { color: blue; } &:hover { color: red; } } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<style>.box{color:blue;}.box:hover{color:red;}</style><div class=\"existing box\"></div>");
+}
