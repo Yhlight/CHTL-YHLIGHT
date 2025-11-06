@@ -34,8 +34,17 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 5: Parser - Style Blocks
 
-- [ ] Enhance the AST to represent `style` blocks and their content.
-- [ ] Refactor the parser to correctly handle behavior blocks vs. child elements.
-- [ ] Implement parsing for `style` blocks with CSS properties.
-- [ ] Implement parsing for CSS rules within `style` blocks.
-- [ ] Write unit tests for `style` block parsing.
+- [x] Enhance the AST to represent `style` blocks and their content.
+- [x] Refactor the parser to correctly handle behavior blocks vs. child elements.
+- [x] Implement parsing for `style` blocks with CSS properties.
+- [x] Implement parsing for CSS rules within `style` blocks.
+- [x] Write unit tests for `style` block parsing.
+
+## Milestone 6: Basic Code Generator
+
+- [x] Implement the `Generator` class structure.
+- [x] Implement visitor methods for `Program`, `Element`, and `Text` nodes.
+- [x] Implement generation of element attributes.
+- [x] Implement generation of inline styles from `StylePropertyNode`.
+- [x] Implement generation of global stylesheets from `StyleRuleNode`.
+- [x] Write unit tests for the generator.

@@ -1,6 +1,7 @@
 add_executable(chttl_tests
     LexerTest.cpp
     ParserTest.cpp
+    GeneratorTest.cpp
 )
 
 target_link_libraries(chttl_tests
