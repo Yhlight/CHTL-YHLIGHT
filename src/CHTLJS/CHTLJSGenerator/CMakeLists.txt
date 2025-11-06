@@ -2,7 +2,7 @@ add_library(libchtljsgenerator STATIC)
 
 target_sources(libchtljsgenerator
     PRIVATE
-    Generator.cpp
+    CHTLJSGenerator.cpp
 )
 
 target_include_directories(libchtljsgenerator

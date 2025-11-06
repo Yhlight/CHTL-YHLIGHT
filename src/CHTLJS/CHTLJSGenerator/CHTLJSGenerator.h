@@ -1,22 +1,24 @@
 #pragma once
 
 #include "CHTLJSNode/ExprNode.h"
-#include "CHTLJSNode/ProgramNode.h"
-#include "CHTLJSNode/LiteralExprNode.h"
-#include "CHTLJSNode/SelectorExprNode.h"
-#include "CHTLJSNode/BinaryExprNode.h"
-#include "CHTLJSNode/UnaryExprNode.h"
-#include "CHTLJSNode/CallExprNode.h"
-#include "CHTLJSNode/MemberAccessExprNode.h"
 #include <string>
-#include <vector>
 #include <memory>
 
 namespace CHTLJS {
 
-class Generator {
+// Forward declarations for all node types to be visited
+class ProgramNode;
+class LiteralExprNode;
+class SelectorExprNode;
+class BinaryExprNode;
+class UnaryExprNode;
+class CallExprNode;
+class MemberAccessExprNode;
+
+class CHTLJSGenerator {
 public:
-    std::string generate(const ProgramNode& program);
+    CHTLJSGenerator() = default;
+    std::string generate(const ExprNode& node);
 
 private:
     std::string visit(const ExprNode& node);

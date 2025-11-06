@@ -14,11 +14,13 @@ Parser::Parser(Lexer& lexer) : lexer_(lexer) {
         {TokenType::LEFT_PAREN,     {&Parser::grouping, &Parser::call,   Precedence::CALL}},
         {TokenType::ARROW,          {nullptr,           &Parser::memberAccess,   Precedence::MEMBER}},
         {TokenType::MINUS,          {&Parser::unary,    &Parser::binary,   Precedence::TERM}},
+        {TokenType::BANG,           {&Parser::unary,    nullptr,           Precedence::NONE}},
         {TokenType::PLUS,           {nullptr,           &Parser::binary,   Precedence::TERM}},
         {TokenType::SLASH,          {nullptr,           &Parser::binary,   Precedence::FACTOR}},
         {TokenType::STAR,           {nullptr,           &Parser::binary,   Precedence::FACTOR}},
         {TokenType::NUMBER,         {&Parser::literal,  nullptr,   Precedence::NONE}},
         {TokenType::STRING,         {&Parser::literal,  nullptr,   Precedence::NONE}},
+        {TokenType::IDENTIFIER,     {&Parser::literal,  nullptr,   Precedence::NONE}},
         {TokenType::LEFT_DOUBLE_BRACE, {&Parser::selector, nullptr,   Precedence::NONE}},
     };
 }
