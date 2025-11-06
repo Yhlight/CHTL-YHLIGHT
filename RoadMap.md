@@ -4,16 +4,16 @@ This document outlines the development plan for the CHTL language and its associ
 
 ## Phase 1: Core Compiler Infrastructure (In Progress)
 
-- [ ] **Project Setup**
+- [x] **Project Setup**
   - [x] Create `RoadMap.md`
-  - [ ] Create `.gitignore`
-  - [ ] Establish directory structure (`src`, `tests`, `src/SharedCore`, `src/CHTL`, `src/CHTLJS`)
-  - [ ] Implement Python build script (`build.py`)
-  - [ ] Set up root `CMakeLists.txt`
+  - [x] Create `.gitignore`
+  - [x] Establish directory structure (`src`, `tests`, `src/SharedCore`, `src/CHTL`, `src/CHTLJS`)
+  - [x] Implement Python build script (`build.py`)
+  - [x] Set up root `CMakeLists.txt`
 
-- [ ] **Lexer (CHTL)**
-  - [ ] Implement basic tokenization (identifiers, keywords, symbols, literals)
-  - [ ] Add support for comments (`//`, `/**/`, `#`)
+- [x] **Lexer (CHTL)**
+  - [x] Implement basic tokenization (identifiers, keywords, symbols, literals)
+  - [x] Add support for comments (`//`, `/**/`, `#`)
   - [ ] Differentiate between block keywords (`[Template]`) and regular identifiers
 
 - [ ] **Parser (CHTL)**
@@ -22,9 +22,9 @@ This document outlines the development plan for the CHTL language and its associ
   - [ ] Parse element nodes (`div {}`)
   - [ ] Parse attributes (`id: "box";`)
 
-- [ ] **Testing**
-  - [ ] Set up Google Test framework
-  - [ ] Write unit tests for the Lexer
+- [x] **Testing**
+  - [x] Set up Google Test framework
+  - [x] Write unit tests for the Lexer
   - [ ] Write unit tests for the Parser
 
 ## Phase 2: Basic Language Features

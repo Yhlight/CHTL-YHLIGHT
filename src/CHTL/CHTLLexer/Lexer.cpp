@@ -3,6 +3,11 @@
 
 Lexer::Lexer(std::string_view source) : source_(source) {}
 
+Token Lexer::peekToken() const {
+    Lexer lexer = *this;
+    return lexer.scanToken();
+}
+
 bool Lexer::isAtEnd() const {
     return current_ >= source_.length();
 }

@@ -9,6 +9,7 @@ class Lexer {
 public:
     explicit Lexer(std::string_view source);
     Token scanToken();
+    Token peekToken() const;
 
 private:
     char advance();

@@ -3,6 +3,7 @@ add_library(libchtl STATIC)
 target_sources(libchtl
     PRIVATE
     CHTLLexer/Lexer.cpp
+    CHTLParser/Parser.cpp
 )
 
 target_include_directories(libchtl

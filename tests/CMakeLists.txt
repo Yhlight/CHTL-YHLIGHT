@@ -3,6 +3,7 @@ add_executable(run_tests)
 target_sources(run_tests
     PRIVATE
     LexerTest.cpp
+    ParserTest.cpp
 )
 
 target_link_libraries(run_tests
