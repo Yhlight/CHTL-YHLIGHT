@@ -51,7 +51,7 @@ This document outlines the development plan for the CHTL language and its associ
 ## Phase 3: Advanced CHTL and CHTLJS Integration (In Progress)
 
 - [ ] **CHTLJS Core**
-  - [ ] Implement CHTLJS Lexer
+  - [x] Implement CHTLJS Lexer
   - [ ] Implement CHTLJS Parser (Pratt Parser)
   - [ ] Implement CHTLJS Generator
 

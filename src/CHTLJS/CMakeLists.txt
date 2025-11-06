@@ -3,6 +3,7 @@ add_library(libchtljs STATIC)
 target_sources(libchtljs
     PRIVATE
     CHTLJSLexer/Lexer.cpp
+    CHTLJSParser/Parser.cpp
 )
 
 target_include_directories(libchtljs
