@@ -4,6 +4,9 @@
 #include "CHTLNode/ProgramNode.h"
 #include "CHTLNode/ElementNode.h"
 #include "CHTLNode/TextNode.h"
+#include "CHTLNode/StyleNode.h"
+#include "CHTLNode/StylePropertyNode.h"
+#include "CHTLNode/StyleRuleNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -90,4 +93,72 @@ TEST(ParserTest, ParsesTextNode) {
 
     CHTL::TextNode* text_node = static_cast<CHTL::TextNode*>(child_stmt);
     ASSERT_EQ(text_node->content, "Hello, World!");
+}
+
+TEST(ParserTest, ParsesStyleBlockWithProperties) {
+    std::string source = "div { style { color: red; width: 100px; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Element);
+
+    CHTL::ElementNode* div_element = static_cast<CHTL::ElementNode*>(stmt);
+    ASSERT_EQ(div_element->tagName, "div");
+    ASSERT_EQ(div_element->children.size(), 1);
+
+    CHTL::BaseNode* child_stmt = div_element->children[0].get();
+    ASSERT_EQ(child_stmt->getType(), CHTL::NodeType::Style);
+
+    CHTL::StyleNode* style_node = static_cast<CHTL::StyleNode*>(child_stmt);
+    ASSERT_EQ(style_node->children.size(), 2);
+
+    CHTL::StyleContentNode* prop1_node = style_node->children[0].get();
+    ASSERT_EQ(prop1_node->getType(), CHTL::NodeType::StyleProperty);
+    CHTL::StylePropertyNode* prop1 = static_cast<CHTL::StylePropertyNode*>(prop1_node);
+    ASSERT_EQ(prop1->key, "color");
+    ASSERT_EQ(prop1->value, "red");
+
+    CHTL::StyleContentNode* prop2_node = style_node->children[1].get();
+    ASSERT_EQ(prop2_node->getType(), CHTL::NodeType::StyleProperty);
+    CHTL::StylePropertyNode* prop2 = static_cast<CHTL::StylePropertyNode*>(prop2_node);
+    ASSERT_EQ(prop2->key, "width");
+    ASSERT_EQ(prop2->value, "100px");
+}
+
+TEST(ParserTest, ParsesStyleBlockWithRules) {
+    std::string source = "div { style { .box { width: 100px; } } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Element);
+
+    CHTL::ElementNode* div_element = static_cast<CHTL::ElementNode*>(stmt);
+    ASSERT_EQ(div_element->tagName, "div");
+    ASSERT_EQ(div_element->children.size(), 1);
+
+    CHTL::BaseNode* child_stmt = div_element->children[0].get();
+    ASSERT_EQ(child_stmt->getType(), CHTL::NodeType::Style);
+
+    CHTL::StyleNode* style_node = static_cast<CHTL::StyleNode*>(child_stmt);
+    ASSERT_EQ(style_node->children.size(), 1);
+
+    CHTL::StyleContentNode* rule_node = style_node->children[0].get();
+    ASSERT_EQ(rule_node->getType(), CHTL::NodeType::StyleRule);
+    CHTL::StyleRuleNode* rule = static_cast<CHTL::StyleRuleNode*>(rule_node);
+    ASSERT_EQ(rule->selector, ".box");
+    ASSERT_EQ(rule->properties.size(), 1);
+    ASSERT_EQ(rule->properties[0]->key, "width");
+    ASSERT_EQ(rule->properties[0]->value, "100px");
 }

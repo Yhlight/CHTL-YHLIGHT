@@ -26,8 +26,16 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 4: Parser - Attributes and Text Nodes
 
-- [ ] Enhance the lexer to recognize the `=` symbol for attributes.
-- [ ] Enhance the AST to support attributes and text nodes.
-- [ ] Implement attribute parsing in the parser.
-- [ ] Implement text node parsing in the parser.
-- [ ] Write unit tests for attribute and text node parsing.
+- [x] Enhance the lexer to recognize the `=` symbol for attributes.
+- [x] Enhance the AST to support attributes and text nodes.
+- [x] Implement attribute parsing in the parser.
+- [x] Implement text node parsing in the parser.
+- [x] Write unit tests for attribute and text node parsing.
+
+## Milestone 5: Parser - Style Blocks
+
+- [ ] Enhance the AST to represent `style` blocks and their content.
+- [ ] Refactor the parser to correctly handle behavior blocks vs. child elements.
+- [ ] Implement parsing for `style` blocks with CSS properties.
+- [ ] Implement parsing for CSS rules within `style` blocks.
+- [ ] Write unit tests for `style` block parsing.

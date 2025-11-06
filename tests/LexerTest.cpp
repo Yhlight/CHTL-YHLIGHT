@@ -72,3 +72,14 @@ TEST(LexerTest, HandlesEqualSign) {
     ASSERT_EQ(token.type, CHTL::TokenType::Equal);
     ASSERT_EQ(token.value, "=");
 }
+
+TEST(LexerTest, HandlesAlphanumericIdentifiers) {
+    CHTL::Lexer lexer("h1 .p2");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::Identifier);
+    ASSERT_EQ(token1.value, "h1");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::Identifier);
+    ASSERT_EQ(token2.value, ".p2");
+}

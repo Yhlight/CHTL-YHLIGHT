@@ -89,10 +89,10 @@ Token Lexer::getNextToken() {
             return {TokenType::Equal, "="};
     }
 
-    // Handle identifiers and unquoted literals
-    if (std::isalpha(currentChar)) {
+    // Handle identifiers and unquoted literals (including numbers and selectors)
+    if (std::isalpha(currentChar) || std::isdigit(currentChar) || currentChar == '.') {
         size_t start = position;
-        while (position < source.length() && std::isalnum(source[position])) {
+        while (position < source.length() && (std::isalnum(source[position]) || source[position] == '.')) {
             position++;
         }
         return {TokenType::Identifier, source.substr(start, position - start)};

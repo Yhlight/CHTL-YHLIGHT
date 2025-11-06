@@ -8,7 +8,10 @@ namespace CHTL {
 enum class NodeType {
     Program,
     Element,
-    Text
+    Text,
+    Style,
+    StyleProperty,
+    StyleRule
 };
 
 class BaseNode {

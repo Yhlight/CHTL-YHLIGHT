@@ -1,5 +1,8 @@
 #include "Parser.h"
 #include "CHTLNode/TextNode.h"
+#include "CHTLNode/StyleNode.h"
+#include "CHTLNode/StylePropertyNode.h"
+#include "CHTLNode/StyleRuleNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -35,6 +38,8 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
     if (currentToken.type == TokenType::Identifier) {
         if (currentToken.value == "text") {
             return parseTextNode();
+        } else if (currentToken.value == "style") {
+            return parseStyle();
         }
         return parseElement();
     }
@@ -58,6 +63,62 @@ std::unique_ptr<TextNode> Parser::parseTextNode() {
     return std::make_unique<TextNode>(content);
 }
 
+std::vector<std::unique_ptr<StylePropertyNode>> Parser::parseStyleProperties() {
+    auto properties = std::vector<std::unique_ptr<StylePropertyNode>>();
+
+    while (currentToken.type == TokenType::Identifier) {
+        std::string key = currentToken.value;
+        consume(TokenType::Identifier);
+        consume(TokenType::Colon);
+        std::string value = currentToken.value;
+        consume(currentToken.type); // String or Identifier
+        consume(TokenType::Semicolon);
+        properties.push_back(std::make_unique<StylePropertyNode>(key, value));
+    }
+
+    return properties;
+}
+
+std::unique_ptr<StyleNode> Parser::parseStyle() {
+    consume(TokenType::Identifier); // Consume "style"
+    consume(TokenType::OpenBrace);
+
+    auto styleNode = std::make_unique<StyleNode>();
+
+    while(currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        if (currentToken.type == TokenType::Identifier) {
+            Token peekToken = lexer->peek();
+            if (peekToken.type == TokenType::OpenBrace) {
+                // Style Rule
+                auto ruleNode = std::make_unique<StyleRuleNode>(currentToken.value);
+                consume(TokenType::Identifier);
+                consume(TokenType::OpenBrace);
+                ruleNode->properties = parseStyleProperties();
+                consume(TokenType::CloseBrace);
+                styleNode->children.push_back(std::move(ruleNode));
+            } else {
+                // Style Property
+                std::string key = currentToken.value;
+                consume(TokenType::Identifier);
+                consume(TokenType::Colon);
+                std::string value = currentToken.value;
+                consume(currentToken.type); // String or Identifier
+                consume(TokenType::Semicolon);
+                styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+            }
+        } else {
+             // If we don't recognize the token, consume it and move on
+            if (currentToken.type != TokenType::Eof) {
+                currentToken = lexer->getNextToken();
+            }
+        }
+    }
+
+    consume(TokenType::CloseBrace);
+    return styleNode;
+}
+
+
 std::unique_ptr<ElementNode> Parser::parseElement() {
     std::string tagName = currentToken.value;
     consume(TokenType::Identifier);
@@ -67,6 +128,7 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
     consume(TokenType::OpenBrace);
 
     while(currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        // Here, we can have attributes or child statements (elements, text, style)
         if (currentToken.type == TokenType::Identifier) {
             Token peekToken = lexer->peek();
             if (peekToken.type == TokenType::Colon || peekToken.type == TokenType::Equal) {
@@ -88,11 +150,11 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
                     consume(TokenType::Semicolon);
                 }
             } else {
-                // Child Element or text node
+                // Child Element, text node, or style node
                 elementNode->children.push_back(parseStatement());
             }
         } else {
-            // If we don't recognize the token, consume it and move on
+             // If we don't recognize the token, consume it and move on
             if (currentToken.type != TokenType::Eof) {
                 currentToken = lexer->getNextToken();
             }
