@@ -243,12 +243,15 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
 
             resolveStyleInheritance(templateNode, properties, deletedInheritances);
 
-            // Handle provided properties for valueless style groups
             for (const auto& provided_prop : node->provided_properties) {
-                if (properties.count(provided_prop->key)) {
-                    auto new_prop = std::make_unique<StylePropertyNode>(provided_prop->key, provided_prop->getClonedValues());
-                    properties[provided_prop->key] = new_prop.get();
-                    owned_properties.push_back(std::move(new_prop));
+                auto it = properties.find(provided_prop->key);
+                if (it != properties.end()) {
+                    auto existing_prop = it->second;
+                    if (existing_prop->value.empty()) {
+                        auto new_prop = std::make_unique<StylePropertyNode>(provided_prop->key, provided_prop->getClonedValues());
+                        it->second = new_prop.get();
+                        owned_properties.push_back(std::move(new_prop));
+                    }
                 }
             }
 

@@ -12,8 +12,11 @@ namespace CHTL {
 
 class StylePropertyNode : public StyleContentNode {
 public:
+    StylePropertyNode() = default;
     StylePropertyNode(const std::string& key, std::vector<std::unique_ptr<ValueNode>> value)
         : key(key), value(std::move(value)) {}
+    StylePropertyNode(const std::string& key)
+        : key(key) {}
 
     NodeType getType() const override { return NodeType::StyleProperty; }
 

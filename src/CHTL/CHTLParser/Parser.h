@@ -35,6 +35,7 @@ private:
     std::unique_ptr<TemplateUsageNode> parseTemplateUsageNode();
     std::unique_ptr<DeleteNode> parseDeleteNode();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
+    std::unique_ptr<StylePropertyNode> parseSingleStyleProperty();
 
 
     Lexer* lexer;

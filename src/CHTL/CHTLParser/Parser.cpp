@@ -89,42 +89,46 @@ std::vector<std::unique_ptr<StylePropertyNode>> Parser::parseStyleProperties() {
     auto properties = std::vector<std::unique_ptr<StylePropertyNode>>();
 
     while (currentToken.type == TokenType::Identifier) {
-        std::string key = currentToken.value;
-        consume(TokenType::Identifier);
-        consume(TokenType::Colon);
-
-        auto values = std::vector<std::unique_ptr<ValueNode>>();
-        while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof) {
-            if (currentToken.type == TokenType::Identifier) {
-                Token peekToken = lexer->peek();
-                if (peekToken.type == TokenType::OpenParen) {
-                    // Variable usage
-                    std::string groupName = currentToken.value;
-                    consume(TokenType::Identifier);
-                    consume(TokenType::OpenParen);
-                    std::string variableName = currentToken.value;
-                    consume(TokenType::Identifier);
-                    consume(TokenType::CloseParen);
-                    values.push_back(std::make_unique<VariableUsageNode>(groupName, variableName));
-                } else {
-                    // Literal value
-                    values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
-                    consume(TokenType::Identifier);
-                }
-            } else if (currentToken.type == TokenType::String) {
-                values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
-                consume(TokenType::String);
-            } else {
-                // Error or unexpected token
-                consume(currentToken.type);
-            }
-        }
-
-        consume(TokenType::Semicolon);
-        properties.push_back(std::make_unique<StylePropertyNode>(key, std::move(values)));
+        properties.push_back(parseSingleStyleProperty());
     }
 
     return properties;
+}
+
+std::unique_ptr<StylePropertyNode> Parser::parseSingleStyleProperty() {
+    std::string key = currentToken.value;
+    consume(TokenType::Identifier);
+    consume(TokenType::Colon);
+
+    auto values = std::vector<std::unique_ptr<ValueNode>>();
+    while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof) {
+        if (currentToken.type == TokenType::Identifier) {
+            Token peekToken = lexer->peek();
+            if (peekToken.type == TokenType::OpenParen) {
+                // Variable usage
+                std::string groupName = currentToken.value;
+                consume(TokenType::Identifier);
+                consume(TokenType::OpenParen);
+                std::string variableName = currentToken.value;
+                consume(TokenType::Identifier);
+                consume(TokenType::CloseParen);
+                values.push_back(std::make_unique<VariableUsageNode>(groupName, variableName));
+            } else {
+                // Literal value
+                values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
+                consume(TokenType::Identifier);
+            }
+        } else if (currentToken.type == TokenType::String) {
+            values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
+            consume(TokenType::String);
+        } else {
+            // Error or unexpected token
+            consume(currentToken.type);
+        }
+    }
+
+    consume(TokenType::Semicolon);
+    return std::make_unique<StylePropertyNode>(key, std::move(values));
 }
 
 std::unique_ptr<StyleRuleNode> Parser::parseStyleRule() {
@@ -289,31 +293,19 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
                 templateNode->inheritances.push_back(parseTemplateUsageNode());
             } else if (currentToken.type == TokenType::Delete) {
                 templateNode->body.push_back(parseDeleteNode());
-            } else {
-                // Check for valueless properties
+            } else if (currentToken.type == TokenType::Identifier) {
                 Token peekToken = lexer->peek();
                 if (peekToken.type == TokenType::Comma || peekToken.type == TokenType::Semicolon) {
-                    // Valueless properties
-                    while (currentToken.type == TokenType::Identifier) {
-                        std::string key = currentToken.value;
-                        consume(TokenType::Identifier);
-                        auto values = std::vector<std::unique_ptr<ValueNode>>();
-                        templateNode->body.push_back(std::make_unique<StylePropertyNode>(key, std::move(values)));
-
-                        if (currentToken.type == TokenType::Comma) {
-                            consume(TokenType::Comma);
-                        } else {
-                            break;
-                        }
-                    }
-                    if (currentToken.type == TokenType::Semicolon) {
+                    std::string key = currentToken.value;
+                    consume(TokenType::Identifier);
+                    templateNode->body.push_back(std::make_unique<StylePropertyNode>(key));
+                    if (currentToken.type == TokenType::Comma) {
+                        consume(TokenType::Comma);
+                    } else if (currentToken.type == TokenType::Semicolon) {
                         consume(TokenType::Semicolon);
                     }
-                } else {
-                    auto properties = parseStyleProperties();
-                    for (auto& prop : properties) {
-                        templateNode->body.push_back(std::move(prop));
-                    }
+                } else if (peekToken.type == TokenType::Colon) {
+                    templateNode->body.push_back(parseSingleStyleProperty());
                 }
             }
         }

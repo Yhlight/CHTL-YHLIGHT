@@ -119,7 +119,7 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 16: Custom Template System - Valueless Style Groups
 
-- [ ] Enhance the `Lexer` and `Parser` to support valueless properties.
-- [ ] Update the AST to represent valueless properties and their provided values.
-- [ ] Update the `Generator` to resolve valueless style groups.
-- [ ] Write unit tests for the valueless style group feature.
+- [x] Enhance the `Lexer` and `Parser` to support valueless properties.
+- [x] Update the AST to represent valueless properties and their provided values.
+- [x] Update the `Generator` to resolve valueless style groups.
+- [x] Write unit tests for the valueless style group feature.
