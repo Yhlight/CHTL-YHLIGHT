@@ -33,3 +33,29 @@ TEST(CustomElementTemplateTest, SimpleSpecialization) {
     std::string expected = R"(<body><div style="width:100px;height:200px;"></div></body>)";
     ASSERT_EQ(result, expected);
 }
+
+TEST(CustomElementTemplateTest, IndexedSpecialization) {
+    std::string source = R"(
+        [Custom] @Element Box {
+            div {}
+            div {}
+        }
+
+        body {
+            @Element Box {
+                div[1] {
+                    style {
+                        height: 200px;
+                    }
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+    std::string expected = R"(<body><div></div><div style="height:200px;"></div></body>)";
+    ASSERT_EQ(result, expected);
+}

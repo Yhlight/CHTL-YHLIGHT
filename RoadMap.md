@@ -126,16 +126,16 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 17: Custom Template System - Element Specialization
 
-- [ ] Update the AST to support element specialization in `TemplateUsageNode`.
-- [ ] Enhance the `Parser` to parse style overrides within `@Element` usage blocks.
-- [ ] Refactor the `Generator` to apply these style specializations to the correct elements.
-- [ ] Write unit tests for the element specialization feature.
+- [x] Update the AST to support element specialization in `TemplateUsageNode`.
+- [x] Enhance the `Parser` to parse style overrides within `@Element` usage blocks.
+- [x] Refactor the `Generator` to apply these style specializations to the correct elements.
+- [x] Write unit tests for the element specialization feature.
 
 ## Milestone 18: Custom Template System - Indexed Access
 
-- [ ] Enhance the `Lexer` and `Parser` to support indexed access (e.g., `div[1]`).
-- [ ] Update the `Generator` to apply style specializations to indexed elements.
-- [ ] Write unit tests for indexed element access.
+- [x] Enhance the `Lexer` and `Parser` to support indexed access (e.g., `div[1]`).
+- [x] Update the `Generator` to apply style specializations to indexed elements.
+- [x] Write unit tests for indexed element access.
 
 ## Milestone 19: Custom Template System - Element Insertion
 

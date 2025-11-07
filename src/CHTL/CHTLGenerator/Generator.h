@@ -45,6 +45,7 @@ private:
     std::vector<std::string> inheritance_stack;
     std::vector<std::unique_ptr<StylePropertyNode>> owned_properties;
     std::vector<const TemplateUsageNode*> template_usage_context;
+    std::map<std::string, int> element_indices;
 };
 
 } // namespace CHTL

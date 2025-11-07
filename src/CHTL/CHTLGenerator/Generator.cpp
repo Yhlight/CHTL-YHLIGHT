@@ -58,10 +58,15 @@ void Generator::visit(const ElementNode* node) {
 
     if (!template_usage_context.empty()) {
         auto context = template_usage_context.back();
+        int currentIndex = element_indices[node->tagName]++;
+
         for (const auto& specialization : context->body) {
             if (specialization->getType() == NodeType::Element) {
                 auto specElement = static_cast<const ElementNode*>(specialization.get());
-                if (specElement->tagName == node->tagName) {
+                bool tagMatch = specElement->tagName == node->tagName;
+                bool indexMatch = specElement->index == -1 || specElement->index == currentIndex;
+
+                if (tagMatch && indexMatch) {
                     for (const auto& child : specElement->children) {
                         if (child->getType() == NodeType::Style) {
                             visit(static_cast<StyleNode*>(child.get()), mutableNode);
@@ -287,6 +292,7 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
     } else if (node->type == "Element") {
         if (element_templates.count(node->name)) {
             template_usage_context.push_back(node);
+            element_indices.clear();
             const auto& templateNode = element_templates[node->name];
             for (const auto& statement : templateNode->body) {
                 switch (statement->getType()) {

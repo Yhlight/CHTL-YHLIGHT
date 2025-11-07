@@ -222,6 +222,13 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
 
     auto elementNode = std::make_unique<ElementNode>(tagName);
 
+    if (currentToken.type == TokenType::OpenBracket) {
+        consume(TokenType::OpenBracket);
+        elementNode->index = std::stoi(currentToken.value);
+        consume(TokenType::Identifier); // Assuming index is a number parsed as identifier
+        consume(TokenType::CloseBracket);
+    }
+
     consume(TokenType::OpenBrace);
 
     while(currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
