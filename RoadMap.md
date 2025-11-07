@@ -156,3 +156,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse arithmetic expressions within style properties.
 - [x] Enhance the `Generator` to produce CSS `calc()` functions.
 - [x] Write unit tests for arithmetic expression handling.
+
+## Milestone 22: Style Property - Attribute Conditional Expressions
+
+- [x] Enhance the `Lexer` to recognize conditional and logical operators.
+- [x] Enhance the `AST` to represent conditional expressions.
+- [x] Enhance the `Parser` to parse conditional expressions within style properties.
+- [x] Enhance the `Generator` to produce conditional output.
+- [x] Write unit tests for conditional expression handling.

@@ -175,6 +175,30 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, GeneratesConditionalExpression) {
+    std::string source = "div { style { color: 1 > 2 ? 'red' : 'blue'; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:blue;\"></div>");
+}
+
+TEST(GeneratorTest, GeneratesConditionalExpressionTrue) {
+    std::string source = "div { style { color: 2 > 1 ? 'red' : 'blue'; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:red;\"></div>");
+}
+
 TEST(GeneratorTest, GeneratesValuelessStyleGroup) {
     std::string source = R"(
         [Custom] @Style TextSet {

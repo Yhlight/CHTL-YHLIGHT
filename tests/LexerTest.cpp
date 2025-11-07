@@ -120,3 +120,25 @@ TEST(LexerTest, HandlesParentheses) {
     ASSERT_EQ(token2.type, CHTL::TokenType::CloseParen);
     ASSERT_EQ(token2.value, ")");
 }
+
+TEST(LexerTest, HandlesConditionalOperators) {
+    CHTL::Lexer lexer("? > && || < >= <= == !=");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::QuestionMark);
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::GreaterThan);
+    CHTL::Token token3 = lexer.getNextToken();
+    ASSERT_EQ(token3.type, CHTL::TokenType::DoubleAnd);
+    CHTL::Token token4 = lexer.getNextToken();
+    ASSERT_EQ(token4.type, CHTL::TokenType::DoubleOr);
+    CHTL::Token token5 = lexer.getNextToken();
+    ASSERT_EQ(token5.type, CHTL::TokenType::LessThan);
+    CHTL::Token token6 = lexer.getNextToken();
+    ASSERT_EQ(token6.type, CHTL::TokenType::GreaterEqual);
+    CHTL::Token token7 = lexer.getNextToken();
+    ASSERT_EQ(token7.type, CHTL::TokenType::LessEqual);
+    CHTL::Token token8 = lexer.getNextToken();
+    ASSERT_EQ(token8.type, CHTL::TokenType::DoubleEqual);
+    CHTL::Token token9 = lexer.getNextToken();
+    ASSERT_EQ(token9.type, CHTL::TokenType::NotEqual);
+}

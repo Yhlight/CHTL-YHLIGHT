@@ -503,7 +503,43 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageReference() {
     return std::make_unique<TemplateUsageNode>(type, name);
 }
 
-std::unique_ptr<ValueNode> Parser::parseExpression() {
+std::unique_ptr<ValueNode> Parser::parseConditionalExpression() {
+    auto expr = parseLogicalOrExpression();
+
+    if (currentToken.type == TokenType::QuestionMark) {
+        consume(TokenType::QuestionMark);
+        auto true_branch = parseExpression();
+        consume(TokenType::Colon);
+        auto false_branch = parseExpression();
+
+        auto node = std::make_unique<ConditionalNode>();
+        node->condition = std::move(expr);
+        node->true_branch = std::move(true_branch);
+        node->false_branch = std::move(false_branch);
+        return node;
+    }
+
+    return expr;
+}
+
+std::unique_ptr<ValueNode> Parser::parseLogicalOrExpression() {
+    auto left = parseLogicalAndExpression();
+
+    while (currentToken.type == TokenType::DoubleOr) {
+        std::string op = currentToken.value;
+        consume(TokenType::DoubleOr);
+        auto right = parseLogicalAndExpression();
+        auto node = std::make_unique<LogicalNode>();
+        node->left = std::move(left);
+        node->op = op;
+        node->right = std::move(right);
+        left = std::move(node);
+    }
+
+    return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parseAdditiveExpression() {
     auto left = parseTerm();
 
     while (currentToken.type == TokenType::Plus || currentToken.type == TokenType::Minus) {
@@ -514,6 +550,50 @@ std::unique_ptr<ValueNode> Parser::parseExpression() {
     }
 
     return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parseLogicalAndExpression() {
+    auto left = parseComparisonExpression();
+
+    while (currentToken.type == TokenType::DoubleAnd) {
+        std::string op = currentToken.value;
+        consume(TokenType::DoubleAnd);
+        auto right = parseComparisonExpression();
+        auto node = std::make_unique<LogicalNode>();
+        node->left = std::move(left);
+        node->op = op;
+        node->right = std::move(right);
+        left = std::move(node);
+    }
+
+    return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parseComparisonExpression() {
+    auto left = parseAdditiveExpression();
+
+    while (currentToken.type == TokenType::GreaterThan ||
+           currentToken.type == TokenType::LessThan ||
+           currentToken.type == TokenType::GreaterEqual ||
+           currentToken.type == TokenType::LessEqual ||
+           currentToken.type == TokenType::DoubleEqual ||
+           currentToken.type == TokenType::NotEqual)
+    {
+        std::string op = currentToken.value;
+        consume(currentToken.type);
+        auto right = parseTerm();
+        auto node = std::make_unique<ComparisonNode>();
+        node->left = std::move(left);
+        node->op = op;
+        node->right = std::move(right);
+        left = std::move(node);
+    }
+
+    return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parseExpression() {
+    return parseConditionalExpression();
 }
 
 std::unique_ptr<ValueNode> Parser::parseTerm() {

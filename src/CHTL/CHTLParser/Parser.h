@@ -3,6 +3,10 @@
 #include "../CHTLLexer/Lexer.h"
 #include "../CHTLNode/ProgramNode.h"
 #include "../CHTLNode/ElementNode.h"
+#include "../CHTLNode/ValueNode.h"
+#include "../CHTLNode/ComparisonNode.h"
+#include "../CHTLNode/LogicalNode.h"
+#include "../CHTLNode/ConditionalNode.h"
 #include <memory>
 
 namespace CHTL {
@@ -18,7 +22,6 @@ class TemplateUsageNode;
 class DeleteNode;
 class InsertNode;
 class ElementDeleteNode;
-class ValueNode;
 
 class Parser {
 public:
@@ -43,6 +46,11 @@ private:
     std::unique_ptr<TemplateUsageNode> parseTemplateUsageReference();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
     std::unique_ptr<ValueNode> parseExpression();
+    std::unique_ptr<ValueNode> parseConditionalExpression();
+    std::unique_ptr<ValueNode> parseLogicalOrExpression();
+    std::unique_ptr<ValueNode> parseLogicalAndExpression();
+    std::unique_ptr<ValueNode> parseComparisonExpression();
+    std::unique_ptr<ValueNode> parseAdditiveExpression();
     std::unique_ptr<ValueNode> parseTerm();
     std::unique_ptr<ValueNode> parseFactor();
     std::unique_ptr<ValueNode> parsePower();

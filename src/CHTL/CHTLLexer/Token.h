@@ -33,6 +33,14 @@ enum class TokenType {
     Slash,
     Percent,
     DoubleAsterisk,
+    QuestionMark,
+    GreaterThan,
+    GreaterEqual,
+    LessEqual,
+    DoubleEqual,
+    NotEqual,
+    DoubleAnd,
+    DoubleOr,
     Eof,
     Unknown
 };

@@ -95,9 +95,17 @@ Token Lexer::getNextToken() {
             position++;
             return {TokenType::Semicolon, ";"};
         case '=':
+            if (position + 1 < source.length() && source[position + 1] == '=') {
+                position += 2;
+                return {TokenType::DoubleEqual, "=="};
+            }
             position++;
             return {TokenType::Equal, "="};
         case '&':
+            if (position + 1 < source.length() && source[position + 1] == '&') {
+                position += 2;
+                return {TokenType::DoubleAnd, "&&"};
+            }
             position++;
             return {TokenType::Ampersand, "&"};
         case '[':
@@ -119,8 +127,32 @@ Token Lexer::getNextToken() {
             position++;
             return {TokenType::Comma, ","};
         case '<':
+            if (position + 1 < source.length() && source[position + 1] == '=') {
+                position += 2;
+                return {TokenType::LessEqual, "<="};
+            }
             position++;
             return {TokenType::LessThan, "<"};
+        case '>':
+            if (position + 1 < source.length() && source[position + 1] == '=') {
+                position += 2;
+                return {TokenType::GreaterEqual, ">="};
+            }
+            position++;
+            return {TokenType::GreaterThan, ">"};
+        case '!':
+            if (position + 1 < source.length() && source[position + 1] == '=') {
+                position += 2;
+                return {TokenType::NotEqual, "!="};
+            }
+            // Or handle single '!' if it has a meaning
+            break;
+        case '|':
+            if (position + 1 < source.length() && source[position + 1] == '|') {
+                position += 2;
+                return {TokenType::DoubleOr, "||"};
+            }
+            break;
         case '+':
             position++;
             return {TokenType::Plus, "+"};
@@ -140,6 +172,9 @@ Token Lexer::getNextToken() {
         case '%':
             position++;
             return {TokenType::Percent, "%"};
+        case '?':
+            position++;
+            return {TokenType::QuestionMark, "?"};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)

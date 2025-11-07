@@ -5,6 +5,7 @@ add_executable(chttl_tests
     ValuelessStyleGroupTest.cpp
     CustomElementTemplateTest.cpp
     ArithmeticExpressionTest.cpp
+    ConditionalParserTest.cpp
 )
 
 target_link_libraries(chttl_tests

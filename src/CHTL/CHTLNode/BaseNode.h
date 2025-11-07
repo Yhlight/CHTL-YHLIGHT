@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace CHTL {
 
@@ -21,13 +22,17 @@ enum class NodeType {
     Delete,
     Insert,
     ElementDelete,
-    BinaryOperation
+    BinaryOperation,
+    Comparison,
+    Logical,
+    Conditional
 };
 
 class BaseNode {
 public:
     virtual ~BaseNode() = default;
     virtual NodeType getType() const = 0;
+    virtual std::string ToString() const { return "BaseNode"; }
 };
 
 } // namespace CHTL
