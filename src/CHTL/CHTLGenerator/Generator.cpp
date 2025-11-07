@@ -47,10 +47,28 @@ void Generator::visit(const ProgramNode* node) {
 }
 
 void Generator::visit(const ElementNode* node) {
+    auto mutableNode = const_cast<ElementNode*>(node);
+
     // Process style nodes first to populate attributes
     for (const auto& child : node->children) {
         if (child->getType() == NodeType::Style) {
-            visit(static_cast<StyleNode*>(child.get()), const_cast<ElementNode*>(node));
+            visit(static_cast<StyleNode*>(child.get()), mutableNode);
+        }
+    }
+
+    if (!template_usage_context.empty()) {
+        auto context = template_usage_context.back();
+        for (const auto& specialization : context->body) {
+            if (specialization->getType() == NodeType::Element) {
+                auto specElement = static_cast<const ElementNode*>(specialization.get());
+                if (specElement->tagName == node->tagName) {
+                    for (const auto& child : specElement->children) {
+                        if (child->getType() == NodeType::Style) {
+                            visit(static_cast<StyleNode*>(child.get()), mutableNode);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -268,6 +286,7 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
         }
     } else if (node->type == "Element") {
         if (element_templates.count(node->name)) {
+            template_usage_context.push_back(node);
             const auto& templateNode = element_templates[node->name];
             for (const auto& statement : templateNode->body) {
                 switch (statement->getType()) {
@@ -293,6 +312,7 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
                         break;
                 }
             }
+            template_usage_context.pop_back();
         }
     }
 }

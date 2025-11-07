@@ -123,3 +123,28 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Update the AST to represent valueless properties and their provided values.
 - [x] Update the `Generator` to resolve valueless style groups.
 - [x] Write unit tests for the valueless style group feature.
+
+## Milestone 17: Custom Template System - Element Specialization
+
+- [ ] Update the AST to support element specialization in `TemplateUsageNode`.
+- [ ] Enhance the `Parser` to parse style overrides within `@Element` usage blocks.
+- [ ] Refactor the `Generator` to apply these style specializations to the correct elements.
+- [ ] Write unit tests for the element specialization feature.
+
+## Milestone 18: Custom Template System - Indexed Access
+
+- [ ] Enhance the `Lexer` and `Parser` to support indexed access (e.g., `div[1]`).
+- [ ] Update the `Generator` to apply style specializations to indexed elements.
+- [ ] Write unit tests for indexed element access.
+
+## Milestone 19: Custom Template System - Element Insertion
+
+- [ ] Enhance the `Lexer` and `Parser` to support the `insert` keyword and its modifiers (`after`, `before`, `replace`, `at top`, `at bottom`).
+- [ ] Update the `Generator` to insert elements as specified.
+- [ ] Write unit tests for element insertion.
+
+## Milestone 20: Custom Template System - Element Deletion
+
+- [ ] Enhance the `Parser` to support `delete` statements for elements within `@Element` usage blocks.
+- [ ] Update the `Generator` to remove the specified elements.
+- [ ] Write unit tests for element deletion.

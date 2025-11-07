@@ -2,6 +2,7 @@
 
 #include "StyleContentNode.h"
 #include "StylePropertyNode.h"
+#include "BaseNode.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -18,6 +19,7 @@ public:
     std::string name;
     bool deleted = false;
     std::vector<std::unique_ptr<StylePropertyNode>> provided_properties;
+    std::vector<std::unique_ptr<BaseNode>> body;
 };
 
 } // namespace CHTL

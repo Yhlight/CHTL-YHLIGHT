@@ -225,7 +225,7 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
     consume(TokenType::OpenBrace);
 
     while(currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
-        // Here, we can have attributes or child statements (elements, text, style)
+        // Check for attribute first
         if (currentToken.type == TokenType::Identifier) {
             Token peekToken = lexer->peek();
             if (peekToken.type == TokenType::Colon || peekToken.type == TokenType::Equal) {
@@ -246,15 +246,14 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
                 if (currentToken.type == TokenType::Semicolon) {
                     consume(TokenType::Semicolon);
                 }
-            } else {
-                // Child Element, text node, or style node
-                elementNode->children.push_back(parseStatement());
+                continue;
             }
-        } else {
-             // If we don't recognize the token, consume it and move on
-            if (currentToken.type != TokenType::Eof) {
-                currentToken = lexer->getNextToken();
-            }
+        }
+
+        // If not an attribute, parse as a statement
+        auto statement = parseStatement();
+        if (statement) {
+            elementNode->children.push_back(std::move(statement));
         }
     }
 
@@ -345,7 +344,13 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
 
     if (currentToken.type == TokenType::OpenBrace) {
         consume(TokenType::OpenBrace);
-        node->provided_properties = parseStyleProperties();
+        if (type == "Style") {
+            node->provided_properties = parseStyleProperties();
+        } else if (type == "Element") {
+            while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+                node->body.push_back(parseStatement());
+            }
+        }
         consume(TokenType::CloseBrace);
     } else {
         consume(TokenType::Semicolon);

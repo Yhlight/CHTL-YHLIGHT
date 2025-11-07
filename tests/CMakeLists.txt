@@ -3,6 +3,7 @@ add_executable(chttl_tests
     ParserTest.cpp
     GeneratorTest.cpp
     ValuelessStyleGroupTest.cpp
+    CustomElementTemplateTest.cpp
 )
 
 target_link_libraries(chttl_tests
