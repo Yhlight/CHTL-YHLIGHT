@@ -20,6 +20,12 @@ enum class TokenType {
     CloseParen,
     Delete,
     Comma,
+    Insert,
+    After,
+    Before,
+    Replace,
+    Top,
+    Bottom,
     Eof,
     Unknown
 };

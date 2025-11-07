@@ -3,6 +3,8 @@
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
+#include "CHTLNode/InsertNode.h"
+#include <vector>
 
 namespace CHTL {
 
@@ -294,25 +296,84 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
             template_usage_context.push_back(node);
             element_indices.clear();
             const auto& templateNode = element_templates[node->name];
-            for (const auto& statement : templateNode->body) {
+
+            std::vector<const BaseNode*> final_body;
+            for(const auto& b : templateNode->body) {
+                final_body.push_back(b.get());
+            }
+
+            for(const auto& n : node->body) {
+                if(n->getType() == NodeType::Insert) {
+                    const auto insertNode = static_cast<const InsertNode*>(n.get());
+
+                    if (insertNode->type == InsertType::AtTop) {
+                        std::vector<const BaseNode*> insert_body;
+                        for (const auto& b : insertNode->body) {
+                            insert_body.push_back(b.get());
+                        }
+                        final_body.insert(final_body.begin(), insert_body.begin(), insert_body.end());
+                    } else if (insertNode->type == InsertType::AtBottom) {
+                        std::vector<const BaseNode*> insert_body;
+                        for (const auto& b : insertNode->body) {
+                            insert_body.push_back(b.get());
+                        }
+                        final_body.insert(final_body.end(), insert_body.begin(), insert_body.end());
+                    } else {
+                        // For `after`, `before`, `replace`, we need to find the target
+                        for (auto it = final_body.begin(); it != final_body.end(); ++it) {
+                            if ((*it)->getType() == NodeType::Element) {
+                                auto el = static_cast<const ElementNode*>(*it);
+                                if (el->tagName == insertNode->target) {
+                                    if (insertNode->type == InsertType::After) {
+                                        std::vector<const BaseNode*> insert_body;
+                                        for (const auto& b : insertNode->body) {
+                                            insert_body.push_back(b.get());
+                                        }
+                                        final_body.insert(it + 1, insert_body.begin(), insert_body.end());
+                                        break;
+                                    } else if (insertNode->type == InsertType::Before) {
+                                        std::vector<const BaseNode*> insert_body;
+                                        for (const auto& b : insertNode->body) {
+                                            insert_body.push_back(b.get());
+                                        }
+                                        final_body.insert(it, insert_body.begin(), insert_body.end());
+                                        break;
+                                    } else if (insertNode->type == InsertType::Replace) {
+                                        it = final_body.erase(it);
+                                        std::vector<const BaseNode*> insert_body;
+                                        for (const auto& b : insertNode->body) {
+                                            insert_body.push_back(b.get());
+                                        }
+                                        final_body.insert(it, insert_body.begin(), insert_body.end());
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            for (const auto& statement : final_body) {
                 switch (statement->getType()) {
                     case NodeType::Element:
-                        visit(static_cast<ElementNode*>(statement.get()));
+                        visit(static_cast<const ElementNode*>(statement));
                         break;
                     case NodeType::Text:
-                        visit(static_cast<TextNode*>(statement.get()));
+                        visit(static_cast<const TextNode*>(statement));
                         break;
                     case NodeType::Style:
-                        visit(static_cast<StyleNode*>(statement.get()), parent);
+                        visit(static_cast<const StyleNode*>(statement), parent);
                         break;
                     case NodeType::Script:
-                        visit(static_cast<ScriptNode*>(statement.get()));
+                        visit(static_cast<const ScriptNode*>(statement));
                         break;
                     case NodeType::Origin:
-                        visit(static_cast<OriginNode*>(statement.get()));
+                        visit(static_cast<const OriginNode*>(statement));
                         break;
                     case NodeType::TemplateUsage:
-                        visit(static_cast<TemplateUsageNode*>(statement.get()), parent);
+                        visit(static_cast<const TemplateUsageNode*>(statement), parent);
                         break;
                     default:
                         break;

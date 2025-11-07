@@ -11,6 +11,7 @@
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
 #include "CHTLNode/DeleteNode.h"
+#include "CHTLNode/InsertNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -355,7 +356,11 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
             node->provided_properties = parseStyleProperties();
         } else if (type == "Element") {
             while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
-                node->body.push_back(parseStatement());
+                if (currentToken.type == TokenType::Insert) {
+                    node->body.push_back(parseInsertNode());
+                } else {
+                    node->body.push_back(parseStatement());
+                }
             }
         }
         consume(TokenType::CloseBrace);
@@ -386,6 +391,56 @@ std::unique_ptr<DeleteNode> Parser::parseDeleteNode() {
     consume(TokenType::Semicolon);
 
     return deleteNode;
+}
+
+std::unique_ptr<InsertNode> Parser::parseInsertNode() {
+    consume(TokenType::Insert);
+
+    InsertType type;
+    if (currentToken.type == TokenType::After) {
+        type = InsertType::After;
+        consume(TokenType::After);
+    } else if (currentToken.type == TokenType::Before) {
+        type = InsertType::Before;
+        consume(TokenType::Before);
+    } else if (currentToken.type == TokenType::Replace) {
+        type = InsertType::Replace;
+        consume(TokenType::Replace);
+    } else if (currentToken.type == TokenType::At) {
+        consume(TokenType::At);
+        if (currentToken.type == TokenType::Top) {
+            type = InsertType::AtTop;
+            consume(TokenType::Top);
+        } else {
+            type = InsertType::AtBottom;
+            consume(TokenType::Bottom);
+        }
+    } else {
+        throw std::runtime_error("Invalid insert type");
+    }
+
+    std::string target;
+    if (type != InsertType::AtTop && type != InsertType::AtBottom) {
+        target = currentToken.value;
+        consume(TokenType::Identifier);
+        if (currentToken.type == TokenType::OpenBracket) {
+            consume(TokenType::OpenBracket);
+            target += "[" + currentToken.value + "]";
+            consume(TokenType::Identifier);
+            consume(TokenType::CloseBracket);
+        }
+    }
+
+    consume(TokenType::OpenBrace);
+
+    auto body = std::vector<std::unique_ptr<BaseNode>>();
+    while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        body.push_back(parseStatement());
+    }
+
+    consume(TokenType::CloseBrace);
+
+    return std::make_unique<InsertNode>(type, target, std::move(body));
 }
 
 } // namespace CHTL

@@ -139,9 +139,9 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 19: Custom Template System - Element Insertion
 
-- [ ] Enhance the `Lexer` and `Parser` to support the `insert` keyword and its modifiers (`after`, `before`, `replace`, `at top`, `at bottom`).
-- [ ] Update the `Generator` to insert elements as specified.
-- [ ] Write unit tests for element insertion.
+- [x] Enhance the `Lexer` and `Parser` to support the `insert` keyword and its modifiers (`after`, `before`, `replace`, `at top`, `at bottom`).
+- [x] Update the `Generator` to insert elements as specified.
+- [x] Write unit tests for element insertion.
 
 ## Milestone 20: Custom Template System - Element Deletion
 

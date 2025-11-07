@@ -127,9 +127,14 @@ Token Lexer::getNextToken() {
             position++;
         }
         std::string value = source.substr(start, position - start);
-        if (value == "delete") {
-            return {TokenType::Delete, "delete"};
-        }
+        if (value == "delete") return {TokenType::Delete, "delete"};
+        if (value == "insert") return {TokenType::Insert, "insert"};
+        if (value == "after") return {TokenType::After, "after"};
+        if (value == "before") return {TokenType::Before, "before"};
+        if (value == "replace") return {TokenType::Replace, "replace"};
+        if (value == "at") return {TokenType::At, "at"};
+        if (value == "top") return {TokenType::Top, "top"};
+        if (value == "bottom") return {TokenType::Bottom, "bottom"};
         return {TokenType::Identifier, value};
     }
 
