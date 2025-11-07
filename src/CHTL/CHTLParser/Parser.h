@@ -17,6 +17,7 @@ class TemplateNode;
 class TemplateUsageNode;
 class DeleteNode;
 class InsertNode;
+class ElementDeleteNode;
 
 class Parser {
 public:
@@ -36,6 +37,9 @@ private:
     std::unique_ptr<TemplateUsageNode> parseTemplateUsageNode();
     std::unique_ptr<DeleteNode> parseDeleteNode();
     std::unique_ptr<InsertNode> parseInsertNode();
+    std::unique_ptr<ElementDeleteNode> parseElementDeleteNode();
+    std::unique_ptr<ElementNode> parseElementReference();
+    std::unique_ptr<TemplateUsageNode> parseTemplateUsageReference();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
 
 

@@ -36,6 +36,7 @@ private:
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
+    void resolveElementInheritance(const TemplateNode* node, std::vector<const BaseNode*>& body);
 
     std::stringstream html_output;
     std::stringstream css_output;

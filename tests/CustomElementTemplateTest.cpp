@@ -94,3 +94,79 @@ TEST(CustomElementTemplateTest, Insertion) {
     std::string expected = R"(<body><span></span><h2></h2><h3></h3><h1></h1><p></p></body>)";
     ASSERT_EQ(result, expected);
 }
+
+TEST(CustomElementTemplateTest, DeletionByTagName) {
+    std::string source = R"(
+        [Template] @Element Base {
+            div {}
+            span {}
+        }
+
+        [Custom] @Element Derived < Base {
+            delete span;
+        }
+
+        body {
+            @Element Derived {}
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+    std::string expected = R"(<body><div></div></body>)";
+    ASSERT_EQ(result, expected);
+}
+
+TEST(CustomElementTemplateTest, DeletionByIndexedTagName) {
+    std::string source = R"(
+        [Template] @Element Base {
+            div {}
+            div {}
+            span {}
+        }
+
+        [Custom] @Element Derived < Base {
+            delete div[0];
+        }
+
+        body {
+            @Element Derived {}
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+    std::string expected = R"(<body><div></div><span></span></body>)";
+    ASSERT_EQ(result, expected);
+}
+
+TEST(CustomElementTemplateTest, DeletionByTemplate) {
+    std::string source = R"(
+        [Template] @Element Part {
+            p {}
+        }
+        [Template] @Element Base {
+            div {}
+            @Element Part {}
+        }
+
+        [Custom] @Element Derived < Base {
+            delete @Element Part;
+        }
+
+        body {
+            @Element Derived {}
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+    std::string expected = R"(<body><div></div></body>)";
+    ASSERT_EQ(result, expected);
+}

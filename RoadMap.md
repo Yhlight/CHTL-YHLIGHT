@@ -145,6 +145,6 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 20: Custom Template System - Element Deletion
 
-- [ ] Enhance the `Parser` to support `delete` statements for elements within `@Element` usage blocks.
-- [ ] Update the `Generator` to remove the specified elements.
-- [ ] Write unit tests for element deletion.
+- [x] Enhance the `Parser` to support `delete` statements for elements within `@Element` usage blocks.
+- [x] Update the `Generator` to remove the specified elements.
+- [x] Write unit tests for element deletion.

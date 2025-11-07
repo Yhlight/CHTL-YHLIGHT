@@ -12,6 +12,7 @@
 #include "CHTLNode/VariableUsageNode.h"
 #include "CHTLNode/DeleteNode.h"
 #include "CHTLNode/InsertNode.h"
+#include "CHTLNode/ElementDeleteNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -283,9 +284,21 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     std::string name = currentToken.value;
     consume(TokenType::Identifier);
 
+    auto templateNode = std::make_unique<TemplateNode>();
+
+    if (currentToken.type == TokenType::LessThan) {
+        consume(TokenType::LessThan);
+        while (currentToken.type != TokenType::OpenBrace && currentToken.type != TokenType::Eof) {
+            auto usage = std::make_unique<TemplateUsageNode>(type, currentToken.value);
+            templateNode->inheritances.push_back(std::move(usage));
+            consume(TokenType::Identifier);
+            if (currentToken.type != TokenType::Comma) break;
+            consume(TokenType::Comma);
+        }
+    }
+
     consume(TokenType::OpenBrace);
 
-    auto templateNode = std::make_unique<TemplateNode>();
     templateNode->type = type;
     templateNode->name = name;
     templateNode->isCustom = isCustom;
@@ -326,7 +339,11 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
         }
     } else if (type == "Element") {
         while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
-            templateNode->body.push_back(parseStatement());
+            if (currentToken.type == TokenType::Delete) {
+                templateNode->body.push_back(parseElementDeleteNode());
+            } else {
+                templateNode->body.push_back(parseStatement());
+            }
         }
     } else if (type == "Var") {
         auto properties = parseStyleProperties();
@@ -358,6 +375,8 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
             while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
                 if (currentToken.type == TokenType::Insert) {
                     node->body.push_back(parseInsertNode());
+                } else if (currentToken.type == TokenType::Delete) {
+                    node->body.push_back(parseElementDeleteNode());
                 } else {
                     node->body.push_back(parseStatement());
                 }
@@ -441,6 +460,55 @@ std::unique_ptr<InsertNode> Parser::parseInsertNode() {
     consume(TokenType::CloseBrace);
 
     return std::make_unique<InsertNode>(type, target, std::move(body));
+}
+
+std::unique_ptr<ElementDeleteNode> Parser::parseElementDeleteNode() {
+    consume(TokenType::Delete);
+    auto deleteNode = std::make_unique<ElementDeleteNode>();
+
+    do {
+        if (currentToken.type == TokenType::At) {
+            deleteNode->targets.push_back(parseTemplateUsageReference());
+        } else {
+            deleteNode->targets.push_back(parseElementReference());
+        }
+
+        if (currentToken.type == TokenType::Comma) {
+            consume(TokenType::Comma);
+        } else {
+            break;
+        }
+    } while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof);
+
+    consume(TokenType::Semicolon);
+    return deleteNode;
+}
+
+std::unique_ptr<ElementNode> Parser::parseElementReference() {
+    std::string tagName = currentToken.value;
+    consume(TokenType::Identifier);
+
+    auto elementNode = std::make_unique<ElementNode>(tagName);
+
+    if (currentToken.type == TokenType::OpenBracket) {
+        consume(TokenType::OpenBracket);
+        elementNode->index = std::stoi(currentToken.value);
+        consume(TokenType::Identifier);
+        consume(TokenType::CloseBracket);
+    }
+
+    return elementNode;
+}
+
+std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageReference() {
+    consume(TokenType::At);
+    std::string type = currentToken.value;
+    consume(TokenType::Identifier);
+
+    std::string name = currentToken.value;
+    consume(TokenType::Identifier);
+
+    return std::make_unique<TemplateUsageNode>(type, name);
 }
 
 } // namespace CHTL

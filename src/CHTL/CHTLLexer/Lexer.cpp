@@ -118,6 +118,9 @@ Token Lexer::getNextToken() {
         case ',':
             position++;
             return {TokenType::Comma, ","};
+        case '<':
+            position++;
+            return {TokenType::LessThan, "<"};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)

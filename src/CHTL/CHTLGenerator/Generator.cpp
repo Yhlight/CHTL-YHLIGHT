@@ -1,9 +1,11 @@
 #include "Generator.h"
+#include <algorithm>
 #include "CHTLNode/TemplateUsageNode.h"
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
 #include "CHTLNode/InsertNode.h"
+#include "CHTLNode/ElementDeleteNode.h"
 #include <vector>
 
 namespace CHTL {
@@ -298,12 +300,33 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
             const auto& templateNode = element_templates[node->name];
 
             std::vector<const BaseNode*> final_body;
-            for(const auto& b : templateNode->body) {
-                final_body.push_back(b.get());
-            }
+            resolveElementInheritance(templateNode, final_body);
 
             for(const auto& n : node->body) {
-                if(n->getType() == NodeType::Insert) {
+                if(n->getType() == NodeType::ElementDelete) {
+                    const auto deleteNode = static_cast<const ElementDeleteNode*>(n.get());
+                    for(const auto& target : deleteNode->targets) {
+                        if(target->getType() == NodeType::Element) {
+                            const auto targetElement = static_cast<const ElementNode*>(target.get());
+                            final_body.erase(std::remove_if(final_body.begin(), final_body.end(), [&](const BaseNode* b){
+                                if(b->getType() == NodeType::Element) {
+                                    const auto el = static_cast<const ElementNode*>(b);
+                                    return el->tagName == targetElement->tagName && (targetElement->index == -1 || el->index == targetElement->index);
+                                }
+                                return false;
+                            }), final_body.end());
+                        } else if (target->getType() == NodeType::TemplateUsage) {
+                            const auto targetTemplate = static_cast<const TemplateUsageNode*>(target.get());
+                            final_body.erase(std::remove_if(final_body.begin(), final_body.end(), [&](const BaseNode* b){
+                                if(b->getType() == NodeType::TemplateUsage) {
+                                    const auto tu = static_cast<const TemplateUsageNode*>(b);
+                                    return tu->name == targetTemplate->name;
+                                }
+                                return false;
+                            }), final_body.end());
+                        }
+                    }
+                } else if(n->getType() == NodeType::Insert) {
                     const auto insertNode = static_cast<const InsertNode*>(n.get());
 
                     if (insertNode->type == InsertType::AtTop) {
@@ -411,6 +434,75 @@ void Generator::resolveStyleInheritance(const TemplateNode* node, std::map<std::
             for (const auto& propName : deleteNode->properties) {
                 properties.erase(propName);
             }
+        }
+    }
+
+    inheritance_stack.pop_back();
+}
+
+void Generator::resolveElementInheritance(const TemplateNode* node, std::vector<const BaseNode*>& body) {
+    // Check for circular dependencies
+    for (const auto& name : inheritance_stack) {
+        if (name == node->name) {
+            throw std::runtime_error("Circular dependency detected in element template inheritance: " + node->name);
+        }
+    }
+
+    inheritance_stack.push_back(node->name);
+
+    // First, resolve parent templates
+    for (const auto& inheritance : node->inheritances) {
+        if (element_templates.count(inheritance->name)) {
+            resolveElementInheritance(element_templates[inheritance->name], body);
+        }
+    }
+
+    // Then, process this template's body
+    for (const auto& item : node->body) {
+        if (item->getType() == NodeType::ElementDelete) {
+            const auto deleteNode = static_cast<const ElementDeleteNode*>(item.get());
+            for(const auto& target : deleteNode->targets) {
+                if(target->getType() == NodeType::Element) {
+                    const auto targetElement = static_cast<const ElementNode*>(target.get());
+                    if (targetElement->index != -1) {
+                        // Indexed deletion
+                        int count = 0;
+                        for (auto it = body.begin(); it != body.end(); ) {
+                            if ((*it)->getType() == NodeType::Element) {
+                                const auto el = static_cast<const ElementNode*>(*it);
+                                if (el->tagName == targetElement->tagName) {
+                                    if (count == targetElement->index) {
+                                        it = body.erase(it);
+                                        break;
+                                    }
+                                    count++;
+                                }
+                            }
+                            ++it;
+                        }
+                    } else {
+                        // Unindexed deletion
+                        body.erase(std::remove_if(body.begin(), body.end(), [&](const BaseNode* b){
+                            if(b->getType() == NodeType::Element) {
+                                const auto el = static_cast<const ElementNode*>(b);
+                                return el->tagName == targetElement->tagName;
+                            }
+                            return false;
+                        }), body.end());
+                    }
+                } else if (target->getType() == NodeType::TemplateUsage) {
+                    const auto targetTemplate = static_cast<const TemplateUsageNode*>(target.get());
+                    body.erase(std::remove_if(body.begin(), body.end(), [&](const BaseNode* b){
+                        if(b->getType() == NodeType::TemplateUsage) {
+                            const auto tu = static_cast<const TemplateUsageNode*>(b);
+                            return tu->name == targetTemplate->name;
+                        }
+                        return false;
+                    }), body.end());
+                }
+            }
+        } else {
+            body.push_back(item.get());
         }
     }
 

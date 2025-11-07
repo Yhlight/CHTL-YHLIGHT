@@ -26,6 +26,7 @@ enum class TokenType {
     Replace,
     Top,
     Bottom,
+    LessThan,
     Eof,
     Unknown
 };
