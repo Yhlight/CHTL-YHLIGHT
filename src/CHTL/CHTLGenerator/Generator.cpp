@@ -3,6 +3,7 @@
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
+#include "CHTLNode/BinaryOperationNode.h"
 
 namespace CHTL {
 
@@ -175,26 +176,26 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
 
 void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStream) {
     styleStream << node->key << ":";
+    bool needsCalc = false;
     for (const auto& valueNode : node->value) {
-        if (valueNode->getType() == NodeType::LiteralValue) {
-            styleStream << static_cast<LiteralValueNode*>(valueNode.get())->value;
-        } else if (valueNode->getType() == NodeType::VariableUsage) {
-            auto varUsageNode = static_cast<VariableUsageNode*>(valueNode.get());
-            if (var_templates.count(varUsageNode->groupName)) {
-                const auto& templateNode = var_templates[varUsageNode->groupName];
-                for (const auto& prop : templateNode->body) {
-                    auto styleProp = static_cast<StylePropertyNode*>(prop.get());
-                    if (styleProp->key == varUsageNode->variableName) {
-                        for (const auto& val : styleProp->value) {
-                            if (val->getType() == NodeType::LiteralValue) {
-                                styleStream << static_cast<LiteralValueNode*>(val.get())->value;
-                            }
-                        }
-                    }
-                }
-            }
+        if (valueNode->getType() == NodeType::BinaryOperation) {
+            needsCalc = true;
+            break;
         }
     }
+
+    if (needsCalc) {
+        styleStream << "calc(";
+    }
+
+    for (const auto& valueNode : node->value) {
+        visit(valueNode.get(), styleStream);
+    }
+
+    if (needsCalc) {
+        styleStream << ")";
+    }
+
     styleStream << ";";
 }
 
@@ -245,7 +246,7 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
 
             // Handle provided properties for valueless style groups
             for (const auto& provided_prop : node->provided_properties) {
-                if (properties.count(provided_prop->key)) {
+                if (properties.count(provided_prop->key) && properties[provided_prop->key]->value.empty()) {
                     auto new_prop = std::make_unique<StylePropertyNode>(provided_prop->key, provided_prop->getClonedValues());
                     properties[provided_prop->key] = new_prop.get();
                     owned_properties.push_back(std::move(new_prop));
@@ -328,6 +329,41 @@ void Generator::resolveStyleInheritance(const TemplateNode* node, std::map<std::
     }
 
     inheritance_stack.pop_back();
+}
+
+void Generator::visit(const ValueNode* node, std::stringstream& styleStream) {
+    switch (node->getType()) {
+        case NodeType::LiteralValue:
+            styleStream << static_cast<const LiteralValueNode*>(node)->value;
+            break;
+        case NodeType::VariableUsage:
+            {
+                auto varUsageNode = static_cast<const VariableUsageNode*>(node);
+                if (var_templates.count(varUsageNode->groupName)) {
+                    const auto& templateNode = var_templates[varUsageNode->groupName];
+                    for (const auto& prop : templateNode->body) {
+                        auto styleProp = static_cast<const StylePropertyNode*>(prop.get());
+                        if (styleProp->key == varUsageNode->variableName) {
+                            for (const auto& val : styleProp->value) {
+                                visit(val.get(), styleStream);
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        case NodeType::BinaryOperation:
+            visit(static_cast<const BinaryOperationNode*>(node), styleStream);
+            break;
+        default:
+            break;
+    }
+}
+
+void Generator::visit(const BinaryOperationNode* node, std::stringstream& styleStream) {
+    visit(node->left.get(), styleStream);
+    styleStream << " " << node->op << " ";
+    visit(node->right.get(), styleStream);
 }
 
 } // namespace CHTL

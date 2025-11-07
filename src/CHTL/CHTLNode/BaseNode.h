@@ -18,7 +18,8 @@ enum class NodeType {
     TemplateUsage,
     LiteralValue,
     VariableUsage,
-    Delete
+    Delete,
+    BinaryOperation
 };
 
 class BaseNode {

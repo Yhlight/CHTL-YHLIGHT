@@ -175,6 +175,18 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, GeneratesArithmeticExpression) {
+    std::string source = "div { style { width: 10px + 5px; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"width:calc(10px + 5px);\"></div>");
+}
+
 TEST(GeneratorTest, GeneratesValuelessStyleGroup) {
     std::string source = R"(
         [Custom] @Style TextSet {

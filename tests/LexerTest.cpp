@@ -120,3 +120,30 @@ TEST(LexerTest, HandlesParentheses) {
     ASSERT_EQ(token2.type, CHTL::TokenType::CloseParen);
     ASSERT_EQ(token2.value, ")");
 }
+
+TEST(LexerTest, HandlesArithmeticOperators) {
+    CHTL::Lexer lexer("+ - * / % **");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::Plus);
+    ASSERT_EQ(token1.value, "+");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::Minus);
+    ASSERT_EQ(token2.value, "-");
+
+    CHTL::Token token3 = lexer.getNextToken();
+    ASSERT_EQ(token3.type, CHTL::TokenType::Asterisk);
+    ASSERT_EQ(token3.value, "*");
+
+    CHTL::Token token4 = lexer.getNextToken();
+    ASSERT_EQ(token4.type, CHTL::TokenType::Slash);
+    ASSERT_EQ(token4.value, "/");
+
+    CHTL::Token token5 = lexer.getNextToken();
+    ASSERT_EQ(token5.type, CHTL::TokenType::Percent);
+    ASSERT_EQ(token5.value, "%");
+
+    CHTL::Token token6 = lexer.getNextToken();
+    ASSERT_EQ(token6.type, CHTL::TokenType::DoubleAsterisk);
+    ASSERT_EQ(token6.value, "**");
+}

@@ -13,6 +13,7 @@
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
+#include "CHTLNode/BinaryOperationNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -445,4 +446,39 @@ TEST(ParserTest, ParsesValuelessStyleGroupUsage) {
     ASSERT_EQ(prop2->value.size(), 1);
     CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
     ASSERT_EQ(val2->value, "16px");
+}
+
+TEST(ParserTest, ThrowsOnValuelessPropertyInStandardTemplate) {
+    std::string source = R"(
+        [Template] @Style Test {
+            color,
+            font-size;
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    ASSERT_THROW(parser.parse(), std::runtime_error);
+}
+
+TEST(ParserTest, ParsesArithmeticExpression) {
+    std::string source = "div { style { width: 10px + 5px * 2; } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    auto program = parser.parse();
+    auto element = static_cast<CHTL::ElementNode*>(program->statements[0].get());
+    auto style = static_cast<CHTL::StyleNode*>(element->children[0].get());
+    auto prop = static_cast<CHTL::StylePropertyNode*>(style->children[0].get());
+    auto expr = static_cast<CHTL::BinaryOperationNode*>(prop->value[0].get());
+
+    ASSERT_EQ(expr->op, "+");
+    auto left = static_cast<CHTL::LiteralValueNode*>(expr->left.get());
+    ASSERT_EQ(left->value, "10px");
+
+    auto right = static_cast<CHTL::BinaryOperationNode*>(expr->right.get());
+    ASSERT_EQ(right->op, "*");
+    auto r_left = static_cast<CHTL::LiteralValueNode*>(right->left.get());
+    ASSERT_EQ(r_left->value, "5px");
+    auto r_right = static_cast<CHTL::LiteralValueNode*>(right->right.get());
+    ASSERT_EQ(r_right->value, "2");
 }

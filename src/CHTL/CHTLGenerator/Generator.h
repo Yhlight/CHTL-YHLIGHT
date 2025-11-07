@@ -35,6 +35,8 @@ private:
     void visit(const TemplateNode* node);
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
+    void visit(const ValueNode* node, std::stringstream& styleStream);
+    void visit(const class BinaryOperationNode* node, std::stringstream& styleStream);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
 
     std::stringstream html_output;
