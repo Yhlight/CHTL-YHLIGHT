@@ -6,7 +6,7 @@ namespace CHTL {
 
 class ValueNode : public BaseNode {
 public:
-    // This is an abstract class, so getType() is still pure virtual
+    virtual std::unique_ptr<ValueNode> clone() const = 0;
 };
 
 } // namespace CHTL

@@ -290,9 +290,30 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
             } else if (currentToken.type == TokenType::Delete) {
                 templateNode->body.push_back(parseDeleteNode());
             } else {
-                auto properties = parseStyleProperties();
-                for (auto& prop : properties) {
-                    templateNode->body.push_back(std::move(prop));
+                // Check for valueless properties
+                Token peekToken = lexer->peek();
+                if (peekToken.type == TokenType::Comma || peekToken.type == TokenType::Semicolon) {
+                    // Valueless properties
+                    while (currentToken.type == TokenType::Identifier) {
+                        std::string key = currentToken.value;
+                        consume(TokenType::Identifier);
+                        auto values = std::vector<std::unique_ptr<ValueNode>>();
+                        templateNode->body.push_back(std::make_unique<StylePropertyNode>(key, std::move(values)));
+
+                        if (currentToken.type == TokenType::Comma) {
+                            consume(TokenType::Comma);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (currentToken.type == TokenType::Semicolon) {
+                        consume(TokenType::Semicolon);
+                    }
+                } else {
+                    auto properties = parseStyleProperties();
+                    for (auto& prop : properties) {
+                        templateNode->body.push_back(std::move(prop));
+                    }
                 }
             }
         }
@@ -319,9 +340,18 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
 
     std::string name = currentToken.value;
     consume(TokenType::Identifier);
-    consume(TokenType::Semicolon);
 
-    return std::make_unique<TemplateUsageNode>(type, name);
+    auto node = std::make_unique<TemplateUsageNode>(type, name);
+
+    if (currentToken.type == TokenType::OpenBrace) {
+        consume(TokenType::OpenBrace);
+        node->provided_properties = parseStyleProperties();
+        consume(TokenType::CloseBrace);
+    } else {
+        consume(TokenType::Semicolon);
+    }
+
+    return node;
 }
 
 std::unique_ptr<DeleteNode> Parser::parseDeleteNode() {

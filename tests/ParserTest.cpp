@@ -372,3 +372,77 @@ TEST(ParserTest, ParsesTemplateInheritance) {
     ASSERT_EQ(inheritance->type, "Style");
     ASSERT_EQ(inheritance->name, "Parent");
 }
+
+TEST(ParserTest, ParsesValuelessStyleGroup) {
+    std::string source = R"(
+        [Custom] @Style TextSet {
+            color,
+            font-size;
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Template);
+
+    CHTL::TemplateNode* template_node = static_cast<CHTL::TemplateNode*>(stmt);
+    ASSERT_EQ(template_node->type, "Style");
+    ASSERT_EQ(template_node->name, "TextSet");
+    ASSERT_TRUE(template_node->isCustom);
+    ASSERT_EQ(template_node->body.size(), 2);
+
+    CHTL::StylePropertyNode* prop1 = static_cast<CHTL::StylePropertyNode*>(template_node->body[0].get());
+    ASSERT_EQ(prop1->key, "color");
+    ASSERT_TRUE(prop1->value.empty());
+
+    CHTL::StylePropertyNode* prop2 = static_cast<CHTL::StylePropertyNode*>(template_node->body[1].get());
+    ASSERT_EQ(prop2->key, "font-size");
+    ASSERT_TRUE(prop2->value.empty());
+}
+
+TEST(ParserTest, ParsesValuelessStyleGroupUsage) {
+    std::string source = R"(
+        div {
+            style {
+                @Style TextSet {
+                    color: red;
+                    font-size: 16px;
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::ElementNode* div_element = static_cast<CHTL::ElementNode*>(program->statements[0].get());
+    CHTL::StyleNode* style_node = static_cast<CHTL::StyleNode*>(div_element->children[0].get());
+    ASSERT_EQ(style_node->children.size(), 1);
+
+    CHTL::TemplateUsageNode* usage_node = static_cast<CHTL::TemplateUsageNode*>(style_node->children[0].get());
+    ASSERT_EQ(usage_node->type, "Style");
+    ASSERT_EQ(usage_node->name, "TextSet");
+    ASSERT_EQ(usage_node->provided_properties.size(), 2);
+
+    CHTL::StylePropertyNode* prop1 = usage_node->provided_properties[0].get();
+    ASSERT_EQ(prop1->key, "color");
+    ASSERT_EQ(prop1->value.size(), 1);
+    CHTL::LiteralValueNode* val1 = static_cast<CHTL::LiteralValueNode*>(prop1->value[0].get());
+    ASSERT_EQ(val1->value, "red");
+
+    CHTL::StylePropertyNode* prop2 = usage_node->provided_properties[1].get();
+    ASSERT_EQ(prop2->key, "font-size");
+    ASSERT_EQ(prop2->value.size(), 1);
+    CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
+    ASSERT_EQ(val2->value, "16px");
+}

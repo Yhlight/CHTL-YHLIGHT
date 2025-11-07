@@ -19,6 +19,7 @@ enum class TokenType {
     OpenParen,
     CloseParen,
     Delete,
+    Comma,
     Eof,
     Unknown
 };

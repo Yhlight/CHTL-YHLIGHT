@@ -111,8 +111,15 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 15: Custom Template System - Style Groups
 
-- [ ] Enhance the `Lexer` to support the `delete` keyword.
-- [ ] Update the AST to support custom template specializations.
-- [ ] Enhance the `Parser` to parse `[Custom]` blocks and `delete` statements.
-- [ ] Update the `Generator` to handle custom template logic.
-- [ ] Write unit tests for the custom template feature.
+- [x] Enhance the `Lexer` to support the `delete` keyword.
+- [x] Update the AST to support custom template specializations.
+- [x] Enhance the `Parser` to parse `[Custom]` blocks and `delete` statements.
+- [x] Update the `Generator` to handle custom template logic.
+- [x] Write unit tests for the custom template feature.
+
+## Milestone 16: Custom Template System - Valueless Style Groups
+
+- [ ] Enhance the `Lexer` and `Parser` to support valueless properties.
+- [ ] Update the AST to represent valueless properties and their provided values.
+- [ ] Update the `Generator` to resolve valueless style groups.
+- [ ] Write unit tests for the valueless style group feature.

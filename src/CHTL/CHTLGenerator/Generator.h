@@ -43,6 +43,7 @@ private:
     std::map<std::string, const TemplateNode*> element_templates;
     std::map<std::string, const TemplateNode*> var_templates;
     std::vector<std::string> inheritance_stack;
+    std::vector<std::unique_ptr<StylePropertyNode>> owned_properties;
 };
 
 } // namespace CHTL

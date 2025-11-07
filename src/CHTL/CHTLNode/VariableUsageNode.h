@@ -12,6 +12,10 @@ public:
 
     NodeType getType() const override { return NodeType::VariableUsage; }
 
+    std::unique_ptr<ValueNode> clone() const override {
+        return std::make_unique<VariableUsageNode>(groupName, variableName);
+    }
+
     std::string groupName;
     std::string variableName;
 };

@@ -1,7 +1,10 @@
 #pragma once
 
 #include "StyleContentNode.h"
+#include "StylePropertyNode.h"
 #include <string>
+#include <vector>
+#include <memory>
 
 namespace CHTL {
 
@@ -14,6 +17,7 @@ public:
     std::string type;
     std::string name;
     bool deleted = false;
+    std::vector<std::unique_ptr<StylePropertyNode>> provided_properties;
 };
 
 } // namespace CHTL

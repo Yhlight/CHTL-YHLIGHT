@@ -115,6 +115,9 @@ Token Lexer::getNextToken() {
         case ')':
             position++;
             return {TokenType::CloseParen, ")"};
+        case ',':
+            position++;
+            return {TokenType::Comma, ","};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)

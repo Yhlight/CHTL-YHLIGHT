@@ -17,6 +17,14 @@ public:
 
     NodeType getType() const override { return NodeType::StyleProperty; }
 
+    std::vector<std::unique_ptr<ValueNode>> getClonedValues() const {
+        std::vector<std::unique_ptr<ValueNode>> cloned_values;
+        for (const auto& v : value) {
+            cloned_values.push_back(v->clone());
+        }
+        return cloned_values;
+    }
+
     std::string key;
     std::vector<std::unique_ptr<ValueNode>> value;
 };

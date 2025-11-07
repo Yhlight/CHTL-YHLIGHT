@@ -175,6 +175,31 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, GeneratesValuelessStyleGroup) {
+    std::string source = R"(
+        [Custom] @Style TextSet {
+            color,
+            font-size;
+        }
+        div {
+            style {
+                @Style TextSet {
+                    color: red;
+                    font-size: 16px;
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:red;font-size:16px;\"></div>");
+}
+
 TEST(GeneratorTest, HandlesCustomTemplatePropertyDeletion) {
     std::string source = R"(
         [Template] @Style Parent {
