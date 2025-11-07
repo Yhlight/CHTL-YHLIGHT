@@ -33,12 +33,14 @@ private:
     void visit(const TemplateNode* node);
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
+    void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties);
 
     std::stringstream html_output;
     std::stringstream css_output;
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> element_templates;
     std::map<std::string, const TemplateNode*> var_templates;
+    std::vector<std::string> inheritance_stack;
 };
 
 } // namespace CHTL

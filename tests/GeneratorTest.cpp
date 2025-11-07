@@ -175,6 +175,108 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, GeneratesSingleLevelInheritance) {
+    std::string source = R"(
+        [Template] @Style Parent {
+            color: "blue";
+        }
+        [Template] @Style Child {
+            @Style Parent;
+            font-size: 16px;
+        }
+        div {
+            style {
+                @Style Child;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:blue;font-size:16px;\"></div>");
+}
+
+TEST(GeneratorTest, GeneratesMultiLevelInheritance) {
+    std::string source = R"(
+        [Template] @Style Grandparent {
+            color: "green";
+        }
+        [Template] @Style Parent {
+            @Style Grandparent;
+            font-size: 16px;
+        }
+        [Template] @Style Child {
+            @Style Parent;
+            font-weight: bold;
+        }
+        div {
+            style {
+                @Style Child;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:green;font-size:16px;font-weight:bold;\"></div>");
+}
+
+TEST(GeneratorTest, HandlesPropertyOverrides) {
+    std::string source = R"(
+        [Template] @Style Parent {
+            color: "blue";
+            font-size: 16px;
+        }
+        [Template] @Style Child {
+            @Style Parent;
+            color: "red";
+        }
+        div {
+            style {
+                @Style Child;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:red;font-size:16px;\"></div>");
+}
+
+TEST(GeneratorTest, DetectsCircularDependencies) {
+    std::string source = R"(
+        [Template] @Style A {
+            @Style B;
+        }
+        [Template] @Style B {
+            @Style A;
+        }
+        div {
+            style {
+                @Style A;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    ASSERT_THROW(generator.generate(*program), std::runtime_error);
+}
+
 TEST(GeneratorTest, GeneratesVariableTemplate) {
     std::string source = R"(
         [Template] @Var Theme {

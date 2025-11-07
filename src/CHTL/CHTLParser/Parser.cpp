@@ -281,9 +281,15 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     templateNode->name = name;
 
     if (type == "Style") {
-        auto properties = parseStyleProperties();
-        for (auto& prop : properties) {
-            templateNode->body.push_back(std::move(prop));
+        while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+            if (currentToken.type == TokenType::At) {
+                templateNode->inheritances.push_back(parseTemplateUsageNode());
+            } else {
+                auto properties = parseStyleProperties();
+                for (auto& prop : properties) {
+                    templateNode->body.push_back(std::move(prop));
+                }
+            }
         }
     } else if (type == "Element") {
         while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {

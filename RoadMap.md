@@ -96,8 +96,15 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 13: Template System - Variable Groups
 
-- [ ] Enhance the `Lexer` to support `(` and `)`.
-- [ ] Refactor the AST for structured values.
-- [ ] Enhance the `Parser` to parse `[Template] @Var` blocks and variable usage.
-- [ ] Update the `Generator` to resolve variable references.
-- [ ] Write unit tests for the variable group feature.
+- [x] Enhance the `Lexer` to support `(` and `)`.
+- [x] Refactor the AST for structured values.
+- [x] Enhance the `Parser` to parse `[Template] @Var` blocks and variable usage.
+- [x] Update the `Generator` to resolve variable references.
+- [x] Write unit tests for the variable group feature.
+
+## Milestone 14: Template System - Inheritance
+
+- [x] Update the AST to support template inheritance.
+- [x] Enhance the `Parser` to parse inheritance syntax.
+- [x] Update the `Generator` to resolve inherited templates.
+- [x] Write unit tests for the template inheritance feature.

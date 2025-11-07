@@ -224,10 +224,14 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
     if (node->type == "Style") {
         if (style_templates.count(node->name)) {
             const auto& templateNode = style_templates[node->name];
+            std::map<std::string, const StylePropertyNode*> properties;
+            resolveStyleInheritance(templateNode, properties);
+
             std::stringstream styleStream;
-            for (const auto& prop : templateNode->body) {
-                visit(static_cast<StylePropertyNode*>(prop.get()), styleStream);
+            for (const auto& pair : properties) {
+                visit(pair.second, styleStream);
             }
+
             std::string styleString = styleStream.str();
             if (!styleString.empty()) {
                 if (parent->attributes.count("style")) {
@@ -266,6 +270,34 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
             }
         }
     }
+}
+
+void Generator::resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties) {
+    // Check for circular dependencies
+    for (const auto& name : inheritance_stack) {
+        if (name == node->name) {
+            throw std::runtime_error("Circular dependency detected in style template inheritance: " + node->name);
+        }
+    }
+
+    inheritance_stack.push_back(node->name);
+
+    // First, resolve parent templates
+    for (const auto& inheritance : node->inheritances) {
+        if (style_templates.count(inheritance->name)) {
+            resolveStyleInheritance(style_templates[inheritance->name], properties);
+        }
+    }
+
+    // Then, add this template's properties
+    for (const auto& prop : node->body) {
+        if (prop->getType() == NodeType::StyleProperty) {
+            auto styleProp = static_cast<const StylePropertyNode*>(prop.get());
+            properties[styleProp->key] = styleProp;
+        }
+    }
+
+    inheritance_stack.pop_back();
 }
 
 } // namespace CHTL

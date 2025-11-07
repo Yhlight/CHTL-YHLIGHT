@@ -343,3 +343,32 @@ TEST(ParserTest, ParsesStyleWithVariableUsage) {
     ASSERT_EQ(var_usage->groupName, "Theme");
     ASSERT_EQ(var_usage->variableName, "textColor");
 }
+
+TEST(ParserTest, ParsesTemplateInheritance) {
+    std::string source = R"(
+        [Template] @Style Child {
+            @Style Parent;
+            color: "red";
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Template);
+
+    CHTL::TemplateNode* template_node = static_cast<CHTL::TemplateNode*>(stmt);
+    ASSERT_EQ(template_node->type, "Style");
+    ASSERT_EQ(template_node->name, "Child");
+    ASSERT_EQ(template_node->body.size(), 1);
+    ASSERT_EQ(template_node->inheritances.size(), 1);
+
+    CHTL::TemplateUsageNode* inheritance = template_node->inheritances[0].get();
+    ASSERT_EQ(inheritance->type, "Style");
+    ASSERT_EQ(inheritance->name, "Parent");
+}
