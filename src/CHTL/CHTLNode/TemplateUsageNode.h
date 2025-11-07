@@ -8,16 +8,20 @@
 
 namespace CHTL {
 
+class BaseNode;
+
 class TemplateUsageNode : public StyleContentNode {
 public:
     TemplateUsageNode(const std::string& type, const std::string& name) : type(type), name(name) {}
 
     NodeType getType() const override { return NodeType::TemplateUsage; }
+    std::unique_ptr<BaseNode> clone() const override;
 
     std::string type;
     std::string name;
     bool deleted = false;
     std::vector<std::unique_ptr<StylePropertyNode>> provided_properties;
+    std::vector<std::unique_ptr<BaseNode>> body;
 };
 
 } // namespace CHTL

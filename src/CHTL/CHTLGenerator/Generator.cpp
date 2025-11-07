@@ -2,6 +2,7 @@
 #include "CHTLNode/TemplateUsageNode.h"
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
+#include "CHTLNode/ElementNode.h"
 #include "CHTLNode/VariableUsageNode.h"
 
 namespace CHTL {
@@ -274,9 +275,12 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
             const auto& templateNode = element_templates[node->name];
             for (const auto& statement : templateNode->body) {
                 switch (statement->getType()) {
-                    case NodeType::Element:
-                        visit(static_cast<ElementNode*>(statement.get()));
+                    case NodeType::Element: {
+                        auto elementNode = static_cast<ElementNode*>(statement.get());
+                        auto specializedElement = elementNode->cloneWithSpecializations(node);
+                        visit(specializedElement.get());
                         break;
+                    }
                     case NodeType::Text:
                         visit(static_cast<TextNode*>(statement.get()));
                         break;

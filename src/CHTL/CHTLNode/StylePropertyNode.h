@@ -19,11 +19,12 @@ public:
         : key(key) {}
 
     NodeType getType() const override { return NodeType::StyleProperty; }
+    std::unique_ptr<BaseNode> clone() const override;
 
     std::vector<std::unique_ptr<ValueNode>> getClonedValues() const {
         std::vector<std::unique_ptr<ValueNode>> cloned_values;
         for (const auto& v : value) {
-            cloned_values.push_back(v->clone());
+            cloned_values.push_back(std::unique_ptr<ValueNode>(static_cast<ValueNode*>(v->clone().release())));
         }
         return cloned_values;
     }

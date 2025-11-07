@@ -25,6 +25,7 @@ class BaseNode {
 public:
     virtual ~BaseNode() = default;
     virtual NodeType getType() const = 0;
+    virtual std::unique_ptr<BaseNode> clone() const = 0;
 };
 
 } // namespace CHTL

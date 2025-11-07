@@ -337,7 +337,13 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
 
     if (currentToken.type == TokenType::OpenBrace) {
         consume(TokenType::OpenBrace);
-        node->provided_properties = parseStyleProperties();
+        if (type == "Style") {
+            node->provided_properties = parseStyleProperties();
+        } else if (type == "Element") {
+            while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+                node->body.push_back(parseStatement());
+            }
+        }
         consume(TokenType::CloseBrace);
     } else {
         consume(TokenType::Semicolon);

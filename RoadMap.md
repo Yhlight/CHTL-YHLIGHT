@@ -123,3 +123,10 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Update the AST to represent valueless properties and their provided values.
 - [x] Update the `Generator` to resolve valueless style groups.
 - [x] Write unit tests for the valueless style group feature.
+
+## Milestone 17: Custom Template System - Element Specialization
+
+- [x] Update the AST to support element specialization.
+- [x] Enhance the `Parser` to parse element specialization syntax.
+- [x] Update the `Generator` to apply specializations to child elements.
+- [x] Write unit tests for the element specialization feature.

@@ -11,9 +11,7 @@ public:
 
     NodeType getType() const override { return NodeType::LiteralValue; }
 
-    std::unique_ptr<ValueNode> clone() const override {
-        return std::make_unique<LiteralValueNode>(value);
-    }
+    std::unique_ptr<BaseNode> clone() const override;
 
     std::string value;
 };

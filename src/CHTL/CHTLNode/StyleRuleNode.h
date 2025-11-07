@@ -13,6 +13,7 @@ public:
     StyleRuleNode(const std::string& selector) : selector(selector) {}
 
     NodeType getType() const override { return NodeType::StyleRule; }
+    std::unique_ptr<BaseNode> clone() const override;
 
     std::string selector;
     std::vector<std::unique_ptr<StylePropertyNode>> properties;
