@@ -7,6 +7,9 @@
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/TemplateNode.h"
 #include "CHTLNode/TemplateUsageNode.h"
+#include "CHTLNode/ValueNode.h"
+#include "CHTLNode/LiteralValueNode.h"
+#include "CHTLNode/VariableUsageNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -88,10 +91,36 @@ std::vector<std::unique_ptr<StylePropertyNode>> Parser::parseStyleProperties() {
         std::string key = currentToken.value;
         consume(TokenType::Identifier);
         consume(TokenType::Colon);
-        std::string value = currentToken.value;
-        consume(currentToken.type); // String or Identifier
+
+        auto values = std::vector<std::unique_ptr<ValueNode>>();
+        while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof) {
+            if (currentToken.type == TokenType::Identifier) {
+                Token peekToken = lexer->peek();
+                if (peekToken.type == TokenType::OpenParen) {
+                    // Variable usage
+                    std::string groupName = currentToken.value;
+                    consume(TokenType::Identifier);
+                    consume(TokenType::OpenParen);
+                    std::string variableName = currentToken.value;
+                    consume(TokenType::Identifier);
+                    consume(TokenType::CloseParen);
+                    values.push_back(std::make_unique<VariableUsageNode>(groupName, variableName));
+                } else {
+                    // Literal value
+                    values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
+                    consume(TokenType::Identifier);
+                }
+            } else if (currentToken.type == TokenType::String) {
+                values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
+                consume(TokenType::String);
+            } else {
+                // Error or unexpected token
+                consume(currentToken.type);
+            }
+        }
+
         consume(TokenType::Semicolon);
-        properties.push_back(std::make_unique<StylePropertyNode>(key, value));
+        properties.push_back(std::make_unique<StylePropertyNode>(key, std::move(values)));
     }
 
     return properties;
@@ -139,13 +168,10 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
                 styleNode->children.push_back(parseStyleRule());
             } else if (peekToken.type == TokenType::Colon) {
                 // It's a style property
-                std::string key = currentToken.value;
-                consume(TokenType::Identifier);
-                consume(TokenType::Colon);
-                std::string value = currentToken.value;
-                consume(currentToken.type);
-                consume(TokenType::Semicolon);
-                styleNode->children.push_back(std::make_unique<StylePropertyNode>(key, value));
+                auto properties = parseStyleProperties();
+                for (auto& prop : properties) {
+                    styleNode->children.push_back(std::move(prop));
+                }
             } else {
                 // Error or unexpected token
                 consume(currentToken.type);
@@ -262,6 +288,11 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     } else if (type == "Element") {
         while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
             templateNode->body.push_back(parseStatement());
+        }
+    } else if (type == "Var") {
+        auto properties = parseStyleProperties();
+        for (auto& prop : properties) {
+            templateNode->body.push_back(std::move(prop));
         }
     }
 

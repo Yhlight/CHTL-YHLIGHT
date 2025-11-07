@@ -109,6 +109,12 @@ Token Lexer::getNextToken() {
         case '@':
             position++;
             return {TokenType::At, "@"};
+        case '(':
+            position++;
+            return {TokenType::OpenParen, "("};
+        case ')':
+            position++;
+            return {TokenType::CloseParen, ")"};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)

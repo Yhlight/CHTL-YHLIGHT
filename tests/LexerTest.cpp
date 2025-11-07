@@ -109,3 +109,14 @@ TEST(LexerTest, HandlesOriginSymbols) {
     ASSERT_EQ(token3.type, CHTL::TokenType::At);
     ASSERT_EQ(token3.value, "@");
 }
+
+TEST(LexerTest, HandlesParentheses) {
+    CHTL::Lexer lexer("()");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::OpenParen);
+    ASSERT_EQ(token1.value, "(");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::CloseParen);
+    ASSERT_EQ(token2.value, ")");
+}

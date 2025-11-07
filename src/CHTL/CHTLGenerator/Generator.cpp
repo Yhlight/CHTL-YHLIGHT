@@ -1,5 +1,8 @@
 #include "Generator.h"
 #include "CHTLNode/TemplateUsageNode.h"
+#include "CHTLNode/ValueNode.h"
+#include "CHTLNode/LiteralValueNode.h"
+#include "CHTLNode/VariableUsageNode.h"
 
 namespace CHTL {
 
@@ -147,7 +150,7 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
             // Generate the CSS for the rule
             css_output << resolvedSelector << "{";
             for (const auto& prop : ruleNode->properties) {
-                css_output << prop->key << ":" << prop->value << ";";
+                visit(prop.get(), css_output);
             }
             css_output << "}";
         }
@@ -171,7 +174,28 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
 }
 
 void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStream) {
-    styleStream << node->key << ":" << node->value << ";";
+    styleStream << node->key << ":";
+    for (const auto& valueNode : node->value) {
+        if (valueNode->getType() == NodeType::LiteralValue) {
+            styleStream << static_cast<LiteralValueNode*>(valueNode.get())->value;
+        } else if (valueNode->getType() == NodeType::VariableUsage) {
+            auto varUsageNode = static_cast<VariableUsageNode*>(valueNode.get());
+            if (var_templates.count(varUsageNode->groupName)) {
+                const auto& templateNode = var_templates[varUsageNode->groupName];
+                for (const auto& prop : templateNode->body) {
+                    auto styleProp = static_cast<StylePropertyNode*>(prop.get());
+                    if (styleProp->key == varUsageNode->variableName) {
+                        for (const auto& val : styleProp->value) {
+                            if (val->getType() == NodeType::LiteralValue) {
+                                styleStream << static_cast<LiteralValueNode*>(val.get())->value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    styleStream << ";";
 }
 
 void Generator::visit(const ScriptNode* node) {
@@ -191,6 +215,8 @@ void Generator::visit(const TemplateNode* node) {
         style_templates[node->name] = node;
     } else if (node->type == "Element") {
         element_templates[node->name] = node;
+    } else if (node->type == "Var") {
+        var_templates[node->name] = node;
     }
 }
 

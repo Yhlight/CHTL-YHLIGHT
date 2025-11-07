@@ -16,6 +16,8 @@ enum class TokenType {
     OpenBracket,
     CloseBracket,
     At,
+    OpenParen,
+    CloseParen,
     Eof,
     Unknown
 };

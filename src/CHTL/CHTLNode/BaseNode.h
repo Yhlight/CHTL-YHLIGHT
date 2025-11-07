@@ -15,7 +15,9 @@ enum class NodeType {
     Script,
     Origin,
     Template,
-    TemplateUsage
+    TemplateUsage,
+    LiteralValue,
+    VariableUsage
 };
 
 class BaseNode {

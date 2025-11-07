@@ -38,6 +38,7 @@ private:
     std::stringstream css_output;
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> element_templates;
+    std::map<std::string, const TemplateNode*> var_templates;
 };
 
 } // namespace CHTL

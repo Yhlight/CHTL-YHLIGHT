@@ -89,7 +89,15 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 12: Template System - Element Templates
 
-- [ ] Refactor the AST for generic templates.
-- [ ] Enhance the `Parser` to parse `[Template] @Element` blocks.
-- [ ] Update the `Generator` to resolve `@Element` references.
-- [ ] Write unit tests for the element template feature.
+- [x] Refactor the AST for generic templates.
+- [x] Enhance the `Parser` to parse `[Template] @Element` blocks.
+- [x] Update the `Generator` to resolve `@Element` references.
+- [x] Write unit tests for the element template feature.
+
+## Milestone 13: Template System - Variable Groups
+
+- [ ] Enhance the `Lexer` to support `(` and `)`.
+- [ ] Refactor the AST for structured values.
+- [ ] Enhance the `Parser` to parse `[Template] @Var` blocks and variable usage.
+- [ ] Update the `Generator` to resolve variable references.
+- [ ] Write unit tests for the variable group feature.

@@ -174,3 +174,24 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
 
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
+
+TEST(GeneratorTest, GeneratesVariableTemplate) {
+    std::string source = R"(
+        [Template] @Var Theme {
+            textColor: "black";
+        }
+        div {
+            style {
+                color: Theme(textColor);
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
+}

@@ -10,6 +10,9 @@
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/ValueNode.h"
+#include "CHTLNode/LiteralValueNode.h"
+#include "CHTLNode/VariableUsageNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -125,13 +128,17 @@ TEST(ParserTest, ParsesStyleBlockWithProperties) {
     ASSERT_EQ(prop1_node->getType(), CHTL::NodeType::StyleProperty);
     CHTL::StylePropertyNode* prop1 = static_cast<CHTL::StylePropertyNode*>(prop1_node);
     ASSERT_EQ(prop1->key, "color");
-    ASSERT_EQ(prop1->value, "red");
+    ASSERT_EQ(prop1->value.size(), 1);
+    CHTL::LiteralValueNode* val1 = static_cast<CHTL::LiteralValueNode*>(prop1->value[0].get());
+    ASSERT_EQ(val1->value, "red");
 
     CHTL::StyleContentNode* prop2_node = style_node->children[1].get();
     ASSERT_EQ(prop2_node->getType(), CHTL::NodeType::StyleProperty);
     CHTL::StylePropertyNode* prop2 = static_cast<CHTL::StylePropertyNode*>(prop2_node);
     ASSERT_EQ(prop2->key, "width");
-    ASSERT_EQ(prop2->value, "100px");
+    ASSERT_EQ(prop2->value.size(), 1);
+    CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
+    ASSERT_EQ(val2->value, "100px");
 }
 
 TEST(ParserTest, ParsesStyleBlockWithRules) {
@@ -163,7 +170,9 @@ TEST(ParserTest, ParsesStyleBlockWithRules) {
     ASSERT_EQ(rule->selector, ".box");
     ASSERT_EQ(rule->properties.size(), 1);
     ASSERT_EQ(rule->properties[0]->key, "width");
-    ASSERT_EQ(rule->properties[0]->value, "100px");
+    ASSERT_EQ(rule->properties[0]->value.size(), 1);
+    CHTL::LiteralValueNode* val = static_cast<CHTL::LiteralValueNode*>(rule->properties[0]->value[0].get());
+    ASSERT_EQ(val->value, "100px");
 }
 
 TEST(ParserTest, ParsesScriptBlock) {
@@ -233,11 +242,15 @@ TEST(ParserTest, ParsesStyleGroupTemplate) {
 
     CHTL::StylePropertyNode* prop1 = static_cast<CHTL::StylePropertyNode*>(template_node->body[0].get());
     ASSERT_EQ(prop1->key, "color");
-    ASSERT_EQ(prop1->value, "black");
+    ASSERT_EQ(prop1->value.size(), 1);
+    CHTL::LiteralValueNode* val1 = static_cast<CHTL::LiteralValueNode*>(prop1->value[0].get());
+    ASSERT_EQ(val1->value, "black");
 
     CHTL::StylePropertyNode* prop2 = static_cast<CHTL::StylePropertyNode*>(template_node->body[1].get());
     ASSERT_EQ(prop2->key, "line-height");
-    ASSERT_EQ(prop2->value, "1.6");
+    ASSERT_EQ(prop2->value.size(), 1);
+    CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
+    ASSERT_EQ(val2->value, "1.6");
 }
 
 TEST(ParserTest, ParsesElementTemplate) {
@@ -270,4 +283,63 @@ TEST(ParserTest, ParsesElementTemplate) {
 
     CHTL::TextNode* text_node = static_cast<CHTL::TextNode*>(div_element->children[0].get());
     ASSERT_EQ(text_node->content, "Hello");
+}
+
+TEST(ParserTest, ParsesVarGroupTemplate) {
+    std::string source = R"(
+        [Template] @Var Theme {
+            textColor: "black";
+            backgroundColor: "white";
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Template);
+
+    CHTL::TemplateNode* template_node = static_cast<CHTL::TemplateNode*>(stmt);
+    ASSERT_EQ(template_node->type, "Var");
+    ASSERT_EQ(template_node->name, "Theme");
+    ASSERT_EQ(template_node->body.size(), 2);
+
+    CHTL::StylePropertyNode* prop1 = static_cast<CHTL::StylePropertyNode*>(template_node->body[0].get());
+    ASSERT_EQ(prop1->key, "textColor");
+    ASSERT_EQ(prop1->value.size(), 1);
+    CHTL::LiteralValueNode* val1 = static_cast<CHTL::LiteralValueNode*>(prop1->value[0].get());
+    ASSERT_EQ(val1->value, "black");
+
+    CHTL::StylePropertyNode* prop2 = static_cast<CHTL::StylePropertyNode*>(template_node->body[1].get());
+    ASSERT_EQ(prop2->key, "backgroundColor");
+    ASSERT_EQ(prop2->value.size(), 1);
+    CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
+    ASSERT_EQ(val2->value, "white");
+}
+
+TEST(ParserTest, ParsesStyleWithVariableUsage) {
+    std::string source = "div { style { color: Theme(textColor); } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::ElementNode* div_element = static_cast<CHTL::ElementNode*>(program->statements[0].get());
+    CHTL::StyleNode* style_node = static_cast<CHTL::StyleNode*>(div_element->children[0].get());
+    ASSERT_EQ(style_node->children.size(), 1);
+
+    CHTL::StylePropertyNode* prop = static_cast<CHTL::StylePropertyNode*>(style_node->children[0].get());
+    ASSERT_EQ(prop->key, "color");
+    ASSERT_EQ(prop->value.size(), 1);
+
+    CHTL::VariableUsageNode* var_usage = static_cast<CHTL::VariableUsageNode*>(prop->value[0].get());
+    ASSERT_EQ(var_usage->groupName, "Theme");
+    ASSERT_EQ(var_usage->variableName, "textColor");
 }
