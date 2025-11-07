@@ -81,8 +81,15 @@ This document outlines the development plan for the CHTL compiler.
 
 ## Milestone 11: Template System - Style Groups
 
-- [ ] Enhance the `Lexer` to recognize `[`, `]`, and `@`.
-- [ ] Add `TemplateNode` and related nodes to the AST.
-- [ ] Update the `Parser` to parse `[Template] @Style` blocks.
-- [ ] Update the `Generator` to resolve `@Style` references.
-- [ ] Write unit tests for the style group template feature.
+- [x] Enhance the `Lexer` to recognize `[`, `]`, and `@`.
+- [x] Add `TemplateNode` and related nodes to the AST.
+- [x] Update the `Parser` to parse `[Template] @Style` blocks.
+- [x] Update the `Generator` to resolve `@Style` references.
+- [x] Write unit tests for the style group template feature.
+
+## Milestone 12: Template System - Element Templates
+
+- [ ] Refactor the AST for generic templates.
+- [ ] Enhance the `Parser` to parse `[Template] @Element` blocks.
+- [ ] Update the `Generator` to resolve `@Element` references.
+- [ ] Write unit tests for the element template feature.

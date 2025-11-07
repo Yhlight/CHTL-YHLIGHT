@@ -14,7 +14,8 @@ enum class NodeType {
     StyleRule,
     Script,
     Origin,
-    Template
+    Template,
+    TemplateUsage
 };
 
 class BaseNode {

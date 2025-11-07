@@ -1,4 +1,5 @@
 #include "Generator.h"
+#include "CHTLNode/TemplateUsageNode.h"
 
 namespace CHTL {
 
@@ -29,6 +30,9 @@ void Generator::visit(const ProgramNode* node) {
                 break;
             case NodeType::Origin:
                 visit(static_cast<OriginNode*>(statement.get()));
+                break;
+            case NodeType::TemplateUsage:
+                visit(static_cast<TemplateUsageNode*>(statement.get()), nullptr);
                 break;
             case NodeType::Template:
                 // Already processed
@@ -71,6 +75,9 @@ void Generator::visit(const ElementNode* node) {
                 break;
             case NodeType::Origin:
                 visit(static_cast<OriginNode*>(child.get()));
+                break;
+            case NodeType::TemplateUsage:
+                visit(static_cast<TemplateUsageNode*>(child.get()), const_cast<ElementNode*>(node));
                 break;
             default:
                 break;
@@ -147,12 +154,9 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
     }
 
     // Process style group references
-    for (const auto& groupName : node->styleGroupReferences) {
-        if (style_templates.count(groupName)) {
-            const auto& templateNode = style_templates[groupName];
-            for (const auto& prop : templateNode->properties) {
-                visit(prop.get(), styleStream);
-            }
+    for (const auto& child : node->children) {
+        if (child->getType() == NodeType::TemplateUsage) {
+            visit(static_cast<TemplateUsageNode*>(child.get()), parent);
         }
     }
 
@@ -185,6 +189,56 @@ void Generator::visit(const OriginNode* node) {
 void Generator::visit(const TemplateNode* node) {
     if (node->type == "Style") {
         style_templates[node->name] = node;
+    } else if (node->type == "Element") {
+        element_templates[node->name] = node;
+    }
+}
+
+void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
+    if (node->type == "Style") {
+        if (style_templates.count(node->name)) {
+            const auto& templateNode = style_templates[node->name];
+            std::stringstream styleStream;
+            for (const auto& prop : templateNode->body) {
+                visit(static_cast<StylePropertyNode*>(prop.get()), styleStream);
+            }
+            std::string styleString = styleStream.str();
+            if (!styleString.empty()) {
+                if (parent->attributes.count("style")) {
+                    parent->attributes["style"] += styleString;
+                } else {
+                    parent->attributes["style"] = styleString;
+                }
+            }
+        }
+    } else if (node->type == "Element") {
+        if (element_templates.count(node->name)) {
+            const auto& templateNode = element_templates[node->name];
+            for (const auto& statement : templateNode->body) {
+                switch (statement->getType()) {
+                    case NodeType::Element:
+                        visit(static_cast<ElementNode*>(statement.get()));
+                        break;
+                    case NodeType::Text:
+                        visit(static_cast<TextNode*>(statement.get()));
+                        break;
+                    case NodeType::Style:
+                        visit(static_cast<StyleNode*>(statement.get()), parent);
+                        break;
+                    case NodeType::Script:
+                        visit(static_cast<ScriptNode*>(statement.get()));
+                        break;
+                    case NodeType::Origin:
+                        visit(static_cast<OriginNode*>(statement.get()));
+                        break;
+                    case NodeType::TemplateUsage:
+                        visit(static_cast<TemplateUsageNode*>(statement.get()), parent);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
     }
 }
 

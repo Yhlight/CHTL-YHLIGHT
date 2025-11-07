@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BaseNode.h"
-#include "StylePropertyNode.h"
+#include "BaseNode.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,7 +13,7 @@ public:
     NodeType getType() const override { return NodeType::Template; }
     std::string type;
     std::string name;
-    std::vector<std::unique_ptr<StylePropertyNode>> properties;
+    std::vector<std::unique_ptr<BaseNode>> body;
 };
 
 } // namespace CHTL

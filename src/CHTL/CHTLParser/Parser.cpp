@@ -6,6 +6,7 @@
 #include "CHTLNode/ScriptNode.h"
 #include "CHTLNode/OriginNode.h"
 #include "CHTLNode/TemplateNode.h"
+#include "CHTLNode/TemplateUsageNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -55,6 +56,10 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseTemplateNode();
         }
         return parseOriginNode();
+    }
+
+    if (currentToken.type == TokenType::At) {
+        return parseTemplateUsageNode();
     }
 
     // If we don't recognize the token, consume it and move on
@@ -126,12 +131,7 @@ std::unique_ptr<StyleNode> Parser::parseStyle() {
 
     while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
         if (currentToken.type == TokenType::At) {
-            consume(TokenType::At);
-            consume(TokenType::Identifier); // Consume "Style"
-            std::string groupName = currentToken.value;
-            consume(TokenType::Identifier);
-            consume(TokenType::Semicolon);
-            styleNode->styleGroupReferences.push_back(groupName);
+            styleNode->children.push_back(parseTemplateUsageNode());
         } else {
             Token peekToken = lexer->peek();
 
@@ -253,11 +253,33 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     auto templateNode = std::make_unique<TemplateNode>();
     templateNode->type = type;
     templateNode->name = name;
-    templateNode->properties = parseStyleProperties();
+
+    if (type == "Style") {
+        auto properties = parseStyleProperties();
+        for (auto& prop : properties) {
+            templateNode->body.push_back(std::move(prop));
+        }
+    } else if (type == "Element") {
+        while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+            templateNode->body.push_back(parseStatement());
+        }
+    }
 
     consume(TokenType::CloseBrace);
 
     return templateNode;
+}
+
+std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
+    consume(TokenType::At);
+    std::string type = currentToken.value;
+    consume(TokenType::Identifier);
+
+    std::string name = currentToken.value;
+    consume(TokenType::Identifier);
+    consume(TokenType::Semicolon);
+
+    return std::make_unique<TemplateUsageNode>(type, name);
 }
 
 } // namespace CHTL

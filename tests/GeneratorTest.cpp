@@ -134,3 +134,43 @@ TEST(GeneratorTest, GeneratesOriginJavaScript) {
 
     ASSERT_EQ(result, "alert('raw js');");
 }
+
+TEST(GeneratorTest, GeneratesElementTemplate) {
+    std::string source = R"(
+        [Template] @Element Box {
+            div {
+                text { "Hello" }
+            }
+        }
+        @Element Box;
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div>Hello</div>");
+}
+
+TEST(GeneratorTest, GeneratesStyleTemplate) {
+    std::string source = R"(
+        [Template] @Style DefaultText {
+            color: "black";
+        }
+        div {
+            style {
+                @Style DefaultText;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
+}

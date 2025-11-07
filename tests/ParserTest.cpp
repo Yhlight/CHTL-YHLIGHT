@@ -229,9 +229,45 @@ TEST(ParserTest, ParsesStyleGroupTemplate) {
     CHTL::TemplateNode* template_node = static_cast<CHTL::TemplateNode*>(stmt);
     ASSERT_EQ(template_node->type, "Style");
     ASSERT_EQ(template_node->name, "DefaultText");
-    ASSERT_EQ(template_node->properties.size(), 2);
-    ASSERT_EQ(template_node->properties[0]->key, "color");
-    ASSERT_EQ(template_node->properties[0]->value, "black");
-    ASSERT_EQ(template_node->properties[1]->key, "line-height");
-    ASSERT_EQ(template_node->properties[1]->value, "1.6");
+    ASSERT_EQ(template_node->body.size(), 2);
+
+    CHTL::StylePropertyNode* prop1 = static_cast<CHTL::StylePropertyNode*>(template_node->body[0].get());
+    ASSERT_EQ(prop1->key, "color");
+    ASSERT_EQ(prop1->value, "black");
+
+    CHTL::StylePropertyNode* prop2 = static_cast<CHTL::StylePropertyNode*>(template_node->body[1].get());
+    ASSERT_EQ(prop2->key, "line-height");
+    ASSERT_EQ(prop2->value, "1.6");
+}
+
+TEST(ParserTest, ParsesElementTemplate) {
+    std::string source = R"(
+        [Template] @Element Box {
+            div {
+                text { "Hello" }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Template);
+
+    CHTL::TemplateNode* template_node = static_cast<CHTL::TemplateNode*>(stmt);
+    ASSERT_EQ(template_node->type, "Element");
+    ASSERT_EQ(template_node->name, "Box");
+    ASSERT_EQ(template_node->body.size(), 1);
+
+    CHTL::ElementNode* div_element = static_cast<CHTL::ElementNode*>(template_node->body[0].get());
+    ASSERT_EQ(div_element->tagName, "div");
+    ASSERT_EQ(div_element->children.size(), 1);
+
+    CHTL::TextNode* text_node = static_cast<CHTL::TextNode*>(div_element->children[0].get());
+    ASSERT_EQ(text_node->content, "Hello");
 }
