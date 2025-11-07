@@ -175,6 +175,30 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, ValuelessStyleGroupWithMixedProperties) {
+    std::string source = R"(
+        [Custom] @Style Test {
+            color,
+            font-size: 16px;
+        }
+        div {
+            style {
+                @Style Test {
+                    color: red;
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"font-size:16px;color:red;\"></div>");
+}
+
 TEST(GeneratorTest, GeneratesValuelessStyleGroup) {
     std::string source = R"(
         [Custom] @Style TextSet {

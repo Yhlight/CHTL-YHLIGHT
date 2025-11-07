@@ -1,0 +1,8 @@
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /app/build
+[ 12%] Built target gtest
+[ 25%] Built target gmock
+[ 37%] Built target gmock_main
+[ 50%] Built target gtest_main
+[ 56%] Building CXX object src/CHTL/CMakeFiles/CHTL.dir/CHTLParser/Parser.cpp.o

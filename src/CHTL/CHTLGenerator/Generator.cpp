@@ -245,7 +245,7 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
 
             // Handle provided properties for valueless style groups
             for (const auto& provided_prop : node->provided_properties) {
-                if (properties.count(provided_prop->key)) {
+                if (properties.count(provided_prop->key) && properties[provided_prop->key]->value.empty()) {
                     auto new_prop = std::make_unique<StylePropertyNode>(provided_prop->key, provided_prop->getClonedValues());
                     properties[provided_prop->key] = new_prop.get();
                     owned_properties.push_back(std::move(new_prop));

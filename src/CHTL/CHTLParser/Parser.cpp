@@ -292,7 +292,7 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
             } else {
                 // Check for valueless properties
                 Token peekToken = lexer->peek();
-                if (peekToken.type == TokenType::Comma || peekToken.type == TokenType::Semicolon) {
+                if (isCustom && (peekToken.type == TokenType::Comma || peekToken.type == TokenType::Semicolon)) {
                     // Valueless properties
                     while (currentToken.type == TokenType::Identifier) {
                         std::string key = currentToken.value;
