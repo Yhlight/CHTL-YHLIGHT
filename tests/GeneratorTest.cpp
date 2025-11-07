@@ -51,6 +51,30 @@ TEST(GeneratorTest, GeneratesGlobalStylesheet) {
     ASSERT_EQ(result, "<style>.box{color:blue;}</style><div class=\"box\"></div>");
 }
 
+TEST(GeneratorTest, GeneratesValuelessStyleGroupWithProvidedValues) {
+    std::string source = R"(
+        [Custom] @Style TextSet {
+            color,
+            font-size;
+        }
+
+        div {
+            style {
+                @Style TextSet {
+                    color: red;
+                    font-size: 16px;
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Generator generator;
+    std::string output = generator.generate(*program);
+    EXPECT_EQ(output, R"(<div style="color:red;font-size:16px;"></div>)");
+}
+
 TEST(GeneratorTest, HandlesAutomaticClassAndId) {
     std::string source = "div { class:\"existing\"; style { .box { color: blue; } #main { background: white; } } }";
     CHTL::Lexer lexer(source);
