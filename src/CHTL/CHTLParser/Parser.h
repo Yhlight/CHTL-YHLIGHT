@@ -15,6 +15,7 @@ class ScriptNode;
 class OriginNode;
 class TemplateNode;
 class TemplateUsageNode;
+class DeleteNode;
 
 class Parser {
 public:
@@ -32,6 +33,7 @@ private:
     std::unique_ptr<OriginNode> parseOriginNode();
     std::unique_ptr<TemplateNode> parseTemplateNode();
     std::unique_ptr<TemplateUsageNode> parseTemplateUsageNode();
+    std::unique_ptr<DeleteNode> parseDeleteNode();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
 
 

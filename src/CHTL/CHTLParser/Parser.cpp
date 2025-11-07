@@ -10,6 +10,7 @@
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
+#include "CHTLNode/DeleteNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -55,7 +56,7 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
 
     if (currentToken.type == TokenType::OpenBracket) {
         Token peekToken = lexer->peek();
-        if (peekToken.value == "Template") {
+        if (peekToken.value == "Template" || peekToken.value == "Custom") {
             return parseTemplateNode();
         }
         return parseOriginNode();
@@ -264,7 +265,8 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
 
 std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     consume(TokenType::OpenBracket);
-    consume(TokenType::Identifier); // Consume "Template"
+    bool isCustom = currentToken.value == "Custom";
+    consume(TokenType::Identifier); // Consume "Template" or "Custom"
     consume(TokenType::CloseBracket);
 
     consume(TokenType::At);
@@ -279,11 +281,14 @@ std::unique_ptr<TemplateNode> Parser::parseTemplateNode() {
     auto templateNode = std::make_unique<TemplateNode>();
     templateNode->type = type;
     templateNode->name = name;
+    templateNode->isCustom = isCustom;
 
     if (type == "Style") {
         while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
             if (currentToken.type == TokenType::At) {
                 templateNode->inheritances.push_back(parseTemplateUsageNode());
+            } else if (currentToken.type == TokenType::Delete) {
+                templateNode->body.push_back(parseDeleteNode());
             } else {
                 auto properties = parseStyleProperties();
                 for (auto& prop : properties) {
@@ -317,6 +322,28 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
     consume(TokenType::Semicolon);
 
     return std::make_unique<TemplateUsageNode>(type, name);
+}
+
+std::unique_ptr<DeleteNode> Parser::parseDeleteNode() {
+    consume(TokenType::Delete);
+
+    auto deleteNode = std::make_unique<DeleteNode>();
+
+    while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof) {
+        if (currentToken.type == TokenType::At) {
+            consume(TokenType::At);
+            consume(TokenType::Identifier); // Consume "Style"
+            deleteNode->inheritances.push_back(currentToken.value);
+            consume(TokenType::Identifier);
+        } else {
+            deleteNode->properties.push_back(currentToken.value);
+            consume(TokenType::Identifier);
+        }
+    }
+
+    consume(TokenType::Semicolon);
+
+    return deleteNode;
 }
 
 } // namespace CHTL

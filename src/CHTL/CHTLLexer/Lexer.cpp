@@ -123,7 +123,11 @@ Token Lexer::getNextToken() {
         while (position < source.length() && (std::isalnum(source[position]) || source[position] == '.' || source[position] == '#' || source[position] == '-')) {
             position++;
         }
-        return {TokenType::Identifier, source.substr(start, position - start)};
+        std::string value = source.substr(start, position - start);
+        if (value == "delete") {
+            return {TokenType::Delete, "delete"};
+        }
+        return {TokenType::Identifier, value};
     }
 
     // For now, return Unknown for anything else

@@ -108,3 +108,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse inheritance syntax.
 - [x] Update the `Generator` to resolve inherited templates.
 - [x] Write unit tests for the template inheritance feature.
+
+## Milestone 15: Custom Template System - Style Groups
+
+- [ ] Enhance the `Lexer` to support the `delete` keyword.
+- [ ] Update the AST to support custom template specializations.
+- [ ] Enhance the `Parser` to parse `[Custom]` blocks and `delete` statements.
+- [ ] Update the `Generator` to handle custom template logic.
+- [ ] Write unit tests for the custom template feature.

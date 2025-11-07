@@ -3,6 +3,7 @@
 #include "BaseNode.h"
 #include "BaseNode.h"
 #include "TemplateUsageNode.h"
+#include "DeleteNode.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@ public:
     NodeType getType() const override { return NodeType::Template; }
     std::string type;
     std::string name;
+    bool isCustom = false;
     std::vector<std::unique_ptr<BaseNode>> body;
     std::vector<std::unique_ptr<TemplateUsageNode>> inheritances;
 };

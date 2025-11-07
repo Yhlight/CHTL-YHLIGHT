@@ -175,6 +175,91 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, HandlesCustomTemplatePropertyDeletion) {
+    std::string source = R"(
+        [Template] @Style Parent {
+            color: "blue";
+            font-size: 16px;
+        }
+        [Custom] @Style Child {
+            @Style Parent;
+            delete color;
+        }
+        div {
+            style {
+                @Style Child;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div style=\"font-size:16px;\"></div>");
+}
+
+TEST(GeneratorTest, HandlesCustomTemplateInheritanceDeletion) {
+    std::string source = R"(
+        [Template] @Style Grandparent {
+            font-weight: bold;
+        }
+        [Template] @Style Parent {
+            @Style Grandparent;
+            color: "blue";
+        }
+        [Custom] @Style Child {
+            @Style Parent;
+            delete @Style Parent;
+        }
+        div {
+            style {
+                @Style Child;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div></div>");
+}
+
+TEST(GeneratorTest, HandlesMixedCustomTemplate) {
+    std::string source = R"(
+        [Template] @Style StyleA {
+            color: "blue";
+        }
+        [Template] @Style StyleB {
+            font-size: 16px;
+        }
+        [Custom] @Style StyleC {
+            @Style StyleA;
+            @Style StyleB;
+            delete @Style StyleA;
+            delete font-size;
+        }
+        div {
+            style {
+                @Style StyleC;
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<div></div>");
+}
+
 TEST(GeneratorTest, GeneratesSingleLevelInheritance) {
     std::string source = R"(
         [Template] @Style Parent {

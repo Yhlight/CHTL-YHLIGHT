@@ -13,6 +13,7 @@ public:
 
     std::string type;
     std::string name;
+    bool deleted = false;
 };
 
 } // namespace CHTL

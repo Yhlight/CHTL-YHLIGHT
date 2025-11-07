@@ -18,6 +18,7 @@ enum class TokenType {
     At,
     OpenParen,
     CloseParen,
+    Delete,
     Eof,
     Unknown
 };

@@ -221,11 +221,27 @@ void Generator::visit(const TemplateNode* node) {
 }
 
 void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
+    if (node->deleted) {
+        return;
+    }
     if (node->type == "Style") {
         if (style_templates.count(node->name)) {
             const auto& templateNode = style_templates[node->name];
             std::map<std::string, const StylePropertyNode*> properties;
-            resolveStyleInheritance(templateNode, properties);
+            std::set<std::string> deletedInheritances;
+
+            if (templateNode->isCustom) {
+                for (const auto& item : templateNode->body) {
+                    if (item->getType() == NodeType::Delete) {
+                        auto deleteNode = static_cast<const DeleteNode*>(item.get());
+                        for (const auto& inheritanceName : deleteNode->inheritances) {
+                            deletedInheritances.insert(inheritanceName);
+                        }
+                    }
+                }
+            }
+
+            resolveStyleInheritance(templateNode, properties, deletedInheritances);
 
             std::stringstream styleStream;
             for (const auto& pair : properties) {
@@ -272,7 +288,7 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
     }
 }
 
-void Generator::resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties) {
+void Generator::resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances) {
     // Check for circular dependencies
     for (const auto& name : inheritance_stack) {
         if (name == node->name) {
@@ -284,16 +300,21 @@ void Generator::resolveStyleInheritance(const TemplateNode* node, std::map<std::
 
     // First, resolve parent templates
     for (const auto& inheritance : node->inheritances) {
-        if (style_templates.count(inheritance->name)) {
-            resolveStyleInheritance(style_templates[inheritance->name], properties);
+        if (deletedInheritances.find(inheritance->name) == deletedInheritances.end() && style_templates.count(inheritance->name)) {
+            resolveStyleInheritance(style_templates[inheritance->name], properties, deletedInheritances);
         }
     }
 
-    // Then, add this template's properties
-    for (const auto& prop : node->body) {
-        if (prop->getType() == NodeType::StyleProperty) {
-            auto styleProp = static_cast<const StylePropertyNode*>(prop.get());
+    // Then, process this template's body
+    for (const auto& item : node->body) {
+        if (item->getType() == NodeType::StyleProperty) {
+            auto styleProp = static_cast<const StylePropertyNode*>(item.get());
             properties[styleProp->key] = styleProp;
+        } else if (item->getType() == NodeType::Delete && node->isCustom) {
+            auto deleteNode = static_cast<const DeleteNode*>(item.get());
+            for (const auto& propName : deleteNode->properties) {
+                properties.erase(propName);
+            }
         }
     }
 

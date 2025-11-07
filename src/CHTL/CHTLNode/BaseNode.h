@@ -17,7 +17,8 @@ enum class NodeType {
     Template,
     TemplateUsage,
     LiteralValue,
-    VariableUsage
+    VariableUsage,
+    Delete
 };
 
 class BaseNode {

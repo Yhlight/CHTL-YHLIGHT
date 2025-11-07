@@ -10,9 +10,11 @@
 #include "../CHTLNode/OriginNode.h"
 #include "../CHTLNode/TemplateNode.h"
 #include "../CHTLNode/TemplateUsageNode.h"
+#include "../CHTLNode/DeleteNode.h"
 #include <string>
 #include <sstream>
 #include <map>
+#include <set>
 
 namespace CHTL {
 
@@ -33,7 +35,7 @@ private:
     void visit(const TemplateNode* node);
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
-    void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties);
+    void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
 
     std::stringstream html_output;
     std::stringstream css_output;
