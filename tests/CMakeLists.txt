@@ -4,6 +4,7 @@ add_executable(chttl_tests
     GeneratorTest.cpp
     ValuelessStyleGroupTest.cpp
     CustomElementTemplateTest.cpp
+    ArithmeticExpressionTest.cpp
 )
 
 target_link_libraries(chttl_tests

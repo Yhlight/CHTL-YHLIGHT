@@ -148,3 +148,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to support `delete` statements for elements within `@Element` usage blocks.
 - [x] Update the `Generator` to remove the specified elements.
 - [x] Write unit tests for element deletion.
+
+## Milestone 21: Style Property - Arithmetic Expressions
+
+- [x] Enhance the `Lexer` to recognize arithmetic operators.
+- [x] Enhance the `AST` to represent arithmetic expressions.
+- [x] Enhance the `Parser` to parse arithmetic expressions within style properties.
+- [x] Enhance the `Generator` to produce CSS `calc()` functions.
+- [x] Write unit tests for arithmetic expression handling.

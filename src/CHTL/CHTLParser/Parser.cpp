@@ -13,6 +13,7 @@
 #include "CHTLNode/DeleteNode.h"
 #include "CHTLNode/InsertNode.h"
 #include "CHTLNode/ElementDeleteNode.h"
+#include "CHTLNode/BinaryOperationNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -97,28 +98,19 @@ std::vector<std::unique_ptr<StylePropertyNode>> Parser::parseStyleProperties() {
 
         auto values = std::vector<std::unique_ptr<ValueNode>>();
         while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof) {
-            if (currentToken.type == TokenType::Identifier) {
-                Token peekToken = lexer->peek();
-                if (peekToken.type == TokenType::OpenParen) {
-                    // Variable usage
-                    std::string groupName = currentToken.value;
-                    consume(TokenType::Identifier);
-                    consume(TokenType::OpenParen);
-                    std::string variableName = currentToken.value;
-                    consume(TokenType::Identifier);
-                    consume(TokenType::CloseParen);
-                    values.push_back(std::make_unique<VariableUsageNode>(groupName, variableName));
-                } else {
-                    // Literal value
-                    values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
-                    consume(TokenType::Identifier);
-                }
-            } else if (currentToken.type == TokenType::String) {
-                values.push_back(std::make_unique<LiteralValueNode>(currentToken.value));
-                consume(TokenType::String);
-            } else {
-                // Error or unexpected token
-                consume(currentToken.type);
+            values.push_back(parseExpression());
+
+            // After parsing an expression, if the next token is not a semicolon or an operator,
+            // it must be another literal value in a multi-part property.
+            while (currentToken.type != TokenType::Semicolon &&
+                   currentToken.type != TokenType::Plus &&
+                   currentToken.type != TokenType::Minus &&
+                   currentToken.type != TokenType::Asterisk &&
+                   currentToken.type != TokenType::Slash &&
+                   currentToken.type != TokenType::Percent &&
+                   currentToken.type != TokenType::DoubleAsterisk &&
+                   currentToken.type != TokenType::Eof) {
+                values.push_back(parseAtom());
             }
         }
 
@@ -509,6 +501,79 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageReference() {
     consume(TokenType::Identifier);
 
     return std::make_unique<TemplateUsageNode>(type, name);
+}
+
+std::unique_ptr<ValueNode> Parser::parseExpression() {
+    auto left = parseTerm();
+
+    while (currentToken.type == TokenType::Plus || currentToken.type == TokenType::Minus) {
+        std::string op = currentToken.value;
+        consume(currentToken.type);
+        auto right = parseTerm();
+        left = std::make_unique<BinaryOperationNode>(std::move(left), op, std::move(right));
+    }
+
+    return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parseTerm() {
+    auto left = parseFactor();
+
+    while (currentToken.type == TokenType::Asterisk || currentToken.type == TokenType::Slash || currentToken.type == TokenType::Percent) {
+        std::string op = currentToken.value;
+        consume(currentToken.type);
+        auto right = parseFactor();
+        left = std::make_unique<BinaryOperationNode>(std::move(left), op, std::move(right));
+    }
+
+    return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parseFactor() {
+    auto left = parsePower();
+
+    while (currentToken.type == TokenType::DoubleAsterisk) {
+        std::string op = currentToken.value;
+        consume(currentToken.type);
+        auto right = parsePower();
+        left = std::make_unique<BinaryOperationNode>(std::move(left), op, std::move(right));
+    }
+
+    return left;
+}
+
+std::unique_ptr<ValueNode> Parser::parsePower() {
+    return parseAtom();
+}
+
+std::unique_ptr<ValueNode> Parser::parseAtom() {
+    if (currentToken.type == TokenType::Identifier) {
+        Token peekToken = lexer->peek();
+        if (peekToken.type == TokenType::OpenParen) {
+            std::string groupName = currentToken.value;
+            consume(TokenType::Identifier);
+            consume(TokenType::OpenParen);
+            std::string variableName = currentToken.value;
+            consume(TokenType::Identifier);
+            consume(TokenType::CloseParen);
+            return std::make_unique<VariableUsageNode>(groupName, variableName);
+        } else {
+            auto node = std::make_unique<LiteralValueNode>(currentToken.value);
+            consume(TokenType::Identifier);
+            return node;
+        }
+    } else if (currentToken.type == TokenType::String) {
+        auto node = std::make_unique<LiteralValueNode>(currentToken.value);
+        consume(TokenType::String);
+        return node;
+    } else if (currentToken.type == TokenType::OpenParen) {
+        consume(TokenType::OpenParen);
+        auto node = parseExpression();
+        consume(TokenType::CloseParen);
+        return node;
+    } else {
+        throw std::runtime_error("Unexpected token in expression");
+    }
 }
 
 } // namespace CHTL

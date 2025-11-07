@@ -6,6 +6,7 @@
 #include "CHTLNode/VariableUsageNode.h"
 #include "CHTLNode/InsertNode.h"
 #include "CHTLNode/ElementDeleteNode.h"
+#include "CHTLNode/BinaryOperationNode.h"
 #include <vector>
 
 namespace CHTL {
@@ -220,9 +221,31 @@ void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStr
                     }
                 }
             }
+        } else if (valueNode->getType() == NodeType::BinaryOperation) {
+            visit(static_cast<BinaryOperationNode*>(valueNode.get()), styleStream);
         }
     }
     styleStream << ";";
+}
+
+void Generator::visit(const BinaryOperationNode* node, std::stringstream& styleStream) {
+    styleStream << "calc(";
+    // Left operand
+    if (node->left->getType() == NodeType::LiteralValue) {
+        styleStream << static_cast<LiteralValueNode*>(node->left.get())->value;
+    } else if (node->left->getType() == NodeType::BinaryOperation) {
+        visit(static_cast<BinaryOperationNode*>(node->left.get()), styleStream);
+    }
+
+    styleStream << " " << node->op << " ";
+
+    // Right operand
+    if (node->right->getType() == NodeType::LiteralValue) {
+        styleStream << static_cast<LiteralValueNode*>(node->right.get())->value;
+    } else if (node->right->getType() == NodeType::BinaryOperation) {
+        visit(static_cast<BinaryOperationNode*>(node->right.get()), styleStream);
+    }
+    styleStream << ")";
 }
 
 void Generator::visit(const ScriptNode* node) {

@@ -20,7 +20,8 @@ enum class NodeType {
     VariableUsage,
     Delete,
     Insert,
-    ElementDelete
+    ElementDelete,
+    BinaryOperation
 };
 
 class BaseNode {

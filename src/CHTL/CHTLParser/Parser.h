@@ -18,6 +18,7 @@ class TemplateUsageNode;
 class DeleteNode;
 class InsertNode;
 class ElementDeleteNode;
+class ValueNode;
 
 class Parser {
 public:
@@ -41,6 +42,11 @@ private:
     std::unique_ptr<ElementNode> parseElementReference();
     std::unique_ptr<TemplateUsageNode> parseTemplateUsageReference();
     std::vector<std::unique_ptr<StylePropertyNode>> parseStyleProperties();
+    std::unique_ptr<ValueNode> parseExpression();
+    std::unique_ptr<ValueNode> parseTerm();
+    std::unique_ptr<ValueNode> parseFactor();
+    std::unique_ptr<ValueNode> parsePower();
+    std::unique_ptr<ValueNode> parseAtom();
 
 
     Lexer* lexer;

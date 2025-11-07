@@ -20,6 +20,7 @@ namespace CHTL {
 
 class TemplateNode;
 class TemplateUsageNode;
+class BinaryOperationNode;
 
 class Generator {
 public:
@@ -35,6 +36,7 @@ private:
     void visit(const TemplateNode* node);
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
+    void visit(const BinaryOperationNode* node, std::stringstream& styleStream);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
     void resolveElementInheritance(const TemplateNode* node, std::vector<const BaseNode*>& body);
 

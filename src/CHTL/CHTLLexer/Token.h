@@ -27,6 +27,12 @@ enum class TokenType {
     Top,
     Bottom,
     LessThan,
+    Plus,
+    Minus,
+    Asterisk,
+    Slash,
+    Percent,
+    DoubleAsterisk,
     Eof,
     Unknown
 };
