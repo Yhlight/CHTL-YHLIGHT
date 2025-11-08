@@ -178,3 +178,8 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse `if` blocks.
 - [x] Enhance the `Generator` to handle conditional rendering.
 - [x] Write unit tests for conditional rendering.
+
+## Milestone 25: Parser - Unquoted Literals
+
+- [x] Refactor the `Parser` to correctly handle unquoted literals in `text` blocks.
+- [x] Write unit tests for unquoted literal parsing.

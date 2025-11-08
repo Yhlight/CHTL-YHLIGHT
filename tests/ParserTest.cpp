@@ -446,3 +446,27 @@ TEST(ParserTest, ParsesValuelessStyleGroupUsage) {
     CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
     ASSERT_EQ(val2->value, "16px");
 }
+
+TEST(ParserTest, ParsesUnquotedTextNode) {
+    std::string source = "p { text { Hello, World! } }";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Element);
+
+    CHTL::ElementNode* p_element = static_cast<CHTL::ElementNode*>(stmt);
+    ASSERT_EQ(p_element->tagName, "p");
+    ASSERT_EQ(p_element->children.size(), 1);
+
+    CHTL::BaseNode* child_stmt = p_element->children[0].get();
+    ASSERT_EQ(child_stmt->getType(), CHTL::NodeType::Text);
+
+    CHTL::TextNode* text_node = static_cast<CHTL::TextNode*>(child_stmt);
+    ASSERT_EQ(text_node->content, "Hello, World!");
+}

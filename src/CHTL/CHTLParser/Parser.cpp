@@ -87,8 +87,18 @@ std::unique_ptr<TextNode> Parser::parseTextNode() {
     consume(TokenType::Identifier); // Consume "text"
     consume(TokenType::OpenBrace);
 
-    std::string content = currentToken.value;
-    consume(TokenType::String);
+    std::string content;
+    TokenType lastTokenType = TokenType::Unknown;
+    while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        if (lastTokenType != TokenType::Unknown &&
+            ((lastTokenType == TokenType::Identifier && currentToken.type == TokenType::Identifier) ||
+             (lastTokenType == TokenType::Comma))) {
+            content += " ";
+        }
+        content += currentToken.value;
+        lastTokenType = currentToken.type;
+        consume(currentToken.type);
+    }
 
     consume(TokenType::CloseBrace);
 
