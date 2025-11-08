@@ -103,7 +103,7 @@ TEST(ParserTest, ParsesTextNode) {
 }
 
 TEST(ParserTest, ParsesImportStatement) {
-    std::string source = "[Import] @Html from \"./path/to/file.html\" as myFile";
+    std::string source = "[Import] @Html from \"./path/to/file.html\" as myFile;";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
 

@@ -68,6 +68,7 @@ void Generator::visit(const ImportNode* node) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     std::string content = buffer.str();
+    content.erase(content.find_last_not_of(" \n\r\t")+1);
 
     if (!node->qualifier.empty() || node->type == "Chtl") {
         Lexer lexer(content);

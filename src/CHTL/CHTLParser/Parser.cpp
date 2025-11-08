@@ -780,6 +780,7 @@ std::unique_ptr<ImportNode> Parser::parseImportNode() {
         consume(TokenType::Identifier);
     }
 
+    consume(TokenType::Semicolon);
     return std::make_unique<ImportNode>(qualifier, type, itemName, path, alias);
 }
 

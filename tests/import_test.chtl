@@ -1,0 +1,9 @@
+[Template] @Element MyElement {
+    div {
+        text { "Imported Element" }
+    }
+}
+
+[Template] @Style MyStyle {
+    font-size: 20px;
+}

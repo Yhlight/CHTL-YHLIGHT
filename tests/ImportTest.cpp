@@ -1,61 +1,87 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
 #include <fstream>
 
-TEST(ImportTest, ImportHtml) {
-    std::string source = R"([Import] @Html from "../../tests/test.html" as myFile;
-div { @Html myFile; }
-)";
-    CHTL::Lexer lexer(source);
-    CHTL::Parser parser(lexer);
-    auto program = parser.parse();
-    CHTL::Generator generator;
-    std::string result = generator.generate(*program);
-    ASSERT_EQ(result, "<div><h1>Hello from HTML</h1></div>");
+using namespace CHTL;
+
+TEST(ImportTest, CHTLImport) {
+    std::string source = R"(
+        [Import] @Chtl from "../../tests/import_test.chtl";
+        body {
+            @Element MyElement;
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    Generator generator;
+    std::string result = generator.generate(*parser.parse());
+    ASSERT_EQ(result, "<body><div>Imported Element</div></body>");
 }
 
-TEST(ImportTest, ImportCss) {
-    std::string source = R"([Import] @Style from "../../tests/test.css" as myStyles;
-div { @Style myStyles; }
-)";
-    CHTL::Lexer lexer(source);
-    CHTL::Parser parser(lexer);
-    auto program = parser.parse();
-    CHTL::Generator generator;
-    std::string result = generator.generate(*program);
-    ASSERT_EQ(result, "<style>body { color: red; }</style><div></div>");
+TEST(ImportTest, SelectiveCHTLImport) {
+    std::string source = R"(
+        [Import] [Template] @Element MyElement from "../../tests/import_test.chtl";
+        body {
+            @Element MyElement;
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    Generator generator;
+    std::string result = generator.generate(*parser.parse());
+    ASSERT_EQ(result, "<body><div>Imported Element</div></body>");
 }
 
-TEST(ImportTest, ImportChtl) {
-    std::string source = R"([Import] @Chtl from "../../tests/test.chtl" as myTemplates;
-div {
-    style {
-        @Style MyTemplate;
-    }
-}
-)";
-    CHTL::Lexer lexer(source);
-    CHTL::Parser parser(lexer);
-    auto program = parser.parse();
-    CHTL::Generator generator;
-    std::string result = generator.generate(*program);
-    ASSERT_EQ(result, R"(<div style="color:blue;"></div>)");
+TEST(ImportTest, HTMLImport) {
+    std::string source = R"(
+        [Import] @Html from "../../tests/import_test.html" as myFile;
+        body {
+            @Html myFile;
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    Generator generator;
+    std::string result = generator.generate(*parser.parse());
+    ASSERT_EQ(result, "<body><div>Imported HTML</div></body>");
 }
 
-TEST(ImportTest, SelectiveImportChtl) {
-    std::string source = R"([Import] [Template] @Style Template1 from "../../tests/selective.chtl";
-div {
-    style {
-        @Style Template1;
-    }
+TEST(ImportTest, CSSImport) {
+    std::string source = R"(
+        [Import] @Style from "../../tests/import_test.css" as myFile;
+        body {
+            @Style myFile;
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    Generator generator;
+    std::string result = generator.generate(*parser.parse());
+    ASSERT_EQ(result, "<style>.imported-class { color: blue; }</style><body></body>");
 }
-)";
-    CHTL::Lexer lexer(source);
-    CHTL::Parser parser(lexer);
-    auto program = parser.parse();
-    CHTL::Generator generator;
-    std::string result = generator.generate(*program);
-    ASSERT_EQ(result, R"(<div style="color:red;"></div>)");
+
+TEST(ImportTest, JSImport) {
+    std::string source = R"(
+        [Import] @JavaScript from "../../tests/import_test.js" as myFile;
+        body {
+            @JavaScript myFile;
+        }
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    Generator generator;
+    std::string result = generator.generate(*parser.parse());
+    ASSERT_EQ(result, "<body>console.log(\"Imported JS\");</body>");
+}
+
+TEST(ImportTest, FileNotFound) {
+    std::string source = R"(
+        [Import] @Chtl from "nonexistent.chtl";
+    )";
+    Lexer lexer(source);
+    Parser parser(lexer);
+    Generator generator;
+    ASSERT_THROW(generator.generate(*parser.parse()), std::runtime_error);
 }

@@ -176,7 +176,7 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
 }
 
 TEST(GeneratorTest, ThrowsErrorForInvalidImportPath) {
-    std::string source = "[Import] @Html from \"invalid/path/test.html\" as myFile";
+    std::string source = "[Import] @Html from \"invalid/path/test.html\" as myFile;";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
@@ -187,7 +187,7 @@ TEST(GeneratorTest, ThrowsErrorForInvalidImportPath) {
 
 TEST(GeneratorTest, GeneratesImportedHtmlWithCorrectPath) {
     std::string source = R"(
-        [Import] @Html from "../../tests/test.html" as myFile;
+        [Import] @Html from "../../tests/import_test.html" as myFile;
         @Html myFile;
     )";
     CHTL::Lexer lexer(source);
@@ -197,7 +197,7 @@ TEST(GeneratorTest, GeneratesImportedHtmlWithCorrectPath) {
     CHTL::Generator generator;
     std::string result = generator.generate(*program);
 
-    ASSERT_EQ(result, "<h1>Hello from HTML</h1>");
+    ASSERT_EQ(result, "<div>Imported HTML</div>");
 }
 
 TEST(GeneratorTest, GeneratesConditionalExpression) {
