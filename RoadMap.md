@@ -191,3 +191,10 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse `[Import]` statements.
 - [x] Enhance the `Generator` to read and include the content of imported files.
 - [x] Write unit tests for the file import system.
+
+## Milestone 27: Namespace System
+
+- [x] Enhance the `AST` to include a `NamespaceNode`.
+- [x] Enhance the `Parser` to parse `[Namespace]` blocks.
+- [x] Enhance the `Generator` to handle namespaces.
+- [x] Write unit tests for the namespace system.

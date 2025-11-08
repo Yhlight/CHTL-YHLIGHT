@@ -17,6 +17,7 @@ public:
 
     std::string type;
     std::string name;
+    std::string from;
     bool deleted = false;
     std::vector<std::unique_ptr<StylePropertyNode>> provided_properties;
     std::vector<std::unique_ptr<BaseNode>> body;

@@ -18,6 +18,7 @@
 #include "CHTLNode/IfNode.h"
 #include "CHTLNode/ElseNode.h"
 #include "CHTLNode/ImportNode.h"
+#include "CHTLNode/NamespaceNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -71,6 +72,8 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseTemplateNode();
         } else if (peekToken.value == "Import") {
             return parseImportNode();
+        } else if (peekToken.value == "Namespace") {
+            return parseNamespaceNode();
         }
         return parseOriginNode();
     }
@@ -388,6 +391,12 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
 
     auto node = std::make_unique<TemplateUsageNode>(type, name);
 
+    if (currentToken.type == TokenType::From) {
+        consume(TokenType::From);
+        node->from = currentToken.value;
+        consume(TokenType::Identifier);
+    }
+
     if (currentToken.type == TokenType::OpenBrace) {
         consume(TokenType::OpenBrace);
         if (type == "Style") {
@@ -665,7 +674,13 @@ std::unique_ptr<ValueNode> Parser::parseAtom() {
             std::string variableName = currentToken.value;
             consume(TokenType::Identifier);
             consume(TokenType::CloseParen);
-            return std::make_unique<VariableUsageNode>(groupName, variableName);
+            auto node = std::make_unique<VariableUsageNode>(groupName, variableName);
+            if (currentToken.type == TokenType::From) {
+                consume(TokenType::From);
+                node->from = currentToken.value;
+                consume(TokenType::Identifier);
+            }
+            return node;
         } else {
             std::string value = currentToken.value;
             size_t dotPos = value.find('.');
@@ -782,6 +797,27 @@ std::unique_ptr<ImportNode> Parser::parseImportNode() {
 
     consume(TokenType::Semicolon);
     return std::make_unique<ImportNode>(qualifier, type, itemName, path, alias);
+}
+
+std::unique_ptr<NamespaceNode> Parser::parseNamespaceNode() {
+    consume(TokenType::OpenBracket);
+    consume(TokenType::Identifier); // Consume "Namespace"
+    consume(TokenType::CloseBracket);
+
+    std::string name = currentToken.value;
+    consume(TokenType::Identifier);
+
+    auto node = std::make_unique<NamespaceNode>(name);
+
+    if (currentToken.type == TokenType::OpenBrace) {
+        consume(TokenType::OpenBrace);
+        while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+            node->body.push_back(parseStatement());
+        }
+        consume(TokenType::CloseBrace);
+    }
+
+    return node;
 }
 
 } // namespace CHTL

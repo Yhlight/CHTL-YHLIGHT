@@ -16,6 +16,7 @@
 #include "CHTLNode/ElseNode.h"
 #include "CHTLNode/LogicalNode.h"
 #include "CHTLNode/ImportNode.h"
+#include "CHTLNode/NamespaceNode.h"
 #include <vector>
 #include <fstream>
 #include <cstring>
@@ -129,6 +130,9 @@ void Generator::visit(const BaseNode* node) {
         case NodeType::Import:
             visit(static_cast<const ImportNode*>(node));
             break;
+        case NodeType::Namespace:
+            visit(static_cast<const NamespaceNode*>(node));
+            break;
         default:
             break;
     }
@@ -202,6 +206,9 @@ void Generator::visit(const ProgramNode* node) {
             if (!originNode->name.empty()) {
                 named_origins[originNode->name] = originNode;
             }
+        }
+        if (statement->getType() == NodeType::Namespace) {
+            visit(static_cast<const NamespaceNode*>(statement.get()));
         }
     }
 
@@ -402,8 +409,9 @@ void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStr
             styleStream << static_cast<LiteralValueNode*>(valueNode.get())->value;
         } else if (valueNode->getType() == NodeType::VariableUsage) {
             auto varUsageNode = static_cast<VariableUsageNode*>(valueNode.get());
-            if (var_templates.count(varUsageNode->groupName)) {
-                const auto& templateNode = var_templates[varUsageNode->groupName];
+            std::string fullName = varUsageNode->from.empty() ? varUsageNode->groupName : varUsageNode->from + "." + varUsageNode->groupName;
+            if (var_templates.count(fullName)) {
+                const auto& templateNode = var_templates[fullName];
                 for (const auto& prop : templateNode->body) {
                     auto styleProp = static_cast<StylePropertyNode*>(prop.get());
                     if (styleProp->key == varUsageNode->variableName) {
@@ -469,12 +477,21 @@ void Generator::visit(const OriginNode* node) {
 }
 
 void Generator::visit(const TemplateNode* node) {
+    std::string fullName = node->name;
+    if (!namespace_stack.empty()) {
+        std::string prefix;
+        for (const auto& ns : namespace_stack) {
+            prefix += ns + ".";
+        }
+        fullName = prefix + node->name;
+    }
+
     if (node->type == "Style") {
-        style_templates[node->name] = node;
+        style_templates[fullName] = node;
     } else if (node->type == "Element") {
-        element_templates[node->name] = node;
+        element_templates[fullName] = node;
     } else if (node->type == "Var") {
-        var_templates[node->name] = node;
+        var_templates[fullName] = node;
     }
 }
 
@@ -493,9 +510,12 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
         }
         return;
     }
+
+    std::string fullName = node->from.empty() ? node->name : node->from + "." + node->name;
+
     if (node->type == "Style") {
-        if (style_templates.count(node->name)) {
-            const auto& templateNode = style_templates[node->name];
+        if (style_templates.count(fullName)) {
+            const auto& templateNode = style_templates[fullName];
             std::map<std::string, const StylePropertyNode*> properties;
             std::set<std::string> deletedInheritances;
 
@@ -536,10 +556,10 @@ void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
             }
         }
     } else if (node->type == "Element") {
-        if (element_templates.count(node->name)) {
+        if (element_templates.count(fullName)) {
             template_usage_context.push_back(node);
             element_indices.clear();
-            const auto& templateNode = element_templates[node->name];
+            const auto& templateNode = element_templates[fullName];
 
             std::vector<const BaseNode*> final_body;
             resolveElementInheritance(templateNode, final_body);
@@ -781,6 +801,18 @@ void Generator::visit(const ElseNode* node) {
             }
         }
     }
+}
+
+void Generator::visit(const NamespaceNode* node) {
+    namespace_stack.push_back(node->name);
+    for (const auto& statement : node->body) {
+        if (statement->getType() == NodeType::Template) {
+            visit(static_cast<const TemplateNode*>(statement.get()));
+        } else if (statement->getType() == NodeType::Namespace) {
+            visit(static_cast<const NamespaceNode*>(statement.get()));
+        }
+    }
+    namespace_stack.pop_back();
 }
 
 } // namespace CHTL

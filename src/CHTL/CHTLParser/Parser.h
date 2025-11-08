@@ -25,6 +25,7 @@ class DeleteNode;
 class InsertNode;
 class ElementDeleteNode;
 class ImportNode;
+class NamespaceNode;
 
 class Parser {
 public:
@@ -61,6 +62,7 @@ private:
     std::unique_ptr<IfNode> parseIfNode();
     std::unique_ptr<ElseNode> parseElseNode();
     std::unique_ptr<ImportNode> parseImportNode();
+    std::unique_ptr<NamespaceNode> parseNamespaceNode();
 
 
     Lexer* lexer;

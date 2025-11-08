@@ -18,6 +18,7 @@ public:
 
     std::string groupName;
     std::string variableName;
+    std::string from;
 };
 
 } // namespace CHTL

@@ -26,6 +26,7 @@ class ConditionalNode;
 class IfNode;
 class ElseNode;
 class ImportNode;
+class NamespaceNode;
 
 class Generator {
 public:
@@ -48,6 +49,7 @@ private:
     void visit(const IfNode* node);
     void visit(const ElseNode* node);
     void visit(const ImportNode* node);
+    void visit(const NamespaceNode* node);
     void collect_symbols(const BaseNode* node);
     bool evaluateCondition(const ValueNode* condition);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
@@ -59,6 +61,7 @@ private:
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> element_templates;
     std::map<std::string, const TemplateNode*> var_templates;
+    std::vector<std::string> namespace_stack;
     std::vector<std::string> inheritance_stack;
     std::vector<std::unique_ptr<StylePropertyNode>> owned_properties;
     std::vector<std::unique_ptr<BaseNode>> owned_nodes;

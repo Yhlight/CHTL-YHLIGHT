@@ -9,6 +9,7 @@ add_executable(chttl_tests
     PropertyReferenceTest.cpp
     ConditionalRenderingTest.cpp
     ImportTest.cpp
+    NamespaceTest.cpp
 )
 
 target_link_libraries(chttl_tests

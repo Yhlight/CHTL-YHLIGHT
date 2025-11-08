@@ -29,7 +29,8 @@ enum class NodeType {
     PropertyReference,
     If,
     Else,
-    Import
+    Import,
+    Namespace
 };
 
 class BaseNode {
