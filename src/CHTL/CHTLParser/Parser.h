@@ -7,6 +7,8 @@
 #include "../CHTLNode/ComparisonNode.h"
 #include "../CHTLNode/LogicalNode.h"
 #include "../CHTLNode/ConditionalNode.h"
+#include "CHTLNode/IfNode.h"
+#include "CHTLNode/ElseNode.h"
 #include <memory>
 
 namespace CHTL {
@@ -55,6 +57,8 @@ private:
     std::unique_ptr<ValueNode> parseFactor();
     std::unique_ptr<ValueNode> parsePower();
     std::unique_ptr<ValueNode> parseAtom();
+    std::unique_ptr<IfNode> parseIfNode();
+    std::unique_ptr<ElseNode> parseElseNode();
 
 
     Lexer* lexer;

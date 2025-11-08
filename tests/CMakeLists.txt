@@ -7,6 +7,7 @@ add_executable(chttl_tests
     ArithmeticExpressionTest.cpp
     ConditionalParserTest.cpp
     PropertyReferenceTest.cpp
+    ConditionalRenderingTest.cpp
 )
 
 target_link_libraries(chttl_tests

@@ -164,3 +164,17 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse conditional expressions within style properties.
 - [x] Enhance the `Generator` to produce conditional output.
 - [x] Write unit tests for conditional expression handling.
+
+## Milestone 23: Style Property - Reference Attributes
+
+- [x] Enhance the `AST` to represent reference attributes.
+- [x] Enhance the `Parser` to parse reference attributes.
+- [x] Enhance the `Generator` to resolve reference attributes.
+- [x] Write unit tests for reference attribute handling.
+
+## Milestone 24: Conditional Rendering
+
+- [x] Enhance the `AST` to represent `if` blocks.
+- [x] Enhance the `Parser` to parse `if` blocks.
+- [x] Enhance the `Generator` to handle conditional rendering.
+- [x] Write unit tests for conditional rendering.

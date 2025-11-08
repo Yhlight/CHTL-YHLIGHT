@@ -10,6 +10,9 @@
 #include "CHTLNode/PropertyReferenceNode.h"
 #include "CHTLNode/ConditionalNode.h"
 #include "CHTLNode/ComparisonNode.h"
+#include "CHTLNode/IfNode.h"
+#include "CHTLNode/ElseNode.h"
+#include "CHTLNode/LogicalNode.h"
 #include <vector>
 
 namespace CHTL {
@@ -51,23 +54,58 @@ void Generator::collect_symbols(const BaseNode* node) {
     }
 }
 
-void Generator::visit(const ConditionalNode* node, std::stringstream& styleStream) {
-    bool result;
-    if (node->condition->getType() == NodeType::Comparison) {
-        auto comparisonNode = static_cast<const ComparisonNode*>(node->condition.get());
-        if (comparisonNode->left->getType() == NodeType::LiteralValue && comparisonNode->right->getType() == NodeType::LiteralValue) {
-            double left = std::stod(static_cast<const LiteralValueNode*>(comparisonNode->left.get())->value);
-            double right = std::stod(static_cast<const LiteralValueNode*>(comparisonNode->right.get())->value);
-            if (comparisonNode->op == ">") result = left > right;
-            else if (comparisonNode->op == "<") result = left < right;
-            else if (comparisonNode->op == ">=") result = left >= right;
-            else if (comparisonNode->op == "<=") result = left <= right;
-            else if (comparisonNode->op == "==") result = left == right;
-            else if (comparisonNode->op == "!=") result = left != right;
-        }
+void Generator::visit(const BaseNode* node) {
+    switch (node->getType()) {
+        case NodeType::Element:
+            visit(static_cast<const ElementNode*>(node));
+            break;
+        case NodeType::Text:
+            visit(static_cast<const TextNode*>(node));
+            break;
+        case NodeType::If:
+            visit(static_cast<const IfNode*>(node));
+            break;
+        case NodeType::Else:
+            visit(static_cast<const ElseNode*>(node));
+            break;
+        default:
+            break;
     }
+}
 
-    if (result) {
+bool Generator::evaluateCondition(const ValueNode* condition) {
+    if (condition->getType() == NodeType::Comparison) {
+        auto comparisonNode = static_cast<const ComparisonNode*>(condition);
+        if (comparisonNode->left->getType() == NodeType::LiteralValue && comparisonNode->right->getType() == NodeType::LiteralValue) {
+            try {
+                double left = std::stod(static_cast<const LiteralValueNode*>(comparisonNode->left.get())->value);
+                double right = std::stod(static_cast<const LiteralValueNode*>(comparisonNode->right.get())->value);
+                if (comparisonNode->op == ">") return left > right;
+                if (comparisonNode->op == "<") return left < right;
+                if (comparisonNode->op == ">=") return left >= right;
+                if (comparisonNode->op == "<=") return left <= right;
+                if (comparisonNode->op == "==") return left == right;
+                if (comparisonNode->op == "!=") return left != right;
+            } catch (const std::invalid_argument& e) {
+                // Handle non-numeric values
+                std::string left = static_cast<const LiteralValueNode*>(comparisonNode->left.get())->value;
+                std::string right = static_cast<const LiteralValueNode*>(comparisonNode->right.get())->value;
+                if (comparisonNode->op == "==") return left == right;
+                if (comparisonNode->op == "!=") return left != right;
+            }
+        }
+    } else if (condition->getType() == NodeType::Logical) {
+        auto logicalNode = static_cast<const LogicalNode*>(condition);
+        bool left = evaluateCondition(logicalNode->left.get());
+        bool right = evaluateCondition(logicalNode->right.get());
+        if (logicalNode->op == "&&") return left && right;
+        if (logicalNode->op == "||") return left || right;
+    }
+    return false;
+}
+
+void Generator::visit(const ConditionalNode* node, std::stringstream& styleStream) {
+    if (evaluateCondition(node->condition.get())) {
         if (node->true_branch->getType() == NodeType::LiteralValue) {
             styleStream << static_cast<const LiteralValueNode*>(node->true_branch.get())->value;
         }
@@ -118,6 +156,9 @@ void Generator::visit(const ProgramNode* node) {
                 break;
             case NodeType::Template:
                 // Already processed
+                break;
+            case NodeType::If:
+                visit(statement.get());
                 break;
             default:
                 break;
@@ -617,6 +658,38 @@ void Generator::resolveElementInheritance(const TemplateNode* node, std::vector<
     }
 
     inheritance_stack.pop_back();
+}
+
+void Generator::visit(const IfNode* node) {
+    if (evaluateCondition(node->condition.get())) {
+        for (const auto& statement : node->body) {
+            if (statement) {
+                visit(statement.get());
+            }
+        }
+    } else {
+        for (const auto& else_branch : node->else_branches) {
+            visit(else_branch.get());
+        }
+    }
+}
+
+void Generator::visit(const ElseNode* node) {
+    if (node->condition) {
+        if (evaluateCondition(node->condition.get())) {
+            for (const auto& statement : node->body) {
+                if (statement) {
+                    visit(statement.get());
+                }
+            }
+        }
+    } else {
+        for (const auto& statement : node->body) {
+            if (statement) {
+                visit(statement.get());
+            }
+        }
+    }
 }
 
 } // namespace CHTL

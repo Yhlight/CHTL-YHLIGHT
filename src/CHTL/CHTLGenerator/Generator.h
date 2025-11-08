@@ -23,12 +23,15 @@ class TemplateUsageNode;
 class BinaryOperationNode;
 class PropertyReferenceNode;
 class ConditionalNode;
+class IfNode;
+class ElseNode;
 
 class Generator {
 public:
     std::string generate(const ProgramNode& program);
 
 private:
+    void visit(const BaseNode* node);
     void visit(const ProgramNode* node);
     void visit(const ElementNode* node);
     void visit(const TextNode* node);
@@ -41,7 +44,10 @@ private:
     void visit(const BinaryOperationNode* node, std::stringstream& styleStream);
     void visit(const PropertyReferenceNode* node, std::stringstream& styleStream);
     void visit(const ConditionalNode* node, std::stringstream& styleStream);
+    void visit(const IfNode* node);
+    void visit(const ElseNode* node);
     void collect_symbols(const BaseNode* node);
+    bool evaluateCondition(const ValueNode* condition);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
     void resolveElementInheritance(const TemplateNode* node, std::vector<const BaseNode*>& body);
 

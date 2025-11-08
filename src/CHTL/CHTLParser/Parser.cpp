@@ -15,6 +15,8 @@
 #include "CHTLNode/ElementDeleteNode.h"
 #include "CHTLNode/BinaryOperationNode.h"
 #include "CHTLNode/PropertyReferenceNode.h"
+#include "CHTLNode/IfNode.h"
+#include "CHTLNode/ElseNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -56,6 +58,10 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseScriptNode();
         }
         return parseElement();
+    }
+
+    if (currentToken.type == TokenType::If) {
+        return parseIfNode();
     }
 
     if (currentToken.type == TokenType::OpenBracket) {
@@ -663,6 +669,52 @@ std::unique_ptr<ValueNode> Parser::parseAtom() {
     } else {
         throw std::runtime_error("Unexpected token in expression");
     }
+}
+
+std::unique_ptr<IfNode> Parser::parseIfNode() {
+    consume(TokenType::If);
+    consume(TokenType::OpenBrace);
+
+    auto ifNode = std::make_unique<IfNode>();
+
+    consume(TokenType::Identifier); // consume "condition"
+    consume(TokenType::Colon);
+    ifNode->condition = parseExpression();
+
+    while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        ifNode->body.push_back(parseStatement());
+    }
+
+    consume(TokenType::CloseBrace);
+
+    while (currentToken.type == TokenType::Else) {
+        ifNode->else_branches.push_back(parseElseNode());
+    }
+
+    return ifNode;
+}
+
+std::unique_ptr<ElseNode> Parser::parseElseNode() {
+    consume(TokenType::Else);
+    auto elseNode = std::make_unique<ElseNode>();
+
+    if (currentToken.type == TokenType::If) {
+        consume(TokenType::If);
+        consume(TokenType::OpenBrace);
+        consume(TokenType::Identifier); // consume "condition"
+        consume(TokenType::Colon);
+        elseNode->condition = parseExpression();
+    } else {
+        consume(TokenType::OpenBrace);
+    }
+
+    while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        elseNode->body.push_back(parseStatement());
+    }
+
+    consume(TokenType::CloseBrace);
+
+    return elseNode;
 }
 
 } // namespace CHTL

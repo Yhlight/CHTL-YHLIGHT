@@ -41,6 +41,8 @@ enum class TokenType {
     NotEqual,
     DoubleAnd,
     DoubleOr,
+    If,
+    Else,
     Eof,
     Unknown
 };

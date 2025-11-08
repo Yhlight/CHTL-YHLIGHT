@@ -26,7 +26,9 @@ enum class NodeType {
     Comparison,
     Logical,
     Conditional,
-    PropertyReference
+    PropertyReference,
+    If,
+    Else
 };
 
 class BaseNode {
