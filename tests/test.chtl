@@ -1,0 +1,3 @@
+[Template] @Style MyTemplate {
+    color: blue;
+}

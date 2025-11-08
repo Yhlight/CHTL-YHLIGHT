@@ -744,19 +744,43 @@ std::unique_ptr<ImportNode> Parser::parseImportNode() {
     consume(TokenType::Identifier); // Consume "Import"
     consume(TokenType::CloseBracket);
 
+    std::string qualifier;
+    if (currentToken.type == TokenType::OpenBracket) {
+        consume(TokenType::OpenBracket);
+        qualifier = currentToken.value; // "Custom", "Template", "Origin"
+        consume(TokenType::Identifier);
+        consume(TokenType::CloseBracket);
+    }
+
     consume(TokenType::At);
     std::string type = currentToken.value;
     consume(TokenType::Identifier);
 
+    std::string itemName;
+    if (currentToken.type == TokenType::Identifier) {
+        // Could be item name or "from"
+        if (currentToken.value != "from") {
+            itemName = currentToken.value;
+            consume(TokenType::Identifier);
+        }
+    }
+
     consume(TokenType::From);
     std::string path = currentToken.value;
-    consume(TokenType::String);
+    if (currentToken.type == TokenType::String || currentToken.type == TokenType::Identifier) {
+        consume(currentToken.type);
+    } else {
+        throw std::runtime_error("Expected string or identifier for import path");
+    }
 
-    consume(TokenType::As);
-    std::string name = currentToken.value;
-    consume(TokenType::Identifier);
+    std::string alias;
+    if (currentToken.type == TokenType::As) {
+        consume(TokenType::As);
+        alias = currentToken.value;
+        consume(TokenType::Identifier);
+    }
 
-    return std::make_unique<ImportNode>(type, path, name);
+    return std::make_unique<ImportNode>(qualifier, type, itemName, path, alias);
 }
 
 } // namespace CHTL

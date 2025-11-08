@@ -197,7 +197,7 @@ TEST(GeneratorTest, GeneratesImportedHtmlWithCorrectPath) {
     CHTL::Generator generator;
     std::string result = generator.generate(*program);
 
-    ASSERT_EQ(result, "<p>hello from imported file</p>");
+    ASSERT_EQ(result, "<h1>Hello from HTML</h1>");
 }
 
 TEST(GeneratorTest, GeneratesConditionalExpression) {

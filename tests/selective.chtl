@@ -1,0 +1,7 @@
+[Template] @Style Template1 {
+    color: red;
+}
+
+[Template] @Style Template2 {
+    color: blue;
+}

@@ -118,7 +118,7 @@ TEST(ParserTest, ParsesImportStatement) {
     CHTL::ImportNode* import_node = static_cast<CHTL::ImportNode*>(stmt);
     ASSERT_EQ(import_node->type, "Html");
     ASSERT_EQ(import_node->path, "./path/to/file.html");
-    ASSERT_EQ(import_node->name, "myFile");
+    ASSERT_EQ(import_node->alias, "myFile");
 }
 
 TEST(ParserTest, ParsesStyleBlockWithProperties) {

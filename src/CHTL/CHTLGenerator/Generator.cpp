@@ -1,5 +1,7 @@
 #include "Generator.h"
 #include <algorithm>
+#include "../CHTLLexer/Lexer.h"
+#include "../CHTLParser/Parser.h"
 #include "CHTLNode/TemplateUsageNode.h"
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
@@ -65,9 +67,48 @@ void Generator::visit(const ImportNode* node) {
 
     std::stringstream buffer;
     buffer << file.rdbuf();
-    auto originNode = std::make_unique<OriginNode>(node->type, buffer.str(), node->name);
-    named_origins[node->name] = originNode.get();
-    owned_nodes.push_back(std::move(originNode));
+    std::string content = buffer.str();
+
+    if (!node->qualifier.empty() || node->type == "Chtl") {
+        Lexer lexer(content);
+        Parser parser(lexer);
+        auto program = parser.parse();
+        for (auto& statement : program->statements) {
+            bool should_import = node->itemName.empty();
+            if (!should_import) {
+                if (statement->getType() == NodeType::Template) {
+                    auto templateNode = static_cast<const TemplateNode*>(statement.get());
+                    if (templateNode->name == node->itemName) {
+                        should_import = true;
+                    }
+                } else if (statement->getType() == NodeType::Origin) {
+                    auto originNode = static_cast<const OriginNode*>(statement.get());
+                    if (originNode->name == node->itemName) {
+                        should_import = true;
+                    }
+                }
+            }
+
+            if (should_import) {
+                const BaseNode* raw_stmt = statement.get();
+                owned_nodes.push_back(std::move(statement));
+
+                if (raw_stmt->getType() == NodeType::Template) {
+                    visit(static_cast<const TemplateNode*>(raw_stmt));
+                } else if (raw_stmt->getType() == NodeType::Origin) {
+                    const auto originNode = static_cast<const OriginNode*>(raw_stmt);
+                    if (!originNode->name.empty()) {
+                        named_origins[originNode->name] = originNode;
+                    }
+                }
+            }
+        }
+        program->statements.clear();
+    } else {
+        auto originNode = std::make_unique<OriginNode>(node->type, content, node->alias);
+        named_origins[node->alias] = originNode.get();
+        owned_nodes.push_back(std::move(originNode));
+    }
 }
 
 void Generator::visit(const BaseNode* node) {
