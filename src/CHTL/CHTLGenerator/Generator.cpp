@@ -13,7 +13,10 @@
 #include "CHTLNode/IfNode.h"
 #include "CHTLNode/ElseNode.h"
 #include "CHTLNode/LogicalNode.h"
+#include "CHTLNode/ImportNode.h"
 #include <vector>
+#include <fstream>
+#include <cstring>
 
 namespace CHTL {
 
@@ -54,6 +57,19 @@ void Generator::collect_symbols(const BaseNode* node) {
     }
 }
 
+void Generator::visit(const ImportNode* node) {
+    std::ifstream file(node->path);
+    if (!file) {
+        throw std::runtime_error("Failed to open import file: " + node->path + " - " + strerror(errno));
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    auto originNode = std::make_unique<OriginNode>(node->type, buffer.str(), node->name);
+    named_origins[node->name] = originNode.get();
+    owned_nodes.push_back(std::move(originNode));
+}
+
 void Generator::visit(const BaseNode* node) {
     switch (node->getType()) {
         case NodeType::Element:
@@ -67,6 +83,9 @@ void Generator::visit(const BaseNode* node) {
             break;
         case NodeType::Else:
             visit(static_cast<const ElseNode*>(node));
+            break;
+        case NodeType::Import:
+            visit(static_cast<const ImportNode*>(node));
             break;
         default:
             break;
@@ -128,10 +147,19 @@ std::string Generator::generate(const ProgramNode& program) {
 }
 
 void Generator::visit(const ProgramNode* node) {
-    // First pass: collect all style templates
+    // First pass: collect all templates, imports, and named origins.
     for (const auto& statement : node->statements) {
         if (statement->getType() == NodeType::Template) {
-            visit(static_cast<TemplateNode*>(statement.get()));
+            visit(static_cast<const TemplateNode*>(statement.get()));
+        }
+        if (statement->getType() == NodeType::Import) {
+            visit(static_cast<const ImportNode*>(statement.get()));
+        }
+        if (statement->getType() == NodeType::Origin) {
+            const auto originNode = static_cast<const OriginNode*>(statement.get());
+            if (!originNode->name.empty()) {
+                named_origins[originNode->name] = originNode;
+            }
         }
     }
 
@@ -142,26 +170,35 @@ void Generator::visit(const ProgramNode* node) {
         }
     }
 
-    // Third pass: process the rest of the statements
+    // Third pass: generate output for everything else.
     for (const auto& statement : node->statements) {
         switch (statement->getType()) {
-            case NodeType::Element:
-                visit(static_cast<ElementNode*>(statement.get()));
-                break;
-            case NodeType::Origin:
-                visit(static_cast<OriginNode*>(statement.get()));
-                break;
-            case NodeType::TemplateUsage:
-                visit(static_cast<TemplateUsageNode*>(statement.get()), nullptr);
-                break;
-            case NodeType::Template:
-                // Already processed
-                break;
-            case NodeType::If:
-                visit(statement.get());
-                break;
-            default:
-                break;
+        case NodeType::Element:
+            visit(static_cast<const ElementNode*>(statement.get()));
+            break;
+        case NodeType::Origin:
+            // Only generate for UNNAMED origins. Named ones are generated on usage.
+        {
+            const auto originNode = static_cast<const OriginNode*>(statement.get());
+            if (originNode->name.empty()) {
+                visit(originNode);
+            }
+        }
+        break;
+        case NodeType::TemplateUsage:
+            visit(static_cast<const TemplateUsageNode*>(statement.get()), nullptr);
+            break;
+        case NodeType::Template:
+            // Already processed
+            break;
+        case NodeType::If:
+            visit(statement.get());
+            break;
+        case NodeType::Import:
+            // Already processed
+            break;
+        default:
+            break;
         }
     }
 }
@@ -383,7 +420,8 @@ void Generator::visit(const ScriptNode* node) {
 void Generator::visit(const OriginNode* node) {
     if (node->originType == "Html" || node->originType == "JavaScript") {
         html_output << node->content;
-    } else if (node->originType == "Style") {
+    }
+    else if (node->originType == "Style") {
         css_output << node->content;
     }
 }
@@ -400,6 +438,17 @@ void Generator::visit(const TemplateNode* node) {
 
 void Generator::visit(const TemplateUsageNode* node, ElementNode* parent) {
     if (node->deleted) {
+        return;
+    }
+    if (named_origins.count(node->name)) {
+        // It's a named origin usage, like @Html myFile;
+        const auto originNode = named_origins[node->name];
+        if (originNode->originType == "Html" || originNode->originType == "JavaScript") {
+            html_output << originNode->content;
+        }
+        else if (originNode->originType == "Style") {
+            css_output << originNode->content;
+        }
         return;
     }
     if (node->type == "Style") {

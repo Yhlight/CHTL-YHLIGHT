@@ -183,3 +183,11 @@ This document outlines the development plan for the CHTL compiler.
 
 - [x] Refactor the `Parser` to correctly handle unquoted literals in `text` blocks.
 - [x] Write unit tests for unquoted literal parsing.
+
+## Milestone 26: File Import System
+
+- [x] Enhance the `Lexer` to recognize the `from` and `as` keywords.
+- [x] Enhance the `AST` to include an `ImportNode`.
+- [x] Enhance the `Parser` to parse `[Import]` statements.
+- [x] Enhance the `Generator` to read and include the content of imported files.
+- [x] Write unit tests for the file import system.

@@ -17,6 +17,7 @@
 #include "CHTLNode/PropertyReferenceNode.h"
 #include "CHTLNode/IfNode.h"
 #include "CHTLNode/ElseNode.h"
+#include "CHTLNode/ImportNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -68,6 +69,8 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
         Token peekToken = lexer->peek();
         if (peekToken.value == "Template" || peekToken.value == "Custom") {
             return parseTemplateNode();
+        } else if (peekToken.value == "Import") {
+            return parseImportNode();
         }
         return parseOriginNode();
     }
@@ -216,14 +219,23 @@ std::unique_ptr<OriginNode> Parser::parseOriginNode() {
     std::string type = currentToken.value;
     consume(TokenType::Identifier);
 
-    consume(TokenType::OpenBrace);
+    std::string name;
+    if (currentToken.type == TokenType::Identifier) {
+        name = currentToken.value;
+        consume(TokenType::Identifier);
+    }
 
-    std::string content = currentToken.value;
-    consume(TokenType::String);
-
-    consume(TokenType::CloseBrace);
-
-    return std::make_unique<OriginNode>(type, content);
+    if (currentToken.type == TokenType::OpenBrace) {
+        consume(TokenType::OpenBrace);
+        std::string content = currentToken.value;
+        consume(TokenType::String);
+        consume(TokenType::CloseBrace);
+        return std::make_unique<OriginNode>(type, content, name);
+    }
+    else {
+        consume(TokenType::Semicolon);
+        return std::make_unique<OriginNode>(type, "", name);
+    }
 }
 
 
@@ -725,6 +737,26 @@ std::unique_ptr<ElseNode> Parser::parseElseNode() {
     consume(TokenType::CloseBrace);
 
     return elseNode;
+}
+
+std::unique_ptr<ImportNode> Parser::parseImportNode() {
+    consume(TokenType::OpenBracket);
+    consume(TokenType::Identifier); // Consume "Import"
+    consume(TokenType::CloseBracket);
+
+    consume(TokenType::At);
+    std::string type = currentToken.value;
+    consume(TokenType::Identifier);
+
+    consume(TokenType::From);
+    std::string path = currentToken.value;
+    consume(TokenType::String);
+
+    consume(TokenType::As);
+    std::string name = currentToken.value;
+    consume(TokenType::Identifier);
+
+    return std::make_unique<ImportNode>(type, path, name);
 }
 
 } // namespace CHTL

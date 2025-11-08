@@ -142,3 +142,14 @@ TEST(LexerTest, HandlesConditionalOperators) {
     CHTL::Token token9 = lexer.getNextToken();
     ASSERT_EQ(token9.type, CHTL::TokenType::NotEqual);
 }
+
+TEST(LexerTest, HandlesImportKeywords) {
+    CHTL::Lexer lexer("from as");
+    CHTL::Token token1 = lexer.getNextToken();
+    ASSERT_EQ(token1.type, CHTL::TokenType::From);
+    ASSERT_EQ(token1.value, "from");
+
+    CHTL::Token token2 = lexer.getNextToken();
+    ASSERT_EQ(token2.type, CHTL::TokenType::As);
+    ASSERT_EQ(token2.value, "as");
+}

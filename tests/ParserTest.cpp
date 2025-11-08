@@ -13,6 +13,7 @@
 #include "CHTLNode/ValueNode.h"
 #include "CHTLNode/LiteralValueNode.h"
 #include "CHTLNode/VariableUsageNode.h"
+#include "CHTLNode/ImportNode.h"
 
 TEST(ParserTest, ParsesEmptyElement) {
     std::string source = "div {}";
@@ -99,6 +100,25 @@ TEST(ParserTest, ParsesTextNode) {
 
     CHTL::TextNode* text_node = static_cast<CHTL::TextNode*>(child_stmt);
     ASSERT_EQ(text_node->content, "Hello, World!");
+}
+
+TEST(ParserTest, ParsesImportStatement) {
+    std::string source = "[Import] @Html from \"./path/to/file.html\" as myFile";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Import);
+
+    CHTL::ImportNode* import_node = static_cast<CHTL::ImportNode*>(stmt);
+    ASSERT_EQ(import_node->type, "Html");
+    ASSERT_EQ(import_node->path, "./path/to/file.html");
+    ASSERT_EQ(import_node->name, "myFile");
 }
 
 TEST(ParserTest, ParsesStyleBlockWithProperties) {
@@ -445,6 +465,25 @@ TEST(ParserTest, ParsesValuelessStyleGroupUsage) {
     ASSERT_EQ(prop2->value.size(), 1);
     CHTL::LiteralValueNode* val2 = static_cast<CHTL::LiteralValueNode*>(prop2->value[0].get());
     ASSERT_EQ(val2->value, "16px");
+}
+
+TEST(ParserTest, ParsesNamedOriginBlock) {
+    std::string source = R"([Origin] @Html myFile { "<div></div>" })";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
+
+    ASSERT_NE(program, nullptr);
+    ASSERT_EQ(program->statements.size(), 1);
+
+    CHTL::BaseNode* stmt = program->statements[0].get();
+    ASSERT_EQ(stmt->getType(), CHTL::NodeType::Origin);
+
+    CHTL::OriginNode* origin_node = static_cast<CHTL::OriginNode*>(stmt);
+    ASSERT_EQ(origin_node->originType, "Html");
+    ASSERT_EQ(origin_node->name, "myFile");
+    ASSERT_EQ(origin_node->content, "<div></div>");
 }
 
 TEST(ParserTest, ParsesUnquotedTextNode) {

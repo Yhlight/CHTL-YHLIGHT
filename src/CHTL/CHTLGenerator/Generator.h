@@ -25,6 +25,7 @@ class PropertyReferenceNode;
 class ConditionalNode;
 class IfNode;
 class ElseNode;
+class ImportNode;
 
 class Generator {
 public:
@@ -46,6 +47,7 @@ private:
     void visit(const ConditionalNode* node, std::stringstream& styleStream);
     void visit(const IfNode* node);
     void visit(const ElseNode* node);
+    void visit(const ImportNode* node);
     void collect_symbols(const BaseNode* node);
     bool evaluateCondition(const ValueNode* condition);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
@@ -59,8 +61,10 @@ private:
     std::map<std::string, const TemplateNode*> var_templates;
     std::vector<std::string> inheritance_stack;
     std::vector<std::unique_ptr<StylePropertyNode>> owned_properties;
+    std::vector<std::unique_ptr<BaseNode>> owned_nodes;
     std::vector<const TemplateUsageNode*> template_usage_context;
     std::map<std::string, int> element_indices;
+    std::map<std::string, const OriginNode*> named_origins;
 };
 
 } // namespace CHTL

@@ -24,6 +24,7 @@ class TemplateUsageNode;
 class DeleteNode;
 class InsertNode;
 class ElementDeleteNode;
+class ImportNode;
 
 class Parser {
 public:
@@ -59,6 +60,7 @@ private:
     std::unique_ptr<ValueNode> parseAtom();
     std::unique_ptr<IfNode> parseIfNode();
     std::unique_ptr<ElseNode> parseElseNode();
+    std::unique_ptr<ImportNode> parseImportNode();
 
 
     Lexer* lexer;

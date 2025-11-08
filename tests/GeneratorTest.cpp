@@ -175,6 +175,31 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, ThrowsErrorForInvalidImportPath) {
+    std::string source = "[Import] @Html from \"invalid/path/test.html\" as myFile";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    ASSERT_THROW(generator.generate(*program), std::runtime_error);
+}
+
+TEST(GeneratorTest, GeneratesImportedHtmlWithCorrectPath) {
+    std::string source = R"(
+        [Import] @Html from "../../tests/test.html" as myFile;
+        @Html myFile;
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Generator generator;
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<p>hello from imported file</p>");
+}
+
 TEST(GeneratorTest, GeneratesConditionalExpression) {
     std::string source = "div { style { color: 1 > 2 ? 'red' : 'blue'; } }";
     CHTL::Lexer lexer(source);

@@ -194,6 +194,8 @@ Token Lexer::getNextToken() {
         if (value == "bottom") return {TokenType::Bottom, "bottom"};
         if (value == "if") return {TokenType::If, "if"};
         if (value == "else") return {TokenType::Else, "else"};
+        if (value == "from") return {TokenType::From, "from"};
+        if (value == "as") return {TokenType::As, "as"};
         return {TokenType::Identifier, value};
     }
 

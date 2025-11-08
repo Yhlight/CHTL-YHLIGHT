@@ -43,6 +43,8 @@ enum class TokenType {
     DoubleOr,
     If,
     Else,
+    From,
+    As,
     Eof,
     Unknown
 };
