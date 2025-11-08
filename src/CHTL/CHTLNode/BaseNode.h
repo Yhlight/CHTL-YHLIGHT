@@ -25,7 +25,8 @@ enum class NodeType {
     BinaryOperation,
     Comparison,
     Logical,
-    Conditional
+    Conditional,
+    PropertyReference
 };
 
 class BaseNode {

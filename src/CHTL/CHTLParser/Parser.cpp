@@ -14,6 +14,7 @@
 #include "CHTLNode/InsertNode.h"
 #include "CHTLNode/ElementDeleteNode.h"
 #include "CHTLNode/BinaryOperationNode.h"
+#include "CHTLNode/PropertyReferenceNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -638,6 +639,14 @@ std::unique_ptr<ValueNode> Parser::parseAtom() {
             consume(TokenType::CloseParen);
             return std::make_unique<VariableUsageNode>(groupName, variableName);
         } else {
+            std::string value = currentToken.value;
+            size_t dotPos = value.find('.');
+            if (dotPos != std::string::npos && value[0] == '#') {
+                std::string selector = value.substr(0, dotPos);
+                std::string propertyName = value.substr(dotPos + 1);
+                consume(TokenType::Identifier);
+                return std::make_unique<PropertyReferenceNode>(selector, propertyName);
+            }
             auto node = std::make_unique<LiteralValueNode>(currentToken.value);
             consume(TokenType::Identifier);
             return node;

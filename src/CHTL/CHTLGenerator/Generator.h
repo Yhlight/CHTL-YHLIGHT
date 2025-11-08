@@ -21,8 +21,7 @@ namespace CHTL {
 class TemplateNode;
 class TemplateUsageNode;
 class BinaryOperationNode;
-class ComparisonNode;
-class LogicalNode;
+class PropertyReferenceNode;
 class ConditionalNode;
 
 class Generator {
@@ -40,12 +39,15 @@ private:
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
     void visit(const BinaryOperationNode* node, std::stringstream& styleStream);
+    void visit(const PropertyReferenceNode* node, std::stringstream& styleStream);
     void visit(const ConditionalNode* node, std::stringstream& styleStream);
+    void collect_symbols(const BaseNode* node);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
     void resolveElementInheritance(const TemplateNode* node, std::vector<const BaseNode*>& body);
 
     std::stringstream html_output;
     std::stringstream css_output;
+    std::map<std::string, std::map<std::string, const ValueNode*>> symbol_table;
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> element_templates;
     std::map<std::string, const TemplateNode*> var_templates;

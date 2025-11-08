@@ -7,47 +7,76 @@
 #include "CHTLNode/InsertNode.h"
 #include "CHTLNode/ElementDeleteNode.h"
 #include "CHTLNode/BinaryOperationNode.h"
-#include "CHTLNode/ComparisonNode.h"
-#include "CHTLNode/LogicalNode.h"
+#include "CHTLNode/PropertyReferenceNode.h"
 #include "CHTLNode/ConditionalNode.h"
+#include "CHTLNode/ComparisonNode.h"
 #include <vector>
-#include <stdexcept>
 
 namespace CHTL {
 
-double evaluate(const ValueNode* node) {
-    if (node->getType() == NodeType::LiteralValue) {
-        return std::stod(static_cast<const LiteralValueNode*>(node)->value);
-    } else if (node->getType() == NodeType::BinaryOperation) {
-        auto binOp = static_cast<const BinaryOperationNode*>(node);
-        double left = evaluate(binOp->left.get());
-        double right = evaluate(binOp->right.get());
-        if (binOp->op == "+") return left + right;
-        if (binOp->op == "-") return left - right;
-        if (binOp->op == "*") return left * right;
-        if (binOp->op == "/") return left / right;
+void Generator::collect_symbols(const BaseNode* node) {
+    if (node->getType() == NodeType::Element) {
+        auto elementNode = static_cast<const ElementNode*>(node);
+        std::string selector;
+        if (elementNode->attributes.count("id")) {
+            selector = "#" + elementNode->attributes.at("id");
+        } else if (elementNode->attributes.count("class")) {
+            selector = "." + elementNode->attributes.at("class");
+        } else {
+            selector = elementNode->tagName;
+        }
+
+        for (const auto& child : elementNode->children) {
+            if (child->getType() == NodeType::Style) {
+                auto styleNode = static_cast<const StyleNode*>(child.get());
+                for (const auto& styleChild : styleNode->children) {
+                    if (styleChild->getType() == NodeType::StyleProperty) {
+                        auto prop = static_cast<const StylePropertyNode*>(styleChild.get());
+                        if (!prop->value.empty()) {
+                            symbol_table[selector][prop->key] = prop->value[0].get();
+                        }
+                    }
+                }
+            }
+        }
+
+        for (const auto& child : elementNode->children) {
+            collect_symbols(child.get());
+        }
+    } else if (node->getType() == NodeType::Program) {
+        auto programNode = static_cast<const ProgramNode*>(node);
+        for (const auto& statement : programNode->statements) {
+            collect_symbols(statement.get());
+        }
     }
-    throw std::runtime_error("Unsupported node type in expression evaluation");
 }
 
-bool evaluate_condition(const ValueNode* node) {
-    if (node->getType() == NodeType::Comparison) {
-        auto comp = static_cast<const ComparisonNode*>(node);
-        double left = evaluate(comp->left.get());
-        double right = evaluate(comp->right.get());
-        if (comp->op == ">") return left > right;
-        if (comp->op == "<") return left < right;
-        if (comp->op == "==") return left == right;
-    } else if (node->getType() == NodeType::Logical) {
-        auto log = static_cast<const LogicalNode*>(node);
-        bool left = evaluate_condition(log->left.get());
-        bool right = evaluate_condition(log->right.get());
-        if (log->op == "&&") return left && right;
-        if (log->op == "||") return left || right;
+void Generator::visit(const ConditionalNode* node, std::stringstream& styleStream) {
+    bool result;
+    if (node->condition->getType() == NodeType::Comparison) {
+        auto comparisonNode = static_cast<const ComparisonNode*>(node->condition.get());
+        if (comparisonNode->left->getType() == NodeType::LiteralValue && comparisonNode->right->getType() == NodeType::LiteralValue) {
+            double left = std::stod(static_cast<const LiteralValueNode*>(comparisonNode->left.get())->value);
+            double right = std::stod(static_cast<const LiteralValueNode*>(comparisonNode->right.get())->value);
+            if (comparisonNode->op == ">") result = left > right;
+            else if (comparisonNode->op == "<") result = left < right;
+            else if (comparisonNode->op == ">=") result = left >= right;
+            else if (comparisonNode->op == "<=") result = left <= right;
+            else if (comparisonNode->op == "==") result = left == right;
+            else if (comparisonNode->op == "!=") result = left != right;
+        }
     }
-    throw std::runtime_error("Unsupported node type in condition evaluation");
-}
 
+    if (result) {
+        if (node->true_branch->getType() == NodeType::LiteralValue) {
+            styleStream << static_cast<const LiteralValueNode*>(node->true_branch.get())->value;
+        }
+    } else {
+        if (node->false_branch->getType() == NodeType::LiteralValue) {
+            styleStream << static_cast<const LiteralValueNode*>(node->false_branch.get())->value;
+        }
+    }
+}
 
 std::string Generator::generate(const ProgramNode& program) {
     visit(&program);
@@ -68,7 +97,14 @@ void Generator::visit(const ProgramNode* node) {
         }
     }
 
-    // Second pass: process the rest of the statements
+    // Second pass: collect symbols and populate attributes
+    for (const auto& statement : node->statements) {
+        if (statement->getType() == NodeType::Element) {
+            collect_symbols(statement.get());
+        }
+    }
+
+    // Third pass: process the rest of the statements
     for (const auto& statement : node->statements) {
         switch (statement->getType()) {
             case NodeType::Element:
@@ -261,6 +297,8 @@ void Generator::visit(const StylePropertyNode* node, std::stringstream& styleStr
             }
         } else if (valueNode->getType() == NodeType::BinaryOperation) {
             visit(static_cast<BinaryOperationNode*>(valueNode.get()), styleStream);
+        } else if (valueNode->getType() == NodeType::PropertyReference) {
+            visit(static_cast<PropertyReferenceNode*>(valueNode.get()), styleStream);
         } else if (valueNode->getType() == NodeType::Conditional) {
             visit(static_cast<ConditionalNode*>(valueNode.get()), styleStream);
         }
@@ -288,15 +326,11 @@ void Generator::visit(const BinaryOperationNode* node, std::stringstream& styleS
     styleStream << ")";
 }
 
-void Generator::visit(const ConditionalNode* node, std::stringstream& styleStream) {
-    bool result = evaluate_condition(node->condition.get());
-    if (result) {
-        if (node->true_branch->getType() == NodeType::LiteralValue) {
-            styleStream << static_cast<LiteralValueNode*>(node->true_branch.get())->value;
-        }
-    } else {
-        if (node->false_branch->getType() == NodeType::LiteralValue) {
-            styleStream << static_cast<LiteralValueNode*>(node->false_branch.get())->value;
+void Generator::visit(const PropertyReferenceNode* node, std::stringstream& styleStream) {
+    if (symbol_table.count(node->selector) && symbol_table[node->selector].count(node->propertyName)) {
+        auto valueNode = symbol_table[node->selector][node->propertyName];
+        if (valueNode->getType() == NodeType::LiteralValue) {
+            styleStream << static_cast<const LiteralValueNode*>(valueNode)->value;
         }
     }
 }
