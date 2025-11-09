@@ -45,6 +45,7 @@ enum class TokenType {
     Else,
     From,
     As,
+    Except,
     Eof,
     Unknown
 };

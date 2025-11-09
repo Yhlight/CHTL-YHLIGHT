@@ -205,3 +205,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse `[Configuration]` blocks.
 - [x] Enhance the `Generator` to handle configuration settings.
 - [x] Write unit tests for the configuration system.
+
+## Milestone 29: Constraints System
+
+- [x] Enhance the `Lexer` to recognize the `except` keyword.
+- [x] Enhance the `AST` to include a `ConstraintNode`.
+- [x] Enhance the `Parser` to parse `except` statements.
+- [x] Enhance the `Generator` to enforce constraints.
+- [x] Write unit tests for the constraints system.

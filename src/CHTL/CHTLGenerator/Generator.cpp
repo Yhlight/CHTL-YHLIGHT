@@ -301,6 +301,19 @@ void Generator::visit(const ElementNode* node) {
     html_output << ">";
 
     for (const auto& child : node->children) {
+        for (const auto& constraint : node->constraints) {
+            if (child->getType() == NodeType::Element) {
+                auto childElement = static_cast<const ElementNode*>(child.get());
+                if (childElement->tagName == constraint) {
+                    throw std::runtime_error("Constraint violation: element " + childElement->tagName + " is not allowed.");
+                }
+            } else if (child->getType() == NodeType::TemplateUsage) {
+                auto childTemplate = static_cast<const TemplateUsageNode*>(child.get());
+                if (childTemplate->name == constraint) {
+                    throw std::runtime_error("Constraint violation: template " + childTemplate->name + " is not allowed.");
+                }
+            }
+        }
         switch (child->getType()) {
             case NodeType::Element:
                 visit(static_cast<ElementNode*>(child.get()));

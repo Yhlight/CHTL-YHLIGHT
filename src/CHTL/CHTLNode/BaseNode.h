@@ -31,7 +31,8 @@ enum class NodeType {
     Else,
     Import,
     Namespace,
-    Config
+    Config,
+    Constraint
 };
 
 class BaseNode {

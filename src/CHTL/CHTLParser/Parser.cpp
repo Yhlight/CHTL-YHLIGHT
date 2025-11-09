@@ -20,6 +20,7 @@
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
 #include "CHTLNode/ConfigNode.h"
+#include "CHTLNode/ConstraintNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -61,6 +62,10 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseScriptNode();
         }
         return parseElement();
+    }
+
+    if (currentToken.type == TokenType::Except) {
+        return parseConstraintNode();
     }
 
     if (currentToken.type == TokenType::If) {
@@ -289,7 +294,13 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
         // If not an attribute, parse as a statement
         auto statement = parseStatement();
         if (statement) {
-            elementNode->children.push_back(std::move(statement));
+            if (statement->getType() == NodeType::Constraint) {
+                // Constraints are not children, they are properties of the element
+                auto constraintNode = static_cast<ConstraintNode*>(statement.get());
+                elementNode->constraints = constraintNode->constraints;
+            } else {
+                elementNode->children.push_back(std::move(statement));
+            }
         }
     }
 
@@ -854,6 +865,23 @@ std::unique_ptr<NamespaceNode> Parser::parseNamespaceNode() {
     }
 
     return node;
+}
+
+std::unique_ptr<ConstraintNode> Parser::parseConstraintNode() {
+    consume(TokenType::Except);
+
+    std::vector<std::string> constraints;
+    while (currentToken.type != TokenType::Semicolon && currentToken.type != TokenType::Eof) {
+        constraints.push_back(currentToken.value);
+        consume(currentToken.type);
+        if (currentToken.type == TokenType::Comma) {
+            consume(TokenType::Comma);
+        }
+    }
+
+    consume(TokenType::Semicolon);
+
+    return std::make_unique<ConstraintNode>(constraints);
 }
 
 } // namespace CHTL

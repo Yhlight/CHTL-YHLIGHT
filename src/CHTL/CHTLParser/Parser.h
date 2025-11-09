@@ -28,6 +28,7 @@ class ElementDeleteNode;
 class ImportNode;
 class NamespaceNode;
 class ConfigNode;
+class ConstraintNode;
 
 class Parser {
 public:
@@ -67,6 +68,7 @@ private:
     std::unique_ptr<ImportNode> parseImportNode();
     std::unique_ptr<NamespaceNode> parseNamespaceNode();
     std::unique_ptr<ConfigNode> parseConfigNode();
+    std::unique_ptr<ConstraintNode> parseConstraintNode();
 
 
     Lexer* lexer;
