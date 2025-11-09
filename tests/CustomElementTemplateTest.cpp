@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 #include "CHTLNode/ProgramNode.h"
 #include <memory>
 
@@ -28,7 +29,8 @@ TEST(CustomElementTemplateTest, SimpleSpecialization) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<body><div style="width:100px;height:200px;"></div></body>)";
     ASSERT_EQ(result, expected);
@@ -54,7 +56,8 @@ TEST(CustomElementTemplateTest, IndexedSpecialization) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<body><div></div><div style="height:200px;"></div></body>)";
     ASSERT_EQ(result, expected);
@@ -89,7 +92,8 @@ TEST(CustomElementTemplateTest, Insertion) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<body><span></span><h2></h2><h3></h3><h1></h1><p></p></body>)";
     ASSERT_EQ(result, expected);
@@ -113,7 +117,8 @@ TEST(CustomElementTemplateTest, DeletionByTagName) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<body><div></div></body>)";
     ASSERT_EQ(result, expected);
@@ -138,7 +143,8 @@ TEST(CustomElementTemplateTest, DeletionByIndexedTagName) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<body><div></div><span></span></body>)";
     ASSERT_EQ(result, expected);
@@ -165,7 +171,8 @@ TEST(CustomElementTemplateTest, DeletionByTemplate) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<body><div></div></body>)";
     ASSERT_EQ(result, expected);

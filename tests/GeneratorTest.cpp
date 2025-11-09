@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 
 TEST(GeneratorTest, GeneratesElementWithText) {
     std::string source = "p { text { \"hello\" } }";
@@ -9,7 +10,8 @@ TEST(GeneratorTest, GeneratesElementWithText) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<p>hello</p>");
@@ -21,7 +23,8 @@ TEST(GeneratorTest, GeneratesElementWithAttributes) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div id=\"main\"></div>");
@@ -33,7 +36,8 @@ TEST(GeneratorTest, GeneratesInlineStyle) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:red;\"></div>");
@@ -45,7 +49,8 @@ TEST(GeneratorTest, GeneratesGlobalStylesheet) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<style>.box{color:blue;}</style><div class=\"box\"></div>");
@@ -57,7 +62,8 @@ TEST(GeneratorTest, HandlesAutomaticClassAndId) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<style>.box{color:blue;}#main{background:white;}</style><div class=\"existing box\" id=\"main\"></div>");
@@ -69,7 +75,8 @@ TEST(GeneratorTest, HandlesContextDeduction) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<style>.box{color:blue;}.box:hover{color:red;}</style><div class=\"box\"></div>");
@@ -81,7 +88,8 @@ TEST(GeneratorTest, HandlesContextDeductionWithExistingClass) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<style>.box{color:blue;}.box:hover{color:red;}</style><div class=\"existing box\"></div>");
@@ -93,7 +101,8 @@ TEST(GeneratorTest, GeneratesScriptBlock) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div><script>console.log('hello');</script></div>");
@@ -105,7 +114,8 @@ TEST(GeneratorTest, GeneratesOriginHtml) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div><p>raw html</p></div>");
@@ -117,7 +127,8 @@ TEST(GeneratorTest, GeneratesOriginCss) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<style>.raw-css { color: purple; }</style>");
@@ -129,7 +140,8 @@ TEST(GeneratorTest, GeneratesOriginJavaScript) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "alert('raw js');");
@@ -148,7 +160,8 @@ TEST(GeneratorTest, GeneratesElementTemplate) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div>Hello</div>");
@@ -169,7 +182,8 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
@@ -181,7 +195,8 @@ TEST(GeneratorTest, ThrowsErrorForInvalidImportPath) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     ASSERT_THROW(generator.generate(*program), std::runtime_error);
 }
 
@@ -194,7 +209,8 @@ TEST(GeneratorTest, GeneratesImportedHtmlWithCorrectPath) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div>Imported HTML</div>");
@@ -206,7 +222,8 @@ TEST(GeneratorTest, GeneratesConditionalExpression) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:blue;\"></div>");
@@ -218,7 +235,8 @@ TEST(GeneratorTest, GeneratesConditionalExpressionTrue) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:red;\"></div>");
@@ -243,7 +261,8 @@ TEST(GeneratorTest, GeneratesValuelessStyleGroup) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:red;font-size:16px;\"></div>");
@@ -269,7 +288,8 @@ TEST(GeneratorTest, HandlesCustomTemplatePropertyDeletion) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"font-size:16px;\"></div>");
@@ -298,7 +318,8 @@ TEST(GeneratorTest, HandlesCustomTemplateInheritanceDeletion) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div></div>");
@@ -328,7 +349,8 @@ TEST(GeneratorTest, HandlesMixedCustomTemplate) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div></div>");
@@ -353,7 +375,8 @@ TEST(GeneratorTest, GeneratesSingleLevelInheritance) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:blue;font-size:16px;\"></div>");
@@ -382,7 +405,8 @@ TEST(GeneratorTest, GeneratesMultiLevelInheritance) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:green;font-size:16px;font-weight:bold;\"></div>");
@@ -408,7 +432,8 @@ TEST(GeneratorTest, HandlesPropertyOverrides) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:red;font-size:16px;\"></div>");
@@ -432,7 +457,8 @@ TEST(GeneratorTest, DetectsCircularDependencies) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     ASSERT_THROW(generator.generate(*program), std::runtime_error);
 }
 
@@ -451,7 +477,8 @@ TEST(GeneratorTest, GeneratesVariableTemplate) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");

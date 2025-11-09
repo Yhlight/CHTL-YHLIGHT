@@ -9,6 +9,7 @@
 #include "../CHTLNode/ConditionalNode.h"
 #include "CHTLNode/IfNode.h"
 #include "CHTLNode/ElseNode.h"
+#include "../CHTL/Configuration.h"
 #include <memory>
 
 namespace CHTL {
@@ -26,12 +27,14 @@ class InsertNode;
 class ElementDeleteNode;
 class ImportNode;
 class NamespaceNode;
+class ConfigNode;
 
 class Parser {
 public:
     Parser(Lexer& lexer);
 
     std::unique_ptr<ProgramNode> parse();
+    const Configuration& getConfiguration() const { return config; }
 
 private:
     std::unique_ptr<BaseNode> parseStatement();
@@ -63,10 +66,12 @@ private:
     std::unique_ptr<ElseNode> parseElseNode();
     std::unique_ptr<ImportNode> parseImportNode();
     std::unique_ptr<NamespaceNode> parseNamespaceNode();
+    std::unique_ptr<ConfigNode> parseConfigNode();
 
 
     Lexer* lexer;
     Token currentToken;
+    Configuration config;
 
     void consume(TokenType expectedType);
 };

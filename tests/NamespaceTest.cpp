@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 
 using namespace CHTL;
 
@@ -20,7 +21,8 @@ TEST(NamespaceTest, SimpleNamespace) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body><div>Hello from namespace</div></body>");
 }
@@ -42,7 +44,8 @@ TEST(NamespaceTest, NestedNamespace) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body><div>Hello from nested namespace</div></body>");
 }
@@ -62,7 +65,8 @@ TEST(NamespaceTest, VariableNamespace) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body style=\"color:red;\"></body>");
 }

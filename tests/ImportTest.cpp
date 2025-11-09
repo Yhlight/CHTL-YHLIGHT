@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 #include <fstream>
 
 using namespace CHTL;
@@ -15,7 +16,8 @@ TEST(ImportTest, CHTLImport) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body><div>Imported Element</div></body>");
 }
@@ -29,7 +31,8 @@ TEST(ImportTest, SelectiveCHTLImport) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body><div>Imported Element</div></body>");
 }
@@ -43,7 +46,8 @@ TEST(ImportTest, HTMLImport) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body><div>Imported HTML</div></body>");
 }
@@ -57,7 +61,8 @@ TEST(ImportTest, CSSImport) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<style>.imported-class { color: blue; }</style><body></body>");
 }
@@ -71,7 +76,8 @@ TEST(ImportTest, JSImport) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     std::string result = generator.generate(*parser.parse());
     ASSERT_EQ(result, "<body>console.log(\"Imported JS\");</body>");
 }
@@ -82,6 +88,7 @@ TEST(ImportTest, FileNotFound) {
     )";
     Lexer lexer(source);
     Parser parser(lexer);
-    Generator generator;
+    Configuration config;
+    Generator generator(config);
     ASSERT_THROW(generator.generate(*parser.parse()), std::runtime_error);
 }

@@ -198,3 +198,10 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse `[Namespace]` blocks.
 - [x] Enhance the `Generator` to handle namespaces.
 - [x] Write unit tests for the namespace system.
+
+## Milestone 28: Configuration System
+
+- [x] Enhance the `AST` to include a `ConfigNode`.
+- [x] Enhance the `Parser` to parse `[Configuration]` blocks.
+- [x] Enhance the `Generator` to handle configuration settings.
+- [x] Write unit tests for the configuration system.

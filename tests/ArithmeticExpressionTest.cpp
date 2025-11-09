@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 #include "CHTLNode/ProgramNode.h"
 #include <memory>
 
@@ -16,7 +17,8 @@ TEST(ArithmeticExpressionTest, SimpleAddition) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<div style="width:calc(10px + 20px);"></div>)";
     ASSERT_EQ(result, expected);
@@ -33,7 +35,8 @@ TEST(ArithmeticExpressionTest, OperatorPrecedence) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<div style="width:calc(10px + calc(20px * 2));"></div>)";
     ASSERT_EQ(result, expected);
@@ -50,7 +53,8 @@ TEST(ArithmeticExpressionTest, Parentheses) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<div style="width:calc(calc(10px + 20px) * 2);"></div>)";
     ASSERT_EQ(result, expected);
@@ -67,7 +71,8 @@ TEST(ArithmeticExpressionTest, AllOperators) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
     std::string expected = R"(<div style="width:calc(calc(10px + calc(20px * 2)) - calc(calc(5px / 2) % calc(3 ** 2)));"></div>)";
     ASSERT_EQ(result, expected);

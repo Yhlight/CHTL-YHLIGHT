@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 #include "CHTLNode/PropertyReferenceNode.h"
 #include "CHTLNode/StyleNode.h"
 #include "CHTLNode/ElementNode.h"
@@ -25,7 +26,8 @@ TEST(PropertyReferenceTest, SimpleReference) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, R"(<div id="box" style="width:100px;"></div><p style="width:100px;"></p>)");

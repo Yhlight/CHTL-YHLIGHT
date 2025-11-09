@@ -19,6 +19,7 @@
 #include "CHTLNode/ElseNode.h"
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
+#include "CHTLNode/ConfigNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -74,6 +75,8 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
             return parseImportNode();
         } else if (peekToken.value == "Namespace") {
             return parseNamespaceNode();
+        } else if (peekToken.value == "Configuration") {
+            return parseConfigNode();
         }
         return parseOriginNode();
     }
@@ -416,6 +419,39 @@ std::unique_ptr<TemplateUsageNode> Parser::parseTemplateUsageNode() {
     } else {
         consume(TokenType::Semicolon);
     }
+
+    return node;
+}
+
+std::unique_ptr<ConfigNode> Parser::parseConfigNode() {
+    consume(TokenType::OpenBracket);
+    consume(TokenType::Identifier); // Consume "Configuration"
+    consume(TokenType::CloseBracket);
+
+    auto node = std::make_unique<ConfigNode>();
+
+    consume(TokenType::OpenBrace);
+
+    while (currentToken.type != TokenType::CloseBrace && currentToken.type != TokenType::Eof) {
+        std::string key = currentToken.value;
+        consume(TokenType::Identifier);
+        consume(TokenType::Colon);
+        std::string value = currentToken.value;
+        if (currentToken.type == TokenType::Identifier || currentToken.type == TokenType::String) {
+            consume(currentToken.type);
+        } else {
+            throw std::runtime_error("Invalid value in configuration");
+        }
+        consume(TokenType::Semicolon);
+
+        node->settings.emplace_back(key, value);
+
+        if (key == "DEBUG_MODE") {
+            config.debugMode = (value == "true");
+        }
+    }
+
+    consume(TokenType::CloseBrace);
 
     return node;
 }

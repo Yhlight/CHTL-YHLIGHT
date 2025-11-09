@@ -2,6 +2,7 @@
 #include "CHTLLexer/Lexer.h"
 #include "CHTLParser/Parser.h"
 #include "CHTLGenerator/Generator.h"
+#include "CHTL/Configuration.h"
 
 TEST(ConditionalRenderingTest, SimpleIf) {
     std::string source = R"(
@@ -14,7 +15,8 @@ TEST(ConditionalRenderingTest, SimpleIf) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div>True</div>");
@@ -33,7 +35,8 @@ TEST(ConditionalRenderingTest, IfElse) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div>False</div>");
@@ -53,7 +56,8 @@ TEST(ConditionalRenderingTest, IfElseIf) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div>Else If</div>");
@@ -75,7 +79,8 @@ TEST(ConditionalRenderingTest, IfElseIfElse) {
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
 
-    CHTL::Generator generator;
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
 
     ASSERT_EQ(result, "<div>False</div>");

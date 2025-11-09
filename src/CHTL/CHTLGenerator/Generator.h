@@ -11,6 +11,7 @@
 #include "../CHTLNode/TemplateNode.h"
 #include "../CHTLNode/TemplateUsageNode.h"
 #include "../CHTLNode/DeleteNode.h"
+#include "../CHTL/Configuration.h"
 #include <string>
 #include <sstream>
 #include <map>
@@ -27,9 +28,11 @@ class IfNode;
 class ElseNode;
 class ImportNode;
 class NamespaceNode;
+class ConfigNode;
 
 class Generator {
 public:
+    Generator(const Configuration& config);
     std::string generate(const ProgramNode& program);
 
 private:
@@ -50,11 +53,13 @@ private:
     void visit(const ElseNode* node);
     void visit(const ImportNode* node);
     void visit(const NamespaceNode* node);
+    void visit(const ConfigNode* node);
     void collect_symbols(const BaseNode* node);
     bool evaluateCondition(const ValueNode* condition);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
     void resolveElementInheritance(const TemplateNode* node, std::vector<const BaseNode*>& body);
 
+    Configuration config;
     std::stringstream html_output;
     std::stringstream css_output;
     std::map<std::string, std::map<std::string, const ValueNode*>> symbol_table;

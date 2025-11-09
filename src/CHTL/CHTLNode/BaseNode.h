@@ -30,7 +30,8 @@ enum class NodeType {
     If,
     Else,
     Import,
-    Namespace
+    Namespace,
+    Config
 };
 
 class BaseNode {

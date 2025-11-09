@@ -17,11 +17,14 @@
 #include "CHTLNode/LogicalNode.h"
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
+#include "CHTLNode/ConfigNode.h"
 #include <vector>
 #include <fstream>
 #include <cstring>
 
 namespace CHTL {
+
+Generator::Generator(const Configuration& config) : config(config) {}
 
 void Generator::collect_symbols(const BaseNode* node) {
     if (node->getType() == NodeType::Element) {
@@ -132,6 +135,9 @@ void Generator::visit(const BaseNode* node) {
             break;
         case NodeType::Namespace:
             visit(static_cast<const NamespaceNode*>(node));
+            break;
+        case NodeType::Config:
+            visit(static_cast<const ConfigNode*>(node));
             break;
         default:
             break;
@@ -283,6 +289,9 @@ void Generator::visit(const ElementNode* node) {
         }
     }
 
+    if (config.debugMode) {
+        html_output << "<!-- Start Element: " << node->tagName << " -->";
+    }
     html_output << "<" << node->tagName;
 
     for (const auto& attr : node->attributes) {
@@ -317,6 +326,9 @@ void Generator::visit(const ElementNode* node) {
     }
 
     html_output << "</" << node->tagName << ">";
+    if (config.debugMode) {
+        html_output << "<!-- End Element: " << node->tagName << " -->";
+    }
 }
 
 void Generator::visit(const TextNode* node) {
@@ -813,6 +825,10 @@ void Generator::visit(const NamespaceNode* node) {
         }
     }
     namespace_stack.pop_back();
+}
+
+void Generator::visit(const ConfigNode* node) {
+    // Config is applied at generation time, this is for completeness.
 }
 
 } // namespace CHTL
