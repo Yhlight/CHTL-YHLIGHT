@@ -213,3 +213,11 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse `except` statements.
 - [x] Enhance the `Generator` to enforce constraints.
 - [x] Write unit tests for the constraints system.
+
+## Milestone 30: `use` Statement
+
+- [x] Enhance the `Lexer` to recognize the `use` keyword.
+- [x] Enhance the `AST` to include a `UseNode`.
+- [x] Enhance the `Parser` to parse `use` statements.
+- [x] Enhance the `Generator` to handle `use` statements.
+- [x] Write unit tests for the `use` statement feature.

@@ -32,7 +32,8 @@ enum class NodeType {
     Import,
     Namespace,
     Config,
-    Constraint
+    Constraint,
+    Use
 };
 
 class BaseNode {

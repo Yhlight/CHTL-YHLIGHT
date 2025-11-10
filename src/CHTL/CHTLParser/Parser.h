@@ -9,6 +9,7 @@
 #include "../CHTLNode/ConditionalNode.h"
 #include "CHTLNode/IfNode.h"
 #include "CHTLNode/ElseNode.h"
+#include "CHTLNode/UseNode.h"
 #include "../CHTL/Configuration.h"
 #include <memory>
 
@@ -69,6 +70,7 @@ private:
     std::unique_ptr<NamespaceNode> parseNamespaceNode();
     std::unique_ptr<ConfigNode> parseConfigNode();
     std::unique_ptr<ConstraintNode> parseConstraintNode();
+    std::unique_ptr<UseNode> parseUseStatement();
 
 
     Lexer* lexer;

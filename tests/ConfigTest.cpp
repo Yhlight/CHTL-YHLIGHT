@@ -20,3 +20,21 @@ TEST(ConfigTest, DebugMode) {
     std::string expected = "<!-- Start Element: div --><div></div><!-- End Element: div -->";
     ASSERT_EQ(result, expected);
 }
+
+TEST(ConfigTest, NamedConfig) {
+    std::string source = R"(
+        [Configuration] @Config MyConfig {
+            DEBUG_MODE: true;
+        }
+        use @Config MyConfig;
+        div {}
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Configuration config = parser.getConfiguration();
+    CHTL::Generator generator(config);
+    std::string result = generator.generate(*program);
+    std::string expected = "<!-- Start Element: div --><div></div><!-- End Element: div -->";
+    ASSERT_EQ(result, expected);
+}

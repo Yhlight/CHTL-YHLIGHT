@@ -21,6 +21,7 @@
 #include "CHTLNode/NamespaceNode.h"
 #include "CHTLNode/ConfigNode.h"
 #include "CHTLNode/ConstraintNode.h"
+#include "CHTLNode/UseNode.h"
 #include <stdexcept>
 
 namespace CHTL {
@@ -41,6 +42,13 @@ void Parser::consume(TokenType expectedType) {
 
 std::unique_ptr<ProgramNode> Parser::parse() {
     auto programNode = std::make_unique<ProgramNode>();
+
+    while (currentToken.type == TokenType::Use) {
+		auto statement = parseUseStatement();
+		if (statement) {
+			programNode->statements.push_back(std::move(statement));
+		}
+	}
 
     while (currentToken.type != TokenType::Eof) {
         auto statement = parseStatement();
@@ -440,6 +448,18 @@ std::unique_ptr<ConfigNode> Parser::parseConfigNode() {
     consume(TokenType::CloseBracket);
 
     auto node = std::make_unique<ConfigNode>();
+
+    if (currentToken.type == TokenType::At) {
+		consume(TokenType::At);
+		if (currentToken.type == TokenType::Identifier && currentToken.value == "Config") {
+			consume(TokenType::Identifier);
+			node->name = currentToken.value;
+			consume(TokenType::Identifier);
+		}
+		else {
+			throw std::runtime_error("Invalid configuration name");
+		}
+	}
 
     consume(TokenType::OpenBrace);
 
@@ -882,6 +902,36 @@ std::unique_ptr<ConstraintNode> Parser::parseConstraintNode() {
     consume(TokenType::Semicolon);
 
     return std::make_unique<ConstraintNode>(constraints);
+}
+
+std::unique_ptr<UseNode> Parser::parseUseStatement() {
+	consume(TokenType::Use);
+
+	auto useNode = std::make_unique<UseNode>();
+
+	if (currentToken.type == TokenType::Identifier && currentToken.value == "html5") {
+		useNode->type = "html5";
+		consume(TokenType::Identifier);
+	}
+	else if (currentToken.type == TokenType::At) {
+		consume(TokenType::At);
+		if (currentToken.type == TokenType::Identifier && currentToken.value == "Config") {
+			useNode->type = "@Config";
+			consume(TokenType::Identifier);
+			useNode->configName = currentToken.value;
+			consume(TokenType::Identifier);
+		}
+		else {
+			throw std::runtime_error("Invalid use statement");
+		}
+	}
+	else {
+		throw std::runtime_error("Invalid use statement");
+	}
+
+	consume(TokenType::Semicolon);
+
+	return useNode;
 }
 
 } // namespace CHTL

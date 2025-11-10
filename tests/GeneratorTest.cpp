@@ -189,6 +189,19 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
+TEST(GeneratorTest, GeneratesHtml5Doctype) {
+    std::string source = "use html5;";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+
+    CHTL::Configuration config;
+    CHTL::Generator generator(config);
+    std::string result = generator.generate(*program);
+
+    ASSERT_EQ(result, "<!DOCTYPE html>");
+}
+
 TEST(GeneratorTest, ThrowsErrorForInvalidImportPath) {
     std::string source = "[Import] @Html from \"invalid/path/test.html\" as myFile;";
     CHTL::Lexer lexer(source);

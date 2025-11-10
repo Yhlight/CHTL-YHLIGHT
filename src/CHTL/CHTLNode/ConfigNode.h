@@ -9,6 +9,7 @@ namespace CHTL {
 
 class ConfigNode : public BaseNode {
 public:
+    std::string name;
     std::vector<std::pair<std::string, std::string>> settings;
 
     ConfigNode() {}

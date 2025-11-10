@@ -18,6 +18,7 @@
 #include "CHTLNode/ImportNode.h"
 #include "CHTLNode/NamespaceNode.h"
 #include "CHTLNode/ConfigNode.h"
+#include "CHTLNode/UseNode.h"
 #include <vector>
 #include <fstream>
 #include <cstring>
@@ -139,6 +140,9 @@ void Generator::visit(const BaseNode* node) {
         case NodeType::Config:
             visit(static_cast<const ConfigNode*>(node));
             break;
+        case NodeType::Use:
+			visit(static_cast<const UseNode*>(node));
+			break;
         default:
             break;
     }
@@ -203,18 +207,24 @@ void Generator::visit(const ProgramNode* node) {
     for (const auto& statement : node->statements) {
         if (statement->getType() == NodeType::Template) {
             visit(static_cast<const TemplateNode*>(statement.get()));
-        }
-        if (statement->getType() == NodeType::Import) {
+        } else if (statement->getType() == NodeType::Import) {
             visit(static_cast<const ImportNode*>(statement.get()));
-        }
-        if (statement->getType() == NodeType::Origin) {
+        } else if (statement->getType() == NodeType::Origin) {
             const auto originNode = static_cast<const OriginNode*>(statement.get());
             if (!originNode->name.empty()) {
                 named_origins[originNode->name] = originNode;
             }
-        }
-        if (statement->getType() == NodeType::Namespace) {
+        } else if (statement->getType() == NodeType::Namespace) {
             visit(static_cast<const NamespaceNode*>(statement.get()));
+        } else if (statement->getType() == NodeType::Use) {
+            visit(static_cast<const UseNode*>(statement.get()));
+        } else if (statement->getType() == NodeType::Config) {
+            const auto configNode = static_cast<const ConfigNode*>(statement.get());
+            if (!configNode->name.empty()) {
+                named_configs[configNode->name] = configNode;
+            } else {
+                visit(configNode);
+            }
         }
     }
 
@@ -842,6 +852,21 @@ void Generator::visit(const NamespaceNode* node) {
 
 void Generator::visit(const ConfigNode* node) {
     // Config is applied at generation time, this is for completeness.
+}
+
+void Generator::visit(const UseNode* node) {
+    if (node->type == "html5") {
+        html_output << "<!DOCTYPE html>";
+    } else if (node->type == "@Config") {
+        if (named_configs.count(node->configName)) {
+            const auto configNode = named_configs[node->configName];
+            for (const auto& setting : configNode->settings) {
+                if (setting.first == "DEBUG_MODE") {
+                    config.debugMode = (setting.second == "true");
+                }
+            }
+        }
+    }
 }
 
 } // namespace CHTL

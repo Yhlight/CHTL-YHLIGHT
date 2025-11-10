@@ -12,6 +12,7 @@ add_executable(chttl_tests
     NamespaceTest.cpp
     ConfigTest.cpp
     ConstraintTest.cpp
+    UseParserTest.cpp
 )
 
 target_link_libraries(chttl_tests
