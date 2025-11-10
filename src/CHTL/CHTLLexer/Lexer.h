@@ -11,6 +11,7 @@ public:
 
     Token getNextToken();
     Token peek();
+    void reset();
 
 private:
     Token currentToken;

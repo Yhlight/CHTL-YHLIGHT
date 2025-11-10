@@ -10,6 +10,7 @@ public:
     bool debugMode = false;
     bool disableStyleAutoAddClass = false;
     bool disableStyleAutoAddId = false;
+    int indexInitialCount = 0;
 };
 
 } // namespace CHTL

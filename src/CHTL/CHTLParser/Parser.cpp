@@ -41,6 +41,10 @@ void Parser::consume(TokenType expectedType) {
 }
 
 std::unique_ptr<ProgramNode> Parser::parse() {
+    preScanForConfiguration();
+    lexer->reset();
+    currentToken = lexer->getNextToken();
+
     auto programNode = std::make_unique<ProgramNode>();
 
     while (currentToken.type != TokenType::Eof) {
@@ -263,7 +267,7 @@ std::unique_ptr<ElementNode> Parser::parseElement() {
 
     if (currentToken.type == TokenType::OpenBracket) {
         consume(TokenType::OpenBracket);
-        elementNode->index = std::stoi(currentToken.value);
+        elementNode->index = std::stoi(currentToken.value) - config.indexInitialCount;
         consume(TokenType::Identifier); // Assuming index is a number parsed as identifier
         consume(TokenType::CloseBracket);
     }
@@ -481,6 +485,8 @@ std::unique_ptr<ConfigNode> Parser::parseConfigNode() {
                 config.disableStyleAutoAddClass = (value == "true");
             } else if (key == "DISABLE_STYLE_AUTO_ADD_ID") {
                 config.disableStyleAutoAddId = (value == "true");
+            } else if (key == "INDEX_INITIAL_COUNT") {
+                config.indexInitialCount = std::stoi(value);
             }
         }
     }
@@ -935,6 +941,37 @@ std::unique_ptr<UseNode> Parser::parseUseStatement() {
 	consume(TokenType::Semicolon);
 
 	return useNode;
+}
+
+void Parser::preScanForConfiguration() {
+    std::map<std::string, std::unique_ptr<ConfigNode>> namedConfigs;
+    std::vector<std::unique_ptr<UseNode>> useNodes;
+
+    while (currentToken.type != TokenType::Eof) {
+        if (currentToken.type == TokenType::OpenBracket && lexer->peek().value == "Configuration") {
+            auto configNode = parseConfigNode();
+            if (!configNode->name.empty()) {
+                namedConfigs[configNode->name] = std::move(configNode);
+            }
+        } else if (currentToken.type == TokenType::Use) {
+            useNodes.push_back(parseUseStatement());
+        } else {
+            // A rough way to skip other statements. This could be improved.
+            consume(currentToken.type);
+        }
+    }
+
+    // Apply configurations from `use` statements
+    for (const auto& useNode : useNodes) {
+        if (useNode->type == "@Config" && namedConfigs.count(useNode->configName)) {
+            const auto& configNode = namedConfigs[useNode->configName];
+            for (const auto& setting : configNode->settings) {
+                if (setting.first == "INDEX_INITIAL_COUNT") {
+                    config.indexInitialCount = std::stoi(setting.second);
+                }
+            }
+        }
+    }
 }
 
 } // namespace CHTL

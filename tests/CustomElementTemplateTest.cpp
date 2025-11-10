@@ -124,6 +124,36 @@ TEST(CustomElementTemplateTest, DeletionByTagName) {
     ASSERT_EQ(result, expected);
 }
 
+TEST(CustomElementTemplateTest, IndexedSpecializationWithInitialCount) {
+    std::string source = R"(
+        [Configuration] {
+            INDEX_INITIAL_COUNT: 1;
+        }
+        [Custom] @Element Box {
+            div {}
+            div {}
+        }
+
+        body {
+            @Element Box {
+                div[1] {
+                    style {
+                        height: 200px;
+                    }
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Configuration config = parser.getConfiguration();
+    CHTL::Generator generator(config);
+    std::string result = generator.generate(*program);
+    std::string expected = R"(<body><div style="height:200px;"></div><div></div></body>)";
+    ASSERT_EQ(result, expected);
+}
+
 TEST(CustomElementTemplateTest, DeletionByIndexedTagName) {
     std::string source = R"(
         [Template] @Element Base {

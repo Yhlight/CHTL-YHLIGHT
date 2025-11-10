@@ -218,13 +218,6 @@ void Generator::visit(const ProgramNode* node) {
             visit(static_cast<const NamespaceNode*>(statement.get()));
         } else if (statement->getType() == NodeType::Use) {
             visit(static_cast<const UseNode*>(statement.get()));
-        } else if (statement->getType() == NodeType::Config) {
-            const auto configNode = static_cast<const ConfigNode*>(statement.get());
-            if (!configNode->name.empty()) {
-                named_configs[configNode->name] = configNode;
-            } else {
-                visit(configNode);
-            }
         }
     }
 
@@ -857,19 +850,6 @@ void Generator::visit(const ConfigNode* node) {
 void Generator::visit(const UseNode* node) {
     if (node->type == "html5") {
         html_output << "<!DOCTYPE html>";
-    } else if (node->type == "@Config") {
-        if (named_configs.count(node->configName)) {
-            const auto configNode = named_configs[node->configName];
-            for (const auto& setting : configNode->settings) {
-                if (setting.first == "DEBUG_MODE") {
-                    config.debugMode = (setting.second == "true");
-                } else if (setting.first == "DISABLE_STYLE_AUTO_ADD_CLASS") {
-                    config.disableStyleAutoAddClass = (setting.second == "true");
-                } else if (setting.first == "DISABLE_STYLE_AUTO_ADD_ID") {
-                    config.disableStyleAutoAddId = (setting.second == "true");
-                }
-            }
-        }
     }
 }
 

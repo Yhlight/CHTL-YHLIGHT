@@ -227,3 +227,9 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to recognize `DISABLE_STYLE_AUTO_ADD_CLASS` and `DISABLE_STYLE_AUTO_ADD_ID`.
 - [x] Update the `Generator` to respect the new configuration flags.
 - [x] Add unit tests for the new configuration options.
+
+## Milestone 32: Index Initial Count Configuration
+
+- [x] Enhance the `Parser` to recognize the `INDEX_INITIAL_COUNT` setting.
+- [x] Adjust the parsed index value in `parseElement` based on `indexInitialCount`.
+- [x] Add a unit test to verify the `INDEX_INITIAL_COUNT` functionality.

@@ -71,6 +71,7 @@ private:
     std::unique_ptr<ConfigNode> parseConfigNode();
     std::unique_ptr<ConstraintNode> parseConstraintNode();
     std::unique_ptr<UseNode> parseUseStatement();
+    void preScanForConfiguration();
 
 
     Lexer* lexer;

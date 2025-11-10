@@ -75,7 +75,6 @@ private:
     std::vector<const TemplateUsageNode*> template_usage_context;
     std::map<std::string, int> element_indices;
     std::map<std::string, const OriginNode*> named_origins;
-    std::map<std::string, const ConfigNode*> named_configs;
 };
 
 } // namespace CHTL

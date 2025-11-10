@@ -51,17 +51,20 @@ TEST(ConfigTest, DisableAutoAdd) {
 TEST(ConfigTest, NamedConfig) {
     std::string source = R"(
         [Configuration] @Config MyConfig {
-            DISABLE_STYLE_AUTO_ADD_CLASS: true;
-            DISABLE_STYLE_AUTO_ADD_ID: true;
+            INDEX_INITIAL_COUNT: 1;
         }
         use @Config MyConfig;
-        div {
-            style {
-                .box {
-                    color: red;
-                }
-                #main {
-                    background: blue;
+        [Custom] @Element Box {
+            div {}
+            div {}
+        }
+
+        body {
+            @Element Box {
+                div[1] {
+                    style {
+                        height: 200px;
+                    }
                 }
             }
         }
@@ -69,9 +72,9 @@ TEST(ConfigTest, NamedConfig) {
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
     auto program = parser.parse();
-    CHTL::Configuration config; // Start with default config
+    CHTL::Configuration config = parser.getConfiguration();
     CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
-    std::string expected = "<style>.box{color:red;}#main{background:blue;}</style><div></div>";
+    std::string expected = R"(<body><div style="height:200px;"></div><div></div></body>)";
     ASSERT_EQ(result, expected);
 }

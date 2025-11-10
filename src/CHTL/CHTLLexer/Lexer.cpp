@@ -213,4 +213,9 @@ Token Lexer::peek() {
     return currentToken;
 }
 
+void Lexer::reset() {
+    position = 0;
+    hasPeeked = false;
+}
+
 } // namespace CHTL
