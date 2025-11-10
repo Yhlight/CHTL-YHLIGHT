@@ -221,3 +221,9 @@ This document outlines the development plan for the CHTL compiler.
 - [x] Enhance the `Parser` to parse `use` statements.
 - [x] Enhance the `Generator` to handle `use` statements.
 - [x] Write unit tests for the `use` statement feature.
+
+## Milestone 31: Advanced Configuration
+
+- [x] Enhance the `Parser` to recognize `DISABLE_STYLE_AUTO_ADD_CLASS` and `DISABLE_STYLE_AUTO_ADD_ID`.
+- [x] Update the `Generator` to respect the new configuration flags.
+- [x] Add unit tests for the new configuration options.

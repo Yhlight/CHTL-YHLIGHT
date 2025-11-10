@@ -21,13 +21,22 @@ TEST(ConfigTest, DebugMode) {
     ASSERT_EQ(result, expected);
 }
 
-TEST(ConfigTest, NamedConfig) {
+TEST(ConfigTest, DisableAutoAdd) {
     std::string source = R"(
-        [Configuration] @Config MyConfig {
-            DEBUG_MODE: true;
+        [Configuration] {
+            DISABLE_STYLE_AUTO_ADD_CLASS: true;
+            DISABLE_STYLE_AUTO_ADD_ID: true;
         }
-        use @Config MyConfig;
-        div {}
+        div {
+            style {
+                .box {
+                    color: red;
+                }
+                #main {
+                    background: blue;
+                }
+            }
+        }
     )";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
@@ -35,6 +44,34 @@ TEST(ConfigTest, NamedConfig) {
     CHTL::Configuration config = parser.getConfiguration();
     CHTL::Generator generator(config);
     std::string result = generator.generate(*program);
-    std::string expected = "<!-- Start Element: div --><div></div><!-- End Element: div -->";
+    std::string expected = "<style>.box{color:red;}#main{background:blue;}</style><div></div>";
+    ASSERT_EQ(result, expected);
+}
+
+TEST(ConfigTest, NamedConfig) {
+    std::string source = R"(
+        [Configuration] @Config MyConfig {
+            DISABLE_STYLE_AUTO_ADD_CLASS: true;
+            DISABLE_STYLE_AUTO_ADD_ID: true;
+        }
+        use @Config MyConfig;
+        div {
+            style {
+                .box {
+                    color: red;
+                }
+                #main {
+                    background: blue;
+                }
+            }
+        }
+    )";
+    CHTL::Lexer lexer(source);
+    CHTL::Parser parser(lexer);
+    auto program = parser.parse();
+    CHTL::Configuration config; // Start with default config
+    CHTL::Generator generator(config);
+    std::string result = generator.generate(*program);
+    std::string expected = "<style>.box{color:red;}#main{background:blue;}</style><div></div>";
     ASSERT_EQ(result, expected);
 }

@@ -382,14 +382,14 @@ void Generator::visit(const StyleNode* node, ElementNode* parent) {
     std::string primarySelectorForContext = !firstClassSelector.empty() ? firstClassSelector : firstIdSelector;
 
     // Automatically add class or id attributes
-    if (!firstClassSelector.empty()) {
+    if (!config.disableStyleAutoAddClass && !firstClassSelector.empty()) {
         if (parent->attributes.count("class")) {
             parent->attributes["class"] += " " + firstClassSelector.substr(1);
         } else {
             parent->attributes["class"] = firstClassSelector.substr(1);
         }
     }
-    if (!firstIdSelector.empty()) {
+    if (!config.disableStyleAutoAddId && !firstIdSelector.empty()) {
         parent->attributes["id"] = firstIdSelector.substr(1);
     }
 
@@ -863,6 +863,10 @@ void Generator::visit(const UseNode* node) {
             for (const auto& setting : configNode->settings) {
                 if (setting.first == "DEBUG_MODE") {
                     config.debugMode = (setting.second == "true");
+                } else if (setting.first == "DISABLE_STYLE_AUTO_ADD_CLASS") {
+                    config.disableStyleAutoAddClass = (setting.second == "true");
+                } else if (setting.first == "DISABLE_STYLE_AUTO_ADD_ID") {
+                    config.disableStyleAutoAddId = (setting.second == "true");
                 }
             }
         }

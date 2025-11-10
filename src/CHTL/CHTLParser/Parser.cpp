@@ -43,13 +43,6 @@ void Parser::consume(TokenType expectedType) {
 std::unique_ptr<ProgramNode> Parser::parse() {
     auto programNode = std::make_unique<ProgramNode>();
 
-    while (currentToken.type == TokenType::Use) {
-		auto statement = parseUseStatement();
-		if (statement) {
-			programNode->statements.push_back(std::move(statement));
-		}
-	}
-
     while (currentToken.type != TokenType::Eof) {
         auto statement = parseStatement();
         if(statement) {
@@ -78,6 +71,10 @@ std::unique_ptr<BaseNode> Parser::parseStatement() {
 
     if (currentToken.type == TokenType::If) {
         return parseIfNode();
+    }
+
+    if (currentToken.type == TokenType::Use) {
+        return parseUseStatement();
     }
 
     if (currentToken.type == TokenType::OpenBracket) {
@@ -477,8 +474,14 @@ std::unique_ptr<ConfigNode> Parser::parseConfigNode() {
 
         node->settings.emplace_back(key, value);
 
-        if (key == "DEBUG_MODE") {
-            config.debugMode = (value == "true");
+        if (node->name.empty()) {
+            if (key == "DEBUG_MODE") {
+                config.debugMode = (value == "true");
+            } else if (key == "DISABLE_STYLE_AUTO_ADD_CLASS") {
+                config.disableStyleAutoAddClass = (value == "true");
+            } else if (key == "DISABLE_STYLE_AUTO_ADD_ID") {
+                config.disableStyleAutoAddId = (value == "true");
+            }
         }
     }
 
