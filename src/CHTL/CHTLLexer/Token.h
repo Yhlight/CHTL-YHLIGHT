@@ -20,12 +20,6 @@ enum class TokenType {
     CloseParen,
     Delete,
     Comma,
-    Plus,
-    Minus,
-    Asterisk,
-    Slash,
-    Percent,
-    DoubleAsterisk,
     Eof,
     Unknown
 };

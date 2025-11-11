@@ -175,16 +175,28 @@ TEST(GeneratorTest, GeneratesStyleTemplate) {
     ASSERT_EQ(result, "<div style=\"color:black;\"></div>");
 }
 
-TEST(GeneratorTest, GeneratesArithmeticExpression) {
-    std::string source = "div { style { width: 10px + 5px; } }";
+TEST(GeneratorTest, GeneratesPropertyReference) {
+    std::string source = R"(
+        div {
+            id: "main";
+            style {
+                width: 100px;
+            }
+        }
+        p {
+            style {
+                width: main.width;
+            }
+        }
+    )";
     CHTL::Lexer lexer(source);
     CHTL::Parser parser(lexer);
-    auto program = parser.parse();
+    std::unique_ptr<CHTL::ProgramNode> program = parser.parse();
 
     CHTL::Generator generator;
     std::string result = generator.generate(*program);
 
-    ASSERT_EQ(result, "<div style=\"width:calc(10px + 5px);\"></div>");
+    ASSERT_EQ(result, "<div id=\"main\" style=\"width:100px;\"></div><p style=\"width:100px;\"></p>");
 }
 
 TEST(GeneratorTest, GeneratesValuelessStyleGroup) {

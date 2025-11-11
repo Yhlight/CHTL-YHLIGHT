@@ -26,6 +26,8 @@ public:
     std::string generate(const ProgramNode& program);
 
 private:
+    void collectElementIds(const ProgramNode* node);
+    void collectElementIds(const ElementNode* node);
     void visit(const ProgramNode* node);
     void visit(const ElementNode* node);
     void visit(const TextNode* node);
@@ -35,12 +37,14 @@ private:
     void visit(const TemplateNode* node);
     void visit(const TemplateUsageNode* node, ElementNode* parent);
     void visit(const StylePropertyNode* node, std::stringstream& styleStream);
-    void visit(const ValueNode* node, std::stringstream& styleStream);
+    void visit(const class ValueNode* node, std::stringstream& styleStream);
     void visit(const class BinaryOperationNode* node, std::stringstream& styleStream);
+    void visit(const class PropertyReferenceNode* node, std::stringstream& styleStream);
     void resolveStyleInheritance(const TemplateNode* node, std::map<std::string, const StylePropertyNode*>& properties, const std::set<std::string>& deletedInheritances);
 
     std::stringstream html_output;
     std::stringstream css_output;
+    std::map<std::string, ElementNode*> elements_by_id;
     std::map<std::string, const TemplateNode*> style_templates;
     std::map<std::string, const TemplateNode*> element_templates;
     std::map<std::string, const TemplateNode*> var_templates;

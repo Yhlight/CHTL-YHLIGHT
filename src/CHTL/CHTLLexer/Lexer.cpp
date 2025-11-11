@@ -118,25 +118,6 @@ Token Lexer::getNextToken() {
         case ',':
             position++;
             return {TokenType::Comma, ","};
-        case '+':
-            position++;
-            return {TokenType::Plus, "+"};
-        case '-':
-            position++;
-            return {TokenType::Minus, "-"};
-        case '*':
-            if (position + 1 < source.length() && source[position + 1] == '*') {
-                position += 2;
-                return {TokenType::DoubleAsterisk, "**"};
-            }
-            position++;
-            return {TokenType::Asterisk, "*"};
-        case '/':
-            position++;
-            return {TokenType::Slash, "/"};
-        case '%':
-            position++;
-            return {TokenType::Percent, "%"};
     }
 
     // Handle identifiers and unquoted literals (including numbers and selectors)
